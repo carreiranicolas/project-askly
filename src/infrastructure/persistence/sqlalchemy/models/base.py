@@ -1,9 +1,8 @@
 """SQLAlchemy base configuration."""
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import MetaData
-
+from sqlalchemy.orm import DeclarativeBase
 
 convention = {
     "ix": "ix_%(column_0_label)s",
@@ -16,6 +15,7 @@ convention = {
 
 class BaseModel(DeclarativeBase):
     """Base class for all models."""
+
     metadata = MetaData(naming_convention=convention)
 
 

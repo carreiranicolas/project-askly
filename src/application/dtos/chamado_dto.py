@@ -4,12 +4,13 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from src.domain.enums import StatusChamado, Prioridade
+from src.domain.enums import Prioridade, StatusChamado
 
 
 @dataclass
 class ChamadoCreateDTO:
     """DTO para criação de chamado."""
+
     titulo: str
     descricao: str
     categoria_id: UUID
@@ -19,6 +20,7 @@ class ChamadoCreateDTO:
 @dataclass
 class ChamadoUpdateDTO:
     """DTO para atualização de chamado."""
+
     id: UUID
     titulo: str | None = None
     descricao: str | None = None
@@ -28,6 +30,7 @@ class ChamadoUpdateDTO:
 @dataclass
 class ChamadoResponseDTO:
     """DTO de resposta de chamado."""
+
     id: UUID
     titulo: str
     descricao: str
@@ -49,20 +52,20 @@ class ChamadoResponseDTO:
     criado_em: datetime
     atualizado_em: datetime
     transicoes_disponiveis: list[str] | None = None
-    
+
     @classmethod
     def from_entity(
-        cls, 
+        cls,
         chamado,
         categoria_nome: str | None = None,
         solicitante_nome: str | None = None,
         atendente_nome: str | None = None,
-        transicoes: list[StatusChamado] | None = None
+        transicoes: list[StatusChamado] | None = None,
     ) -> "ChamadoResponseDTO":
         """Cria DTO a partir de entidade."""
         status = chamado.status_atual
         prioridade = chamado.prioridade
-        
+
         if isinstance(status, StatusChamado):
             status_val = status.value
             status_display = status.display_name
@@ -73,7 +76,7 @@ class ChamadoResponseDTO:
             status_display = status
             status_cor = "#363636"
             status_css = "is-light"
-        
+
         if isinstance(prioridade, Prioridade):
             prioridade_val = prioridade.value
             prioridade_display = prioridade.display_name
@@ -82,7 +85,7 @@ class ChamadoResponseDTO:
             prioridade_val = prioridade
             prioridade_display = prioridade
             prioridade_css = "is-light"
-        
+
         return cls(
             id=chamado.id,
             titulo=chamado.titulo,
@@ -111,6 +114,7 @@ class ChamadoResponseDTO:
 @dataclass
 class ChamadoListFilterDTO:
     """DTO para filtros de listagem de chamados."""
+
     status: StatusChamado | None = None
     prioridade: Prioridade | None = None
     categoria_id: UUID | None = None
@@ -125,6 +129,7 @@ class ChamadoListFilterDTO:
 @dataclass
 class AlterarStatusDTO:
     """DTO para alteração de status."""
+
     chamado_id: UUID
     novo_status: StatusChamado
     motivo: str | None = None
@@ -133,5 +138,6 @@ class AlterarStatusDTO:
 @dataclass
 class AtribuirAtendenteDTO:
     """DTO para atribuição de atendente."""
+
     chamado_id: UUID
     atendente_id: UUID

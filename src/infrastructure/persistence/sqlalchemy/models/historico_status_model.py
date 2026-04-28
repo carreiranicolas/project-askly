@@ -8,8 +8,8 @@ from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.infrastructure.persistence.sqlalchemy.models.base import db
 from src.domain.entities import HistoricoStatus
+from src.infrastructure.persistence.sqlalchemy.models.base import db
 
 if TYPE_CHECKING:
     from src.infrastructure.persistence.sqlalchemy.models.chamado_model import ChamadoModel
@@ -18,24 +18,18 @@ if TYPE_CHECKING:
 
 class HistoricoStatusModel(db.Model):
     """SQLAlchemy model for historico_status table (audit trail)."""
-    
+
     __tablename__ = "historico_status"
-    
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), 
-        primary_key=True, 
-        default=uuid.uuid4
-    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     chamado_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("chamados.id", ondelete="RESTRICT"),
         nullable=False,
-        index=True
+        index=True,
     )
     alterado_por_usuario_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("usuarios.id", ondelete="RESTRICT"),
-        nullable=False
+        UUID(as_uuid=True), ForeignKey("usuarios.id", ondelete="RESTRICT"), nullable=False
     )
     status_anterior: Mapped[str] = mapped_column(String(50), nullable=False, default="")
     status_novo: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -44,15 +38,12 @@ class HistoricoStatusModel(db.Model):
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
-        index=True
+        index=True,
     )
-    
-    chamado: Mapped["ChamadoModel"] = relationship(
-        "ChamadoModel",
-        back_populates="historico"
-    )
+
+    chamado: Mapped["ChamadoModel"] = relationship("ChamadoModel", back_populates="historico")
     alterado_por: Mapped["UsuarioModel"] = relationship("UsuarioModel")
-    
+
     def to_entity(self) -> HistoricoStatus:
         """Convert to domain entity."""
         return HistoricoStatus(
@@ -64,7 +55,7 @@ class HistoricoStatusModel(db.Model):
             motivo=self.motivo,
             alterado_em=self.alterado_em,
         )
-    
+
     @classmethod
     def from_entity(cls, entity: HistoricoStatus) -> "HistoricoStatusModel":
         """Create model from domain entity."""
@@ -77,6 +68,6 @@ class HistoricoStatusModel(db.Model):
             motivo=entity.motivo,
             alterado_em=entity.alterado_em,
         )
-    
+
     def __repr__(self) -> str:
         return f"<HistoricoStatusModel {self.status_anterior} -> {self.status_novo}>"

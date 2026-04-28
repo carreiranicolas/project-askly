@@ -47,4 +47,3 @@ class TokenService:
             options={"require": ["exp", "iat", "sub"]},
             issuer=self._issuer,
         )
-

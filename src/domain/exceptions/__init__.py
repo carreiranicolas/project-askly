@@ -1,24 +1,24 @@
 """Domain exceptions - Exceções de negócio."""
 
 from src.domain.exceptions.base import (
+    AuthenticationException,
+    AuthorizationException,
+    BusinessRuleViolationException,
     DomainException,
     EntityNotFoundException,
     ValidationException,
-    BusinessRuleViolationException,
-    AuthenticationException,
-    AuthorizationException,
 )
 from src.domain.exceptions.ticket import (
-    TicketException,
     InvalidStatusTransitionException,
-    TicketClosedException,
     ReopenDeadlineExpiredException,
+    TicketClosedException,
+    TicketException,
 )
 from src.domain.exceptions.user import (
-    UserException,
-    UserAlreadyExistsException,
-    UserInactiveException,
     InvalidCredentialsException,
+    UserAlreadyExistsException,
+    UserException,
+    UserInactiveException,
 )
 
 __all__ = [

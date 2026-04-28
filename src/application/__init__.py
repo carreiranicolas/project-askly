@@ -12,18 +12,18 @@ REGRAS:
 """
 
 from src.application.use_cases import (
+    AddCommentUseCase,
+    AssignAttendantUseCase,
+    ChangeProfileUseCase,
+    ChangeStatusUseCase,
+    CreateCategoryUseCase,
+    CreateTicketUseCase,
+    GetTicketUseCase,
+    ListCategoriesUseCase,
+    ListTicketsUseCase,
+    ListUsersUseCase,
     LoginUseCase,
     RegisterUseCase,
-    CreateTicketUseCase,
-    ChangeStatusUseCase,
-    AssignAttendantUseCase,
-    ListTicketsUseCase,
-    GetTicketUseCase,
-    AddCommentUseCase,
-    CreateCategoryUseCase,
-    ListCategoriesUseCase,
-    ListUsersUseCase,
-    ChangeProfileUseCase,
 )
 
 __all__ = [

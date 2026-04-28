@@ -8,6 +8,7 @@ from uuid import UUID
 @dataclass
 class CategoriaCreateDTO:
     """DTO para criação de categoria."""
+
     nome: str
     descricao: str | None = None
 
@@ -15,6 +16,7 @@ class CategoriaCreateDTO:
 @dataclass
 class CategoriaUpdateDTO:
     """DTO para atualização de categoria."""
+
     id: UUID
     nome: str | None = None
     descricao: str | None = None
@@ -24,12 +26,13 @@ class CategoriaUpdateDTO:
 @dataclass
 class CategoriaResponseDTO:
     """DTO de resposta de categoria."""
+
     id: UUID
     nome: str
     descricao: str | None
     ativa: bool
     criado_em: datetime
-    
+
     @classmethod
     def from_entity(cls, categoria) -> "CategoriaResponseDTO":
         """Cria DTO a partir de entidade."""

@@ -9,7 +9,7 @@ import jwt as pyjwt
 from flask import abort, current_app, g, request
 from flask_login import current_user
 
-from src.infrastructure.persistence.sqlalchemy.models import db, UsuarioModel
+from src.infrastructure.persistence.sqlalchemy.models import UsuarioModel, db
 from src.infrastructure.security import TokenService
 
 
@@ -67,4 +67,3 @@ def api_auth_required(fn):
             abort(500)
 
     return wrapper
-

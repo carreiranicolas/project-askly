@@ -10,16 +10,16 @@ class ListCategoriesUseCase:
     """
     Use Case para listagem de categorias.
     """
-    
+
     unit_of_work: "IUnitOfWork"
-    
+
     def execute(self, apenas_ativas: bool = True) -> list[CategoriaResponseDTO]:
         """
         Lista categorias.
-        
+
         Args:
             apenas_ativas: Se True, retorna apenas ativas
-            
+
         Returns:
             Lista de categorias
         """
@@ -28,7 +28,7 @@ class ListCategoriesUseCase:
                 categorias = self.unit_of_work.categorias.get_ativas()
             else:
                 categorias = self.unit_of_work.categorias.get_all_ordered()
-        
+
         return [CategoriaResponseDTO.from_entity(c) for c in categorias]
 
 

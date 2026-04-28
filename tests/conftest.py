@@ -1,12 +1,13 @@
 """Pytest configuration and fixtures."""
 
 import os
-import pytest
 from uuid import uuid4
 
-from src.presentation.app_factory import create_app
+import pytest
+
 from src.infrastructure.persistence.sqlalchemy.models import db as _db
 from src.infrastructure.security import PasswordHasher
+from src.presentation.app_factory import create_app
 
 
 def _ensure_test_database_exists(database_url: str) -> None:
@@ -45,17 +46,19 @@ def _ensure_test_database_exists(database_url: str) -> None:
         engine.dispose()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def app():
     """Create application for testing."""
-    app = create_app('testing')
-    
-    app.config.update({
-        'TESTING': True,
-        'WTF_CSRF_ENABLED': False,
-        'SERVER_NAME': 'localhost.localdomain',
-    })
-    
+    app = create_app("testing")
+
+    app.config.update(
+        {
+            "TESTING": True,
+            "WTF_CSRF_ENABLED": False,
+            "SERVER_NAME": "localhost.localdomain",
+        }
+    )
+
     with app.app_context():
         _ensure_test_database_exists(app.config["SQLALCHEMY_DATABASE_URI"])
         _db.create_all()
@@ -63,7 +66,7 @@ def app():
         _db.drop_all()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def db(app):
     """Create database for each test."""
     with app.app_context():
@@ -97,28 +100,31 @@ def password_hasher():
 def auth_headers(client, db, password_hasher):
     """Get authentication headers for API tests."""
     from src.infrastructure.persistence.sqlalchemy.models import UsuarioModel
-    
+
     user = UsuarioModel(
         id=uuid4(),
-        nome='Test User',
-        email='test@test.com',
-        senha_hash=password_hasher.hash('password123'),
-        perfil='solicitante',
+        nome="Test User",
+        email="test@test.com",
+        senha_hash=password_hasher.hash("password123"),
+        perfil="solicitante",
         ativo=True,
     )
     db.session.add(user)
     db.session.commit()
-    
-    response = client.post('/api/v1/auth/login', json={
-        'email': 'test@test.com',
-        'senha': 'password123',
-    })
-    
+
+    response = client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "test@test.com",
+            "senha": "password123",
+        },
+    )
+
     data = response.get_json()
-    token = data.get('access_token', '')
+    token = data.get("access_token", "")
     return {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {token}',
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}",
     }
 
 
@@ -126,13 +132,13 @@ def auth_headers(client, db, password_hasher):
 def admin_user(db, password_hasher):
     """Create admin user."""
     from src.infrastructure.persistence.sqlalchemy.models import UsuarioModel
-    
+
     user = UsuarioModel(
         id=uuid4(),
-        nome='Admin User',
-        email='admin@test.com',
-        senha_hash=password_hasher.hash('admin123'),
-        perfil='admin',
+        nome="Admin User",
+        email="admin@test.com",
+        senha_hash=password_hasher.hash("admin123"),
+        perfil="admin",
         ativo=True,
     )
     db.session.add(user)
@@ -144,13 +150,13 @@ def admin_user(db, password_hasher):
 def atendente_user(db, password_hasher):
     """Create atendente user."""
     from src.infrastructure.persistence.sqlalchemy.models import UsuarioModel
-    
+
     user = UsuarioModel(
         id=uuid4(),
-        nome='Atendente User',
-        email='atendente@test.com',
-        senha_hash=password_hasher.hash('atendente123'),
-        perfil='atendente',
+        nome="Atendente User",
+        email="atendente@test.com",
+        senha_hash=password_hasher.hash("atendente123"),
+        perfil="atendente",
         ativo=True,
     )
     db.session.add(user)
@@ -162,13 +168,13 @@ def atendente_user(db, password_hasher):
 def solicitante_user(db, password_hasher):
     """Create solicitante user."""
     from src.infrastructure.persistence.sqlalchemy.models import UsuarioModel
-    
+
     user = UsuarioModel(
         id=uuid4(),
-        nome='Solicitante User',
-        email='solicitante@test.com',
-        senha_hash=password_hasher.hash('solicitante123'),
-        perfil='solicitante',
+        nome="Solicitante User",
+        email="solicitante@test.com",
+        senha_hash=password_hasher.hash("solicitante123"),
+        perfil="solicitante",
         ativo=True,
     )
     db.session.add(user)
@@ -180,11 +186,11 @@ def solicitante_user(db, password_hasher):
 def categoria(db):
     """Create test category."""
     from src.infrastructure.persistence.sqlalchemy.models import CategoriaModel
-    
+
     cat = CategoriaModel(
         id=uuid4(),
-        nome='TI - Teste',
-        descricao='Categoria de teste',
+        nome="TI - Teste",
+        descricao="Categoria de teste",
         ativa=True,
     )
     db.session.add(cat)

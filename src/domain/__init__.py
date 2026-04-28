@@ -15,12 +15,12 @@ REGRAS:
 """
 
 from src.domain.entities import (
-    Entity,
-    Usuario,
     Categoria,
     Chamado,
     Comentario,
+    Entity,
     HistoricoStatus,
+    Usuario,
 )
 from src.domain.enums import (
     PerfilUsuario,
@@ -29,9 +29,9 @@ from src.domain.enums import (
 )
 from src.domain.value_objects import (
     Email,
-    Senha,
-    PaginationParams,
     PaginatedResult,
+    PaginationParams,
+    Senha,
 )
 
 __all__ = [

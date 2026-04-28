@@ -1,29 +1,29 @@
 """Tests for ticket use cases: Get, List, Assign, AddComment."""
 
-import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
-from src.application.dtos import ComentarioCreateDTO, AtribuirAtendenteDTO
+import pytest
+
+from src.application.dtos import AtribuirAtendenteDTO, ChamadoListFilterDTO, ComentarioCreateDTO
 from src.application.use_cases import (
+    AddCommentUseCase,
+    AssignAttendantUseCase,
     GetTicketUseCase,
     ListTicketsUseCase,
-    AssignAttendantUseCase,
-    AddCommentUseCase,
 )
-from src.application.dtos import ChamadoListFilterDTO
 from src.domain.enums import PerfilUsuario, StatusChamado
 from src.domain.exceptions import (
-    EntityNotFoundException,
     AuthorizationException,
+    EntityNotFoundException,
     TicketClosedException,
     ValidationException,
 )
 from tests.fixtures.factories import (
-    UsuarioFactory,
-    ChamadoFactory,
     CategoriaFactory,
+    ChamadoFactory,
     ComentarioFactory,
+    UsuarioFactory,
 )
 
 
@@ -100,8 +100,10 @@ class TestListTicketsUseCase:
         use_case.execute(filters, user)
 
         call_kwargs = uow.chamados.get_paginated_filtered.call_args
-        assert call_kwargs.kwargs.get('solicitante_id') == user.id or \
-               call_kwargs[1].get('solicitante_id') == user.id
+        assert (
+            call_kwargs.kwargs.get("solicitante_id") == user.id
+            or call_kwargs[1].get("solicitante_id") == user.id
+        )
 
     def test_admin_sees_all(self):
         """Test that admin doesn't have forced solicitante filter."""
@@ -115,7 +117,9 @@ class TestListTicketsUseCase:
         use_case.execute(filters, admin)
 
         call_kwargs = uow.chamados.get_paginated_filtered.call_args
-        solicitante_id = call_kwargs.kwargs.get('solicitante_id') or call_kwargs[1].get('solicitante_id')
+        solicitante_id = call_kwargs.kwargs.get("solicitante_id") or call_kwargs[1].get(
+            "solicitante_id"
+        )
         assert solicitante_id is None
 
 
@@ -135,9 +139,7 @@ class TestAssignAttendantUseCase:
         uow = _make_uow()
         uow.chamados.get_by_id.return_value = chamado
         uow.usuarios.get_by_id.side_effect = lambda uid: (
-            atendente if uid == atendente.id
-            else solicitante if uid == solicitante.id
-            else None
+            atendente if uid == atendente.id else solicitante if uid == solicitante.id else None
         )
         uow.categorias.get_by_id.return_value = categoria
 
@@ -189,11 +191,11 @@ class TestAddCommentUseCase:
         uow.chamados.get_by_id.return_value = chamado
         uow.comentarios.add.return_value = None
 
-        dto = ComentarioCreateDTO(chamado_id=chamado.id, conteudo='Test comment')
+        dto = ComentarioCreateDTO(chamado_id=chamado.id, conteudo="Test comment")
         use_case = AddCommentUseCase(unit_of_work=uow)
         result = use_case.execute(dto, user)
 
-        assert result.conteudo == 'Test comment'
+        assert result.conteudo == "Test comment"
         uow.comentarios.add.assert_called_once()
         uow.commit.assert_called_once()
 
@@ -205,7 +207,7 @@ class TestAddCommentUseCase:
         uow = _make_uow()
         uow.chamados.get_by_id.return_value = chamado
 
-        dto = ComentarioCreateDTO(chamado_id=chamado.id, conteudo='Test')
+        dto = ComentarioCreateDTO(chamado_id=chamado.id, conteudo="Test")
         use_case = AddCommentUseCase(unit_of_work=uow)
 
         with pytest.raises(TicketClosedException):
@@ -216,7 +218,7 @@ class TestAddCommentUseCase:
         user = UsuarioFactory()
 
         uow = _make_uow()
-        dto = ComentarioCreateDTO(chamado_id=uuid4(), conteudo='   ')
+        dto = ComentarioCreateDTO(chamado_id=uuid4(), conteudo="   ")
         use_case = AddCommentUseCase(unit_of_work=uow)
 
         with pytest.raises(ValidationException):
@@ -231,7 +233,7 @@ class TestAddCommentUseCase:
         uow = _make_uow()
         uow.chamados.get_by_id.return_value = chamado
 
-        dto = ComentarioCreateDTO(chamado_id=chamado.id, conteudo='Sneaky comment')
+        dto = ComentarioCreateDTO(chamado_id=chamado.id, conteudo="Sneaky comment")
         use_case = AddCommentUseCase(unit_of_work=uow)
 
         with pytest.raises(AuthorizationException):

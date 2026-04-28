@@ -34,6 +34,7 @@ def get_current_user_entity() -> Usuario | None:
         criado_em = principal.criado_em
     except DetachedInstanceError:
         from sqlalchemy import inspect as sa_inspect
+
         from src.infrastructure.persistence.sqlalchemy.models import UsuarioModel, db
 
         ident = sa_inspect(principal).identity

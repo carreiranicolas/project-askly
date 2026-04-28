@@ -1,18 +1,19 @@
 """Tests for admin use cases: ChangeProfile, ListUsers, CreateCategory."""
 
-import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, Mock
 from uuid import uuid4
+
+import pytest
 
 from src.application.dtos import CategoriaCreateDTO
 from src.application.use_cases import (
     ChangeProfileUseCase,
-    ListUsersUseCase,
     CreateCategoryUseCase,
+    ListUsersUseCase,
 )
 from src.domain.enums import PerfilUsuario
 from src.domain.exceptions import AuthorizationException, ValidationException
-from tests.fixtures.factories import UsuarioFactory, CategoriaFactory
+from tests.fixtures.factories import CategoriaFactory, UsuarioFactory
 
 
 def _make_uow():
@@ -37,7 +38,7 @@ class TestChangeProfileUseCase:
         use_case = ChangeProfileUseCase(unit_of_work=uow)
         result = use_case.execute(target.id, PerfilUsuario.ATENDENTE, admin)
 
-        assert result.perfil == 'atendente'
+        assert result.perfil == "atendente"
         uow.usuarios.update.assert_called_once()
         uow.commit.assert_called_once()
 
@@ -73,6 +74,7 @@ class TestChangeProfileUseCase:
         use_case = ChangeProfileUseCase(unit_of_work=uow)
 
         from src.domain.exceptions import EntityNotFoundException
+
         with pytest.raises(EntityNotFoundException):
             use_case.execute(uuid4(), PerfilUsuario.ATENDENTE, admin)
 
@@ -115,11 +117,11 @@ class TestCreateCategoryUseCase:
         uow.categorias.nome_exists.return_value = False
         uow.categorias.add.return_value = None
 
-        dto = CategoriaCreateDTO(nome='TI - Nova', descricao='Descrição')
+        dto = CategoriaCreateDTO(nome="TI - Nova", descricao="Descrição")
         use_case = CreateCategoryUseCase(unit_of_work=uow)
         result = use_case.execute(dto, admin)
 
-        assert result.nome == 'TI - Nova'
+        assert result.nome == "TI - Nova"
         uow.categorias.add.assert_called_once()
         uow.commit.assert_called_once()
 
@@ -130,7 +132,7 @@ class TestCreateCategoryUseCase:
         uow = _make_uow()
         uow.categorias.nome_exists.return_value = True
 
-        dto = CategoriaCreateDTO(nome='Existing', descricao='Desc')
+        dto = CategoriaCreateDTO(nome="Existing", descricao="Desc")
         use_case = CreateCategoryUseCase(unit_of_work=uow)
 
         with pytest.raises(ValidationException):
@@ -141,7 +143,7 @@ class TestCreateCategoryUseCase:
         solicitante = UsuarioFactory()
         uow = _make_uow()
 
-        dto = CategoriaCreateDTO(nome='Test', descricao='Desc')
+        dto = CategoriaCreateDTO(nome="Test", descricao="Desc")
         use_case = CreateCategoryUseCase(unit_of_work=uow)
 
         with pytest.raises(AuthorizationException):
@@ -152,7 +154,7 @@ class TestCreateCategoryUseCase:
         admin = UsuarioFactory(admin=True)
         uow = _make_uow()
 
-        dto = CategoriaCreateDTO(nome='   ', descricao='Desc')
+        dto = CategoriaCreateDTO(nome="   ", descricao="Desc")
         use_case = CreateCategoryUseCase(unit_of_work=uow)
 
         with pytest.raises(ValidationException):

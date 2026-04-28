@@ -4,11 +4,12 @@ Validates that resolvido_em is properly cleared when a ticket
 transitions from RESOLVIDO back to EM_ATENDIMENTO.
 """
 
-import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
-from src.domain.enums import StatusChamado, PerfilUsuario
-from tests.fixtures.factories import UsuarioFactory, ChamadoFactory
+import pytest
+
+from src.domain.enums import PerfilUsuario, StatusChamado
+from tests.fixtures.factories import ChamadoFactory, UsuarioFactory
 
 
 class TestChamadoReopen:
