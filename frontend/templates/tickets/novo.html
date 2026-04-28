@@ -1,65 +1,71 @@
-{% extends "layouts/base.html" %}
+{% extends "layouts/app.html" %}
 {% block title %}Novo chamado | Askly{% endblock %}
 
+{% block page_title %}Abrir Novo Chamado{% endblock %}
+{% block page_actions %}
+  <a class="askly-btn askly-btn--secondary" href="{{ url_for('web_tickets.listar') }}">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="19" y1="12" x2="5" y2="12"/>
+      <polyline points="12 19 5 12 12 5"/>
+    </svg>
+    Voltar
+  </a>
+{% endblock %}
+
 {% block content %}
-  <h1 class="title">Novo chamado</h1>
+  <div class="askly-card askly-stagger" style="max-width: 800px;">
+    <form method="post" style="padding: var(--ask-space-8);">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
-  <form method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-
-    <div class="field">
-      <label class="label">Título</label>
-      <div class="control">
-        <input class="input" type="text" name="titulo" required />
+      <div class="askly-field">
+        <label class="askly-label">Título</label>
+        <div class="askly-input-wrap">
+          <input class="askly-input" type="text" name="titulo" placeholder="Ex: Problema com acesso ao sistema financeiro" required />
+        </div>
       </div>
-    </div>
 
-    <div class="field">
-      <label class="label">Descrição</label>
-      <div class="control">
-        <textarea class="textarea" name="descricao" required></textarea>
+      <div class="askly-field">
+        <label class="askly-label">Descrição</label>
+        <div class="askly-input-wrap">
+          <textarea class="askly-input" name="descricao" rows="6" placeholder="Detalhe o seu problema ou solicitação o máximo possível..." required></textarea>
+        </div>
       </div>
-    </div>
 
-    <div class="columns">
-      <div class="column">
-        <div class="field">
-          <label class="label">Categoria</label>
-          <div class="control">
-            <div class="select is-fullwidth">
-              <select name="categoria_id" required>
-                {% for cat in categorias %}
-                  <option value="{{ cat.id }}">{{ cat.nome }}</option>
-                {% endfor %}
-              </select>
-            </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--ask-space-6); margin-bottom: var(--ask-space-6);">
+        <div class="askly-field" style="margin-bottom: 0;">
+          <label class="askly-label">Área</label>
+          <div class="askly-input-wrap">
+            <select class="askly-input" name="categoria_id" required>
+              <option value="" disabled selected>Selecione a área responsável...</option>
+              {% for cat in categorias %}
+                <option value="{{ cat.id }}">{{ cat.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="askly-field" style="margin-bottom: 0;">
+          <label class="askly-label">Prioridade</label>
+          <div class="askly-input-wrap">
+            <select class="askly-input" name="prioridade" required>
+              {% for p in Prioridade %}
+                <option value="{{ p.value }}" {% if p.name == 'NORMAL' %}selected{% endif %}>{{ p.display_name }}</option>
+              {% endfor %}
+            </select>
           </div>
         </div>
       </div>
-      <div class="column">
-        <div class="field">
-          <label class="label">Prioridade</label>
-          <div class="control">
-            <div class="select is-fullwidth">
-              <select name="prioridade">
-                {% for p in Prioridade %}
-                  <option value="{{ p.value }}">{{ p.display_name }}</option>
-                {% endfor %}
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <div class="field is-grouped">
-      <div class="control">
-        <button class="button is-link" type="submit">Criar</button>
+      <div style="display: flex; gap: var(--ask-space-3); margin-top: var(--ask-space-8); padding-top: var(--ask-space-6); border-top: 1px solid var(--ask-gray-200);">
+        <button class="askly-btn askly-btn--primary" type="submit">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Abrir Chamado
+        </button>
+        <a class="askly-btn askly-btn--secondary" href="{{ url_for('web_tickets.listar') }}">Cancelar</a>
       </div>
-      <div class="control">
-        <a class="button is-light" href="{{ url_for('web_tickets.listar') }}">Cancelar</a>
-      </div>
-    </div>
-  </form>
+    </form>
+  </div>
 {% endblock %}
 

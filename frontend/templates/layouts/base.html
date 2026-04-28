@@ -21,22 +21,11 @@
     {% block extra_css %}{% endblock %}
   </head>
   <body>
-    <!-- Animated Mesh Background -->
-    <div class="askly-mesh-bg" aria-hidden="true">
-      <span class="askly-mesh-orb"></span>
-      <div class="askly-particles">
-        <span class="askly-particle"></span>
-        <span class="askly-particle"></span>
-        <span class="askly-particle"></span>
-        <span class="askly-particle"></span>
-        <span class="askly-particle"></span>
-        <span class="askly-particle"></span>
+    {% block body %}
+      <div id="askly-page" class="askly-page">
+        {% block content %}{% endblock %}
       </div>
-    </div>
-
-    <div id="askly-page" class="askly-page">
-      {% block content %}{% endblock %}
-    </div>
+    {% endblock %}
 
     <script defer src="{{ url_for('static', filename='js/page-transition.js') }}"></script>
     {% block extra_js %}{% endblock %}

@@ -67,7 +67,7 @@ def alterar_perfil(id: UUID):
     except DomainException as e:
         flash(e.message, 'danger')
     
-    return redirect(url_for('web.admin.usuarios'))
+    return redirect(url_for('web_admin.usuarios'))
 
 
 @admin_bp.route('/categorias')
@@ -103,7 +103,7 @@ def criar_categoria():
     except DomainException as e:
         flash(e.message, 'danger')
     
-    return redirect(url_for('web.admin.categorias'))
+    return redirect(url_for('web_admin.categorias'))
 
 
 @admin_bp.route('/categorias/<uuid:id>/toggle', methods=['POST'])
@@ -118,4 +118,4 @@ def toggle_categoria(id: UUID):
         status = 'ativada' if categoria.ativa else 'desativada'
         flash(f'Categoria "{categoria.nome}" {status}.', 'success')
     
-    return redirect(url_for('web.admin.categorias'))
+    return redirect(url_for('web_admin.categorias'))

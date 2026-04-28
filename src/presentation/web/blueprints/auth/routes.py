@@ -18,7 +18,7 @@ from src.domain.exceptions import DomainException
 def login():
     """Login page."""
     if current_user.is_authenticated:
-        return redirect(url_for('web.tickets.listar'))
+        return redirect(url_for('web_tickets.listar'))
     
     if request.method == 'POST':
         dto = LoginDTO(
@@ -41,7 +41,7 @@ def login():
                 next_page = request.args.get('next')
                 if next_page and urlparse(next_page).netloc == '':
                     return redirect(next_page)
-                return redirect(url_for('web.tickets.listar'))
+                return redirect(url_for('web_tickets.listar'))
             
         except DomainException as e:
             flash(e.message, 'danger')
@@ -53,7 +53,7 @@ def login():
 def cadastro():
     """Registration page."""
     if current_user.is_authenticated:
-        return redirect(url_for('web.tickets.listar'))
+        return redirect(url_for('web_tickets.listar'))
     
     if request.method == 'POST':
         dto = UsuarioCreateDTO(
@@ -75,7 +75,7 @@ def cadastro():
         try:
             use_case.execute(dto)
             flash('Cadastro realizado com sucesso! Faça login para continuar.', 'success')
-            return redirect(url_for('web.auth.login'))
+            return redirect(url_for('web_auth.login'))
         except DomainException as e:
             flash(e.message, 'danger')
     
@@ -88,4 +88,4 @@ def logout():
     """Logout."""
     logout_user()
     flash('Você saiu do sistema.', 'info')
-    return redirect(url_for('web.auth.login'))
+    return redirect(url_for('web_auth.login'))

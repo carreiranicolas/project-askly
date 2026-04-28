@@ -196,6 +196,7 @@ def register_context_processors(app: Flask) -> None:
     """Register template context processors."""
     from src.domain.enums import StatusChamado, Prioridade, PerfilUsuario
     from src import __version__ as askly_version
+    from src.infrastructure.persistence.sqlalchemy.models import CategoriaModel
     
     @app.context_processor
     def inject_enums():
@@ -205,6 +206,7 @@ def register_context_processors(app: Flask) -> None:
             'PerfilUsuario': PerfilUsuario,
             'STATUS_COLORS': app.config.get('STATUS_COLORS', {}),
             'ASKLY_VERSION': askly_version,
+            'get_categorias': lambda: CategoriaModel.query.filter_by(ativa=True).order_by(CategoriaModel.nome).all()
         }
 
 
@@ -240,7 +242,7 @@ def register_cli_commands(app: Flask) -> None:
             db.session.add(admin)
             click.echo('Admin user created: admin@askly.com')
         
-        categorias = ['TI - Infraestrutura', 'TI - Software', 'RH', 'Financeiro', 'Facilities']
+        categorias = ['RH', 'INFRA', 'FINANCEIRO', 'COMERCIAL', 'DESENVOLVIMENTO']
         for nome in categorias:
             if not CategoriaModel.query.filter_by(nome=nome).first():
                 cat = CategoriaModel(nome=nome, ativa=True)

@@ -39,6 +39,10 @@ def listar():
     status = request.args.get('status')
     prioridade = request.args.get('prioridade')
     categoria_id = request.args.get('categoria')
+    tipo = request.args.get('tipo')
+    
+    solicitante_id = user.id if tipo == 'meus' else None
+    atendente_id = user.id if tipo == 'atribuidos' else None
     
     filters = ChamadoListFilterDTO(
         page=request.args.get('page', 1, type=int),
@@ -46,6 +50,8 @@ def listar():
         status=StatusChamado(status) if status else None,
         prioridade=Prioridade(prioridade) if prioridade else None,
         categoria_id=UUID(categoria_id) if categoria_id else None,
+        solicitante_id=solicitante_id,
+        atendente_id=atendente_id,
     )
     
     uow = SQLAlchemyUnitOfWork(lambda: db.session)
@@ -59,7 +65,7 @@ def listar():
         'tickets/listar.html',
         chamados=result,
         categorias=categorias,
-        filtros={'status': status, 'prioridade': prioridade, 'categoria': categoria_id},
+        filtros={'status': status, 'prioridade': prioridade, 'categoria': categoria_id, 'tipo': tipo},
     )
 
 
@@ -86,7 +92,7 @@ def novo():
         try:
             result = use_case.execute(dto, user)
             flash('Chamado criado com sucesso!', 'success')
-            return redirect(url_for('web.tickets.detalhe', id=result.id))
+            return redirect(url_for('web_tickets.detalhe', id=result.id))
         except DomainException as e:
             flash(e.message, 'danger')
     
@@ -119,7 +125,7 @@ def detalhe(id: UUID):
         )
     except DomainException as e:
         flash(e.message, 'danger')
-        return redirect(url_for('web.tickets.listar'))
+        return redirect(url_for('web_tickets.listar'))
 
 
 @tickets_bp.route('/<uuid:id>/status', methods=['POST'])
@@ -143,7 +149,7 @@ def alterar_status(id: UUID):
     except DomainException as e:
         flash(e.message, 'danger')
     
-    return redirect(url_for('web.tickets.detalhe', id=id))
+    return redirect(url_for('web_tickets.detalhe', id=id))
 
 
 @tickets_bp.route('/<uuid:id>/atribuir', methods=['POST'])
@@ -170,7 +176,7 @@ def atribuir(id: UUID):
     except DomainException as e:
         flash(e.message, 'danger')
     
-    return redirect(url_for('web.tickets.detalhe', id=id))
+    return redirect(url_for('web_tickets.detalhe', id=id))
 
 
 @tickets_bp.route('/<uuid:id>/comentarios', methods=['POST'])
@@ -193,4 +199,4 @@ def adicionar_comentario(id: UUID):
     except DomainException as e:
         flash(e.message, 'danger')
     
-    return redirect(url_for('web.tickets.detalhe', id=id))
+    return redirect(url_for('web_tickets.detalhe', id=id))
