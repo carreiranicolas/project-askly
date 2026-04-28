@@ -3,20 +3,42 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Askly — Plataforma interna de suporte com gestão de chamados, RBAC e auditoria." />
     <title>{% block title %}Askly{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/check.svg') }}" />
 
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css"
-    />
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Legacy: Bulma (temporary — will be removed as pages are migrated) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css" />
+
+    <!-- Design System (overrides Bulma where applicable) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}" />
+    {% block extra_css %}{% endblock %}
   </head>
   <body>
+    <!-- Animated Mesh Background -->
+    <div class="askly-mesh-bg" aria-hidden="true">
+      <span class="askly-mesh-orb"></span>
+      <div class="askly-particles">
+        <span class="askly-particle"></span>
+        <span class="askly-particle"></span>
+        <span class="askly-particle"></span>
+        <span class="askly-particle"></span>
+        <span class="askly-particle"></span>
+        <span class="askly-particle"></span>
+      </div>
+    </div>
+
     <div id="askly-page" class="askly-page">
       {% block content %}{% endblock %}
     </div>
 
     <script defer src="{{ url_for('static', filename='js/page-transition.js') }}"></script>
+    {% block extra_js %}{% endblock %}
   </body>
 </html>
-

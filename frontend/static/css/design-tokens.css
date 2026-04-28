@@ -1,0 +1,159 @@
+/* ============================================================
+   ASKLY DESIGN TOKENS
+   Design System v2.0 — Custom CSS Variables
+   
+   Import this file FIRST in any page to access the full 
+   Askly design language. All other CSS files depend on these
+   tokens for colors, typography, spacing, and effects.
+   ============================================================ */
+
+:root {
+  /* ── Color Palette: Core ─────────────────────────────────── */
+  --ask-navy-900: #060e1a;
+  --ask-navy-800: #0a1628;
+  --ask-navy-700: #0f2847;
+  --ask-navy-600: #163a66;
+  --ask-navy-500: #1e4d85;
+
+  --ask-teal-600: #0a7e74;
+  --ask-teal-500: #0d9488;
+  --ask-teal-400: #14b8a6;
+  --ask-teal-300: #5eead4;
+
+  --ask-emerald-500: #10b981;
+  --ask-emerald-400: #34d399;
+
+  --ask-sky-500: #0ea5e9;
+  --ask-sky-400: #38bdf8;
+
+  /* ── Color Palette: Neutrals ─────────────────────────────── */
+  --ask-white: #ffffff;
+  --ask-gray-50: #f8fafc;
+  --ask-gray-100: #f1f5f9;
+  --ask-gray-200: #e2e8f0;
+  --ask-gray-300: #cbd5e1;
+  --ask-gray-400: #94a3b8;
+  --ask-gray-500: #64748b;
+  --ask-gray-600: #475569;
+  --ask-gray-700: #334155;
+  --ask-gray-800: #1e293b;
+  --ask-gray-900: #0f172a;
+
+  /* ── Color Palette: Semantic ─────────────────────────────── */
+  --ask-success: var(--ask-emerald-500);
+  --ask-info: var(--ask-sky-500);
+  --ask-warning: #f59e0b;
+  --ask-danger: #ef4444;
+
+  /* ── Color Aliases (Theme) ───────────────────────────────── */
+  --ask-bg-deep: var(--ask-navy-800);
+  --ask-bg-page: var(--ask-navy-900);
+  --ask-text-primary: var(--ask-white);
+  --ask-text-secondary: var(--ask-gray-400);
+  --ask-text-muted: var(--ask-gray-500);
+  --ask-text-dark: var(--ask-gray-900);
+  --ask-accent: var(--ask-teal-500);
+  --ask-accent-hover: var(--ask-teal-400);
+  --ask-accent-glow: rgba(13, 148, 136, 0.35);
+
+  /* ── Glass Surface ───────────────────────────────────────── */
+  --ask-glass-bg: rgba(255, 255, 255, 0.06);
+  --ask-glass-bg-strong: rgba(255, 255, 255, 0.10);
+  --ask-glass-border: rgba(255, 255, 255, 0.10);
+  --ask-glass-border-hover: rgba(255, 255, 255, 0.18);
+  --ask-glass-blur: 20px;
+
+  --ask-glass-light-bg: rgba(255, 255, 255, 0.82);
+  --ask-glass-light-border: rgba(255, 255, 255, 0.60);
+
+  /* ── Typography ──────────────────────────────────────────── */
+  --ask-font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ask-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, 'Liberation Mono', monospace;
+
+  --ask-text-xs: 0.75rem;    /* 12px */
+  --ask-text-sm: 0.8125rem;  /* 13px */
+  --ask-text-base: 0.9375rem;/* 15px */
+  --ask-text-lg: 1.125rem;   /* 18px */
+  --ask-text-xl: 1.5rem;     /* 24px */
+  --ask-text-2xl: 1.875rem;  /* 30px */
+  --ask-text-3xl: 2.25rem;   /* 36px */
+
+  --ask-leading-tight: 1.2;
+  --ask-leading-normal: 1.55;
+  --ask-leading-relaxed: 1.7;
+
+  --ask-tracking-tight: -0.025em;
+  --ask-tracking-normal: 0;
+  --ask-tracking-wide: 0.04em;
+
+  /* ── Spacing Scale ───────────────────────────────────────── */
+  --ask-space-1: 0.25rem;  /*  4px */
+  --ask-space-2: 0.5rem;   /*  8px */
+  --ask-space-3: 0.75rem;  /* 12px */
+  --ask-space-4: 1rem;     /* 16px */
+  --ask-space-5: 1.25rem;  /* 20px */
+  --ask-space-6: 1.5rem;   /* 24px */
+  --ask-space-8: 2rem;     /* 32px */
+  --ask-space-10: 2.5rem;  /* 40px */
+  --ask-space-12: 3rem;    /* 48px */
+  --ask-space-16: 4rem;    /* 64px */
+
+  /* ── Border Radius ───────────────────────────────────────── */
+  --ask-radius-sm: 8px;
+  --ask-radius-md: 12px;
+  --ask-radius-lg: 16px;
+  --ask-radius-xl: 22px;
+  --ask-radius-2xl: 28px;
+  --ask-radius-full: 9999px;
+
+  /* ── Shadows ─────────────────────────────────────────────── */
+  --ask-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --ask-shadow-md: 0 8px 30px rgba(0, 0, 0, 0.18);
+  --ask-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.25);
+  --ask-shadow-xl: 0 30px 90px rgba(0, 0, 0, 0.30);
+  --ask-shadow-glow-teal: 0 0 30px rgba(13, 148, 136, 0.25),
+                           0 0 80px rgba(13, 148, 136, 0.10);
+  --ask-shadow-glow-sky: 0 0 30px rgba(14, 165, 233, 0.20),
+                          0 0 60px rgba(14, 165, 233, 0.08);
+  --ask-shadow-inner: inset 0 2px 6px rgba(0, 0, 0, 0.08);
+  --ask-shadow-inner-glow: inset 0 0 16px rgba(13, 148, 136, 0.12);
+
+  /* ── Gradients ───────────────────────────────────────────── */
+  --ask-gradient-brand: linear-gradient(135deg, var(--ask-teal-500), var(--ask-sky-500));
+  --ask-gradient-brand-hover: linear-gradient(135deg, var(--ask-teal-400), var(--ask-sky-400));
+  --ask-gradient-dark: linear-gradient(160deg, var(--ask-navy-800) 0%, var(--ask-navy-900) 100%);
+  --ask-gradient-mesh-1: radial-gradient(
+    ellipse 800px 600px at 20% 30%,
+    rgba(13, 148, 136, 0.18),
+    transparent 70%
+  );
+  --ask-gradient-mesh-2: radial-gradient(
+    ellipse 600px 800px at 80% 70%,
+    rgba(14, 165, 233, 0.14),
+    transparent 70%
+  );
+  --ask-gradient-mesh-3: radial-gradient(
+    ellipse 500px 400px at 60% 10%,
+    rgba(16, 185, 129, 0.10),
+    transparent 60%
+  );
+
+  /* ── Transitions ─────────────────────────────────────────── */
+  --ask-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ask-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ask-duration-fast: 150ms;
+  --ask-duration-normal: 250ms;
+  --ask-duration-slow: 400ms;
+
+  /* ── Z-Index Scale ───────────────────────────────────────── */
+  --ask-z-base: 0;
+  --ask-z-above: 10;
+  --ask-z-modal: 100;
+  --ask-z-toast: 200;
+  --ask-z-top: 999;
+
+  /* Force light color-scheme for form controls */
+  color-scheme: dark light;
+}
