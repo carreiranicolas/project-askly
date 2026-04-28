@@ -244,7 +244,7 @@ button, input, select, textarea {
 /* ── Auth: Brand Panel (Left) ──────────────────────────────── */
 .askly-auth-brand {
   padding: var(--ask-space-10) var(--ask-space-8);
-  background: var(--ask-gradient-dark);
+  background: linear-gradient(160deg, #0c1e3a 0%, #081428 40%, #060e1a 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -252,26 +252,35 @@ button, input, select, textarea {
   text-align: center;
   position: relative;
   overflow: hidden;
-  border-bottom: 1px solid var(--ask-glass-border);
+  border-bottom: 1px solid rgba(94, 234, 212, 0.08);
+  min-height: 380px;
 }
 
 @media (min-width: 768px) {
   .askly-auth-brand {
     border-bottom: none;
-    border-right: 1px solid var(--ask-glass-border);
-    padding: var(--ask-space-12) var(--ask-space-10);
+    border-right: 1px solid rgba(94, 234, 212, 0.08);
+    padding: var(--ask-space-16) var(--ask-space-10);
+    min-height: auto;
   }
 }
 
-/* Subtle inner glow on brand panel */
+/* Atmospheric inner glow on brand panel */
 .askly-auth-brand::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 400px 300px at 30% 20%, rgba(13, 148, 136, 0.12), transparent),
-    radial-gradient(ellipse 300px 400px at 70% 80%, rgba(14, 165, 233, 0.08), transparent);
+    radial-gradient(ellipse 500px 400px at 50% 30%, rgba(13, 148, 136, 0.18), transparent 70%),
+    radial-gradient(ellipse 400px 500px at 30% 70%, rgba(14, 165, 233, 0.12), transparent 65%),
+    radial-gradient(ellipse 300px 300px at 80% 60%, rgba(16, 185, 129, 0.10), transparent 60%);
   pointer-events: none;
+  animation: askly-glow-pulse 8s ease-in-out infinite;
+}
+
+@keyframes askly-glow-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.7; }
 }
 
 .askly-brand-particles {
@@ -283,58 +292,81 @@ button, input, select, textarea {
 .askly-brand-dot {
   position: absolute;
   border-radius: 50%;
-  background: rgba(94, 234, 212, 0.30);
+  background: rgba(94, 234, 212, 0.55);
+  box-shadow: 0 0 8px rgba(94, 234, 212, 0.40);
   animation: askly-twinkle 4s ease-in-out infinite;
 }
 
-.askly-brand-dot:nth-child(1) { width: 4px; height: 4px; top: 15%; left: 20%; animation-delay: 0s; }
-.askly-brand-dot:nth-child(2) { width: 6px; height: 6px; top: 70%; left: 75%; animation-delay: 1.5s; background: rgba(14, 165, 233, 0.25); }
-.askly-brand-dot:nth-child(3) { width: 3px; height: 3px; top: 40%; left: 85%; animation-delay: 3s; }
-.askly-brand-dot:nth-child(4) { width: 5px; height: 5px; top: 80%; left: 30%; animation-delay: 0.8s; background: rgba(16, 185, 129, 0.25); }
-.askly-brand-dot:nth-child(5) { width: 4px; height: 4px; top: 25%; left: 65%; animation-delay: 2.2s; }
+.askly-brand-dot:nth-child(1) { width: 5px; height: 5px; top: 12%; left: 18%; animation-delay: 0s; }
+.askly-brand-dot:nth-child(2) { width: 7px; height: 7px; top: 68%; left: 78%; animation-delay: 1.5s; background: rgba(14, 165, 233, 0.50); box-shadow: 0 0 10px rgba(14, 165, 233, 0.35); }
+.askly-brand-dot:nth-child(3) { width: 4px; height: 4px; top: 38%; left: 88%; animation-delay: 3s; }
+.askly-brand-dot:nth-child(4) { width: 6px; height: 6px; top: 82%; left: 25%; animation-delay: 0.8s; background: rgba(16, 185, 129, 0.45); box-shadow: 0 0 10px rgba(16, 185, 129, 0.30); }
+.askly-brand-dot:nth-child(5) { width: 5px; height: 5px; top: 22%; left: 72%; animation-delay: 2.2s; }
+.askly-brand-dot:nth-child(6) { width: 3px; height: 3px; top: 55%; left: 12%; animation-delay: 1.8s; background: rgba(56, 189, 248, 0.40); }
+.askly-brand-dot:nth-child(7) { width: 4px; height: 4px; top: 45%; left: 50%; animation-delay: 3.5s; }
+.askly-brand-dot:nth-child(8) { width: 6px; height: 6px; top: 90%; left: 65%; animation-delay: 0.5s; background: rgba(14, 165, 233, 0.40); box-shadow: 0 0 8px rgba(14, 165, 233, 0.25); }
 
-/* Small diamond shapes */
+/* Diamond geometric shapes */
 .askly-brand-diamond {
   position: absolute;
-  width: 8px;
-  height: 8px;
-  border: 1px solid rgba(94, 234, 212, 0.20);
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid rgba(94, 234, 212, 0.25);
   transform: rotate(45deg);
   animation: askly-twinkle 5s ease-in-out infinite;
 }
 
-.askly-brand-diamond:nth-child(6) { top: 30%; left: 15%; animation-delay: 1s; }
-.askly-brand-diamond:nth-child(7) { top: 60%; left: 80%; animation-delay: 2.5s; border-color: rgba(14, 165, 233, 0.18); }
+.askly-brand-diamond:nth-child(9)  { top: 28%; left: 10%; animation-delay: 1s; width: 12px; height: 12px; }
+.askly-brand-diamond:nth-child(10) { top: 62%; left: 85%; animation-delay: 2.5s; border-color: rgba(14, 165, 233, 0.22); }
+.askly-brand-diamond:nth-child(11) { top: 85%; left: 48%; animation-delay: 4s; width: 8px; height: 8px; border-color: rgba(16, 185, 129, 0.20); }
 
 @keyframes askly-twinkle {
-  0%, 100% { opacity: 0.3; transform: scale(1) rotate(var(--_rot, 0deg)); }
-  50%      { opacity: 1; transform: scale(1.3) rotate(var(--_rot, 0deg)); }
+  0%, 100% { opacity: 0.25; transform: scale(1) rotate(var(--_rot, 0deg)); }
+  50%      { opacity: 1; transform: scale(1.5) rotate(var(--_rot, 0deg)); }
 }
 
 .askly-brand-diamond { --_rot: 45deg; }
 
 .askly-logo-frame {
-  width: min(240px, 80%);
-  margin-bottom: var(--ask-space-6);
+  width: min(160px, 60%);
+  margin-bottom: var(--ask-space-8);
   position: relative;
   z-index: 1;
   animation: askly-logo-float 6s ease-in-out infinite;
 }
 
+/* Glowing ring behind the logo */
+.askly-logo-frame::before {
+  content: '';
+  position: absolute;
+  inset: -15px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(13, 148, 136, 0.20), transparent 70%);
+  filter: blur(15px);
+  animation: askly-ring-pulse 4s ease-in-out infinite;
+}
+
+@keyframes askly-ring-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.08); }
+}
+
 @keyframes askly-logo-float {
   0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-8px); }
+  50%      { transform: translateY(-10px); }
 }
 
 .askly-logo {
   width: 100%;
   height: auto;
   display: block;
-  filter: drop-shadow(0 10px 30px rgba(13, 148, 136, 0.25));
+  filter: drop-shadow(0 8px 25px rgba(13, 148, 136, 0.40));
+  position: relative;
+  z-index: 1;
 }
 
 .askly-brand-name {
-  font-size: var(--ask-text-2xl);
+  font-size: var(--ask-text-3xl);
   font-weight: 800;
   letter-spacing: var(--ask-tracking-tight);
   color: var(--ask-text-primary);
@@ -344,27 +376,29 @@ button, input, select, textarea {
 }
 
 .askly-brand-accent {
-  background: var(--ask-gradient-brand);
+  background: linear-gradient(135deg, var(--ask-teal-300), var(--ask-sky-400));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(94, 234, 212, 0.30));
 }
 
 .askly-auth-tagline {
-  color: var(--ask-text-secondary);
-  font-size: var(--ask-text-sm);
+  color: rgba(148, 163, 184, 0.85);
+  font-size: var(--ask-text-base);
   line-height: var(--ask-leading-relaxed);
-  max-width: 300px;
+  max-width: 320px;
   position: relative;
   z-index: 1;
 }
 
 /* ── Auth: Form Panel (Right) ──────────────────────────────── */
 .askly-auth-form {
-  padding: var(--ask-space-8) var(--ask-space-6);
-  background: var(--ask-glass-light-bg);
+  padding: var(--ask-space-10) var(--ask-space-8);
+  background: rgba(255, 255, 255, 0.97);
   display: flex;
   flex-direction: column;
+  justify-content: center;
 }
 
 @media (min-width: 768px) {
