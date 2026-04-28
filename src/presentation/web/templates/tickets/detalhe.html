@@ -1,0 +1,127 @@
+{% extends "layouts/base.html" %}
+{% block title %}Chamado | Askly{% endblock %}
+
+{% block content %}
+  <div class="level">
+    <div class="level-left">
+      <h1 class="title">{{ chamado.titulo }}</h1>
+    </div>
+    <div class="level-right">
+      <span class="tag {{ chamado.status_css }}">{{ chamado.status_display }}</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <p>{{ chamado.descricao }}</p>
+  </div>
+
+  {% if chamado.transicoes_disponiveis %}
+    <div class="box">
+      <h2 class="subtitle">Ações</h2>
+      <form method="post" action="{{ url_for('web_tickets.alterar_status', id=chamado.id) }}">
+        {{ csrf_token() }}
+        <div class="field is-grouped">
+          <div class="control">
+            <div class="select">
+              <select name="status">
+                {% for s in chamado.transicoes_disponiveis %}
+                  <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="control">
+            <input class="input" type="text" name="motivo" placeholder="Motivo (opcional)" />
+          </div>
+          <div class="control">
+            <button class="button is-link" type="submit">Alterar status</button>
+          </div>
+        </div>
+      </form>
+
+      {% if atendentes %}
+        <hr />
+        <form method="post" action="{{ url_for('web_tickets.atribuir', id=chamado.id) }}">
+          {{ csrf_token() }}
+          <div class="field is-grouped">
+            <div class="control">
+              <div class="select">
+                <select name="atendente_id">
+                  {% for a in atendentes %}
+                    <option value="{{ a.id }}">{{ a.nome }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="control">
+              <button class="button is-light" type="submit">Atribuir</button>
+            </div>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <div class="columns">
+    <div class="column">
+      <h2 class="subtitle">Histórico de status</h2>
+      <div class="table-container">
+        <table class="table is-fullwidth is-striped">
+          <thead>
+            <tr>
+              <th>De</th>
+              <th>Para</th>
+              <th>Por</th>
+              <th>Quando</th>
+              <th>Motivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for h in historico %}
+              <tr>
+                <td>{{ h.status_anterior }}</td>
+                <td>{{ h.status_novo }}</td>
+                <td>{{ h.alterado_por }}</td>
+                <td>{{ h.alterado_em }}</td>
+                <td>{{ h.motivo or '-' }}</td>
+              </tr>
+            {% else %}
+              <tr><td colspan="5">Sem histórico.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="column">
+      <h2 class="subtitle">Comentários</h2>
+      <form method="post" action="{{ url_for('web_tickets.adicionar_comentario', id=chamado.id) }}">
+        {{ csrf_token() }}
+        <div class="field">
+          <div class="control">
+            <textarea class="textarea" name="conteudo" placeholder="Escreva um comentário..." required></textarea>
+          </div>
+        </div>
+        <div class="field">
+          <button class="button is-link" type="submit">Comentar</button>
+        </div>
+      </form>
+
+      <hr />
+      {% for c in comentarios %}
+        <article class="message is-light">
+          <div class="message-header">
+            <p>{{ c.autor_nome or 'Usuário' }}</p>
+            <small>{{ c.criado_em.strftime('%d/%m/%Y %H:%M') }}</small>
+          </div>
+          <div class="message-body">
+            {{ c.conteudo }}
+          </div>
+        </article>
+      {% else %}
+        <p>Sem comentários.</p>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
+

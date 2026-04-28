@@ -1,6 +1,7 @@
 """Flask Application Factory."""
 
 import os
+from pathlib import Path
 from uuid import UUID
 
 from flask import Flask
@@ -20,6 +21,7 @@ login_manager = LoginManager()
 migrate = Migrate()
 csrf = CSRFProtect()
 talisman = Talisman()
+# NOTE: Flask-Limiter 4.x expects configuration primarily in the constructor.
 limiter = Limiter(key_func=get_remote_address)
 
 
@@ -33,11 +35,11 @@ def create_app(config_name: str | None = None) -> Flask:
     Returns:
         Configured Flask application
     """
-    app = Flask(
-        __name__,
-        template_folder='web/templates',
-        static_folder='web/static',
-    )
+    base_dir = Path(__file__).resolve().parent
+    templates_dir = base_dir / "web" / "templates"
+    static_dir = base_dir / "web" / "static"
+
+    app = Flask(__name__, template_folder=str(templates_dir), static_folder=str(static_dir))
     
     if config_name is None:
         config_name = os.environ.get('FLASK_ENV', 'development')
@@ -59,13 +61,12 @@ def create_app(config_name: str | None = None) -> Flask:
             strict_transport_security=bool(app.config.get("TALISMAN_STRICT_TRANSPORT_SECURITY", False)),
         )
 
-    # Rate limiting
-    limiter.init_app(
-        app,
-        default_limits=[app.config.get("RATELIMIT_DEFAULT", "200 per day, 50 per hour")],
-        storage_uri=app.config.get("RATELIMIT_STORAGE_URL", "memory://"),
-        enabled=bool(app.config.get("RATELIMIT_ENABLED", True)),
-    )
+    # Rate limiting (Flask-Limiter 4.x)
+    # Configure limits through attributes before init_app, to avoid incompatible kwargs.
+    limiter._default_limits = [app.config.get("RATELIMIT_DEFAULT", "200 per day, 50 per hour")]
+    limiter._storage_uri = app.config.get("RATELIMIT_STORAGE_URL", "memory://")
+    limiter.enabled = bool(app.config.get("RATELIMIT_ENABLED", True))
+    limiter.init_app(app)
     
     CORS(app, resources={
         r"/api/*": {
@@ -76,7 +77,7 @@ def create_app(config_name: str | None = None) -> Flask:
     })
     
     login_manager.init_app(app)
-    login_manager.login_view = 'web.auth.login'
+    login_manager.login_view = 'web_auth.login'
     login_manager.login_message = 'Por favor, faça login para acessar esta página.'
     login_manager.login_message_category = 'warning'
     
@@ -111,8 +112,8 @@ def register_blueprints(app: Flask) -> None:
         from flask import redirect, url_for
         from flask_login import current_user
         if current_user.is_authenticated:
-            return redirect(url_for('web.tickets.listar'))
-        return redirect(url_for('web.auth.login'))
+            return redirect(url_for('web_tickets.listar'))
+        return redirect(url_for('web_auth.login'))
 
 
 def register_api(app: Flask) -> None:

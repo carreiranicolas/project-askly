@@ -1,0 +1,52 @@
+{% extends "layouts/base.html" %}
+{% block title %}Usuários | Admin | Askly{% endblock %}
+
+{% block content %}
+  <h1 class="title">Admin · Usuários</h1>
+
+  <div class="table-container">
+    <table class="table is-fullwidth is-striped">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Perfil</th>
+          <th>Ativo</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in usuarios.items %}
+          <tr>
+            <td>{{ u.nome }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.perfil_display }}</td>
+            <td>{{ 'Sim' if u.ativo else 'Não' }}</td>
+            <td>
+              <form method="post" action="{{ url_for('web_admin.alterar_perfil', id=u.id) }}">
+                {{ csrf_token() }}
+                <div class="field has-addons">
+                  <div class="control">
+                    <div class="select">
+                      <select name="perfil">
+                        {% for p in PerfilUsuario %}
+                          <option value="{{ p.value }}" {% if u.perfil == p.value %}selected{% endif %}>
+                            {{ p.display_name }}
+                          </option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                  <div class="control">
+                    <button class="button is-light" type="submit">Salvar</button>
+                  </div>
+                </div>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+

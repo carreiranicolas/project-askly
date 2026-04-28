@@ -2,6 +2,6 @@
 
 from flask import Blueprint
 
-admin_bp = Blueprint('web.admin', __name__, template_folder='../../templates/admin')
+admin_bp = Blueprint('web_admin', __name__)
 
 from src.presentation.web.blueprints.admin import routes  # noqa

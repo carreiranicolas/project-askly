@@ -2,6 +2,6 @@
 
 from flask import Blueprint
 
-tickets_bp = Blueprint('web.tickets', __name__, template_folder='../../templates/tickets')
+tickets_bp = Blueprint('web_tickets', __name__)
 
 from src.presentation.web.blueprints.tickets import routes  # noqa

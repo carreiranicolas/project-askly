@@ -42,7 +42,7 @@ def perfil_required(*perfis: PerfilUsuario | str) -> Callable:
                     abort(403)
                 else:
                     flash('Você não tem permissão para acessar esta página.', 'danger')
-                    return redirect(url_for('web.tickets.listar'))
+                    return redirect(url_for('web_tickets.listar'))
             
             return f(*args, **kwargs)
         return decorated_function

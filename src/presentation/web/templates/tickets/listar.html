@@ -1,0 +1,49 @@
+{% extends "layouts/base.html" %}
+{% block title %}Chamados | Askly{% endblock %}
+
+{% block content %}
+  <div class="level">
+    <div class="level-left">
+      <h1 class="title">Chamados</h1>
+    </div>
+    <div class="level-right">
+      <a class="button is-link" href="{{ url_for('web_tickets.novo') }}">Novo chamado</a>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="table is-striped is-fullwidth">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Status</th>
+          <th>Prioridade</th>
+          <th>Categoria</th>
+          <th>Criado em</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in chamados.items %}
+          <tr>
+            <td>
+              <a href="{{ url_for('web_tickets.detalhe', id=c.id) }}">{{ c.titulo }}</a>
+            </td>
+            <td>
+              <span class="tag {{ c.status_css }}">{{ c.status_display }}</span>
+            </td>
+            <td>
+              <span class="tag {{ c.prioridade_css }}">{{ c.prioridade_display }}</span>
+            </td>
+            <td>{{ c.categoria_nome or '-' }}</td>
+            <td>{{ c.criado_em.strftime('%d/%m/%Y %H:%M') }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5">Nenhum chamado encontrado.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+

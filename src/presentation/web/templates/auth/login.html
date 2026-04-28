@@ -1,0 +1,45 @@
+{% extends "layouts/base.html" %}
+{% block title %}Login | Askly{% endblock %}
+
+{% block content %}
+  <div class="columns is-centered">
+    <div class="column is-5">
+      <h1 class="title">Login</h1>
+
+      <form method="post">
+        {{ csrf_token() }}
+
+        <div class="field">
+          <label class="label">Email</label>
+          <div class="control">
+            <input class="input" type="email" name="email" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Senha</label>
+          <div class="control">
+            <input class="input" type="password" name="senha" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="checkbox">
+            <input type="checkbox" name="lembrar" />
+            Lembrar-me
+          </label>
+        </div>
+
+        <div class="field is-grouped">
+          <div class="control">
+            <button class="button is-link" type="submit">Entrar</button>
+          </div>
+          <div class="control">
+            <a class="button is-light" href="{{ url_for('web_auth.cadastro') }}">Criar conta</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+

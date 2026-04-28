@@ -1,0 +1,65 @@
+{% extends "layouts/base.html" %}
+{% block title %}Novo chamado | Askly{% endblock %}
+
+{% block content %}
+  <h1 class="title">Novo chamado</h1>
+
+  <form method="post">
+    {{ csrf_token() }}
+
+    <div class="field">
+      <label class="label">Título</label>
+      <div class="control">
+        <input class="input" type="text" name="titulo" required />
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Descrição</label>
+      <div class="control">
+        <textarea class="textarea" name="descricao" required></textarea>
+      </div>
+    </div>
+
+    <div class="columns">
+      <div class="column">
+        <div class="field">
+          <label class="label">Categoria</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select name="categoria_id" required>
+                {% for cat in categorias %}
+                  <option value="{{ cat.id }}">{{ cat.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="column">
+        <div class="field">
+          <label class="label">Prioridade</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select name="prioridade">
+                {% for p in Prioridade %}
+                  <option value="{{ p.value }}">{{ p.display_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field is-grouped">
+      <div class="control">
+        <button class="button is-link" type="submit">Criar</button>
+      </div>
+      <div class="control">
+        <a class="button is-light" href="{{ url_for('web_tickets.listar') }}">Cancelar</a>
+      </div>
+    </div>
+  </form>
+{% endblock %}
+
