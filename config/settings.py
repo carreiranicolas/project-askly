@@ -56,8 +56,12 @@ class TestingConfig(Config):
     """Testing configuration."""
     
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
-        'postgresql://askly:askly_dev_password@localhost:5432/askly_test_db'
+    # Prefer TEST_DATABASE_URL (documented). Keep fallback for older name TEST_DATABASE_URL.
+    SQLALCHEMY_DATABASE_URI = (
+        os.environ.get("TEST_DATABASE_URL")
+        or os.environ.get("TEST_DATABASE_URL")
+        or "postgresql://askly:askly_dev_password@localhost:5432/askly_test_db"
+    )
     WTF_CSRF_ENABLED = False
     RATELIMIT_ENABLED = False
 

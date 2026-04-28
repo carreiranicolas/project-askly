@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from flask import request
+from flask import g, request
 from flask_restx import Namespace, Resource, fields
 from flask_login import current_user
 
@@ -92,17 +92,46 @@ def get_current_user_entity():
     """Convert Flask-Login user to domain entity."""
     from src.domain.entities import Usuario
     from src.domain.enums import PerfilUsuario
+    from sqlalchemy import inspect
+    from sqlalchemy.orm.exc import DetachedInstanceError
     
-    if not current_user.is_authenticated:
+    principal = getattr(g, "api_user", None) or current_user
+
+    if not getattr(principal, "is_authenticated", False):
         return None
+
+    try:
+        user_id = principal.id
+        nome = principal.nome
+        email = principal.email
+        perfil = principal.perfil
+        ativo = principal.ativo
+        criado_em = principal.criado_em
+    except DetachedInstanceError:
+        from src.infrastructure.persistence.sqlalchemy.models import UsuarioModel
+
+        ident = inspect(principal).identity
+        principal_id = ident[0] if ident else None
+        if principal_id is None:
+            return None
+
+        fresh = db.session.get(UsuarioModel, principal_id)
+        if fresh is None:
+            return None
+        user_id = fresh.id
+        nome = fresh.nome
+        email = fresh.email
+        perfil = fresh.perfil
+        ativo = fresh.ativo
+        criado_em = fresh.criado_em
     
     return Usuario(
-        id=current_user.id,
-        nome=current_user.nome,
-        email=current_user.email,
-        perfil=PerfilUsuario(current_user.perfil) if isinstance(current_user.perfil, str) else current_user.perfil,
-        ativo=current_user.ativo,
-        criado_em=current_user.criado_em,
+        id=user_id,
+        nome=nome,
+        email=email,
+        perfil=PerfilUsuario(perfil) if isinstance(perfil, str) else perfil,
+        ativo=ativo,
+        criado_em=criado_em,
     )
 
 

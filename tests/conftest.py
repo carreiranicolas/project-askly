@@ -1,11 +1,48 @@
 """Pytest configuration and fixtures."""
 
+import os
 import pytest
 from uuid import uuid4
 
 from src.presentation.app_factory import create_app
 from src.infrastructure.persistence.sqlalchemy.models import db as _db
 from src.infrastructure.security import PasswordHasher
+
+
+def _ensure_test_database_exists(database_url: str) -> None:
+    """
+    Ensure the configured Postgres test database exists.
+
+    If the DB in DATABASE_URL does not exist, create it by connecting to the
+    default 'postgres' database.
+    """
+    if not database_url.startswith("postgresql"):
+        return
+
+    try:
+        from sqlalchemy import create_engine, text
+        from sqlalchemy.engine.url import make_url
+    except Exception:
+        return
+
+    url = make_url(database_url)
+    db_name = url.database
+    if not db_name:
+        return
+
+    admin_url = url.set(database="postgres")
+
+    engine = create_engine(admin_url, isolation_level="AUTOCOMMIT")
+    try:
+        with engine.connect() as conn:
+            exists = conn.execute(
+                text("SELECT 1 FROM pg_database WHERE datname = :name"),
+                {"name": db_name},
+            ).scalar()
+            if not exists:
+                conn.execute(text(f'CREATE DATABASE "{db_name}"'))
+    finally:
+        engine.dispose()
 
 
 @pytest.fixture(scope='session')
@@ -20,6 +57,7 @@ def app():
     })
     
     with app.app_context():
+        _ensure_test_database_exists(app.config["SQLALCHEMY_DATABASE_URI"])
         _db.create_all()
         yield app
         _db.drop_all()
