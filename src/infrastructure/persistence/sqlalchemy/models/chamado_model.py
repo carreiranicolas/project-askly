@@ -29,7 +29,7 @@ class ChamadoModel(db.Model):
         primary_key=True, 
         default=uuid.uuid4
     )
-    titulo: Mapped[str] = mapped_column(Text, nullable=False)
+    titulo: Mapped[str] = mapped_column(String(255), nullable=False)
     descricao: Mapped[str] = mapped_column(Text, nullable=False)
     prioridade: Mapped[str] = mapped_column(String(50), nullable=False)
     status_atual: Mapped[str] = mapped_column(
@@ -41,19 +41,19 @@ class ChamadoModel(db.Model):
     
     categoria_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("categorias.id"),
+        ForeignKey("categorias.id", ondelete="RESTRICT"),
         nullable=False,
         index=True
     )
     solicitante_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("usuarios.id"),
+        ForeignKey("usuarios.id", ondelete="RESTRICT"),
         nullable=False,
         index=True
     )
     atendente_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("usuarios.id"),
+        ForeignKey("usuarios.id", ondelete="SET NULL"),
         nullable=True,
         index=True
     )

@@ -11,6 +11,7 @@ from src.infrastructure.persistence.sqlalchemy.repositories import UsuarioReposi
 from src.infrastructure.security import TokenService
 from src.domain.exceptions import DomainException
 from src.presentation.api.api_auth import api_auth_required
+from src.presentation.app_factory import limiter
 
 auth_ns = Namespace('auth', description='Autenticação e registro de usuários')
 
@@ -53,6 +54,8 @@ error_response = auth_ns.model('ErrorResponse', {
 @auth_ns.route('/login')
 class LoginResource(Resource):
     """Login endpoint."""
+    
+    decorators = [limiter.limit("10 per minute")]
     
     @auth_ns.doc('login')
     @auth_ns.expect(login_model)

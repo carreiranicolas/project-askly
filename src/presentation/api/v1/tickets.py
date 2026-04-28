@@ -2,9 +2,8 @@
 
 from uuid import UUID
 
-from flask import g, request
+from flask import request
 from flask_restx import Namespace, Resource, fields
-from flask_login import current_user
 
 from src.application.dtos import (
     ChamadoCreateDTO, 
@@ -25,6 +24,7 @@ from src.infrastructure import db, SQLAlchemyUnitOfWork
 from src.domain.enums import StatusChamado, Prioridade
 from src.domain.exceptions import DomainException
 from src.presentation.api.api_auth import api_auth_required
+from src.presentation.utils import get_current_user_entity
 
 tickets_ns = Namespace('chamados', description='Gestão de chamados/tickets')
 
@@ -88,53 +88,6 @@ ticket_list_response = tickets_ns.model('TicketListResponse', {
 })
 
 
-def get_current_user_entity():
-    """Convert Flask-Login user to domain entity."""
-    from src.domain.entities import Usuario
-    from src.domain.enums import PerfilUsuario
-    from sqlalchemy import inspect
-    from sqlalchemy.orm.exc import DetachedInstanceError
-    
-    principal = getattr(g, "api_user", None) or current_user
-
-    if not getattr(principal, "is_authenticated", False):
-        return None
-
-    try:
-        user_id = principal.id
-        nome = principal.nome
-        email = principal.email
-        perfil = principal.perfil
-        ativo = principal.ativo
-        criado_em = principal.criado_em
-    except DetachedInstanceError:
-        from src.infrastructure.persistence.sqlalchemy.models import UsuarioModel
-
-        ident = inspect(principal).identity
-        principal_id = ident[0] if ident else None
-        if principal_id is None:
-            return None
-
-        fresh = db.session.get(UsuarioModel, principal_id)
-        if fresh is None:
-            return None
-        user_id = fresh.id
-        nome = fresh.nome
-        email = fresh.email
-        perfil = fresh.perfil
-        ativo = fresh.ativo
-        criado_em = fresh.criado_em
-    
-    return Usuario(
-        id=user_id,
-        nome=nome,
-        email=email,
-        perfil=PerfilUsuario(perfil) if isinstance(perfil, str) else perfil,
-        ativo=ativo,
-        criado_em=criado_em,
-    )
-
-
 @tickets_ns.route('')
 class TicketListResource(Resource):
     """Ticket list and creation."""
@@ -162,7 +115,7 @@ class TicketListResource(Resource):
         
         filters = ChamadoListFilterDTO(
             page=request.args.get('page', 1, type=int),
-            per_page=request.args.get('per_page', 10, type=int),
+            per_page=min(request.args.get('per_page', 10, type=int), 100),
             status=StatusChamado(status) if status else None,
             prioridade=Prioridade(prioridade) if prioridade else None,
             categoria_id=UUID(request.args.get('categoria_id')) if request.args.get('categoria_id') else None,

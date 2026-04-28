@@ -2,13 +2,13 @@
 
 from flask import request
 from flask_restx import Namespace, Resource, fields
-from flask_login import current_user
 
 from src.application.dtos import CategoriaCreateDTO
 from src.application.use_cases import CreateCategoryUseCase, ListCategoriesUseCase
 from src.infrastructure import db, SQLAlchemyUnitOfWork
 from src.domain.exceptions import DomainException
 from src.presentation.api.api_auth import api_auth_required
+from src.presentation.utils import get_current_user_entity
 
 categories_ns = Namespace('categorias', description='Gestão de categorias')
 
@@ -24,24 +24,6 @@ category_response = categories_ns.model('CategoryResponse', {
     'ativa': fields.Boolean(),
     'criado_em': fields.DateTime(),
 })
-
-
-def get_current_user_entity():
-    """Convert Flask-Login user to domain entity."""
-    from src.domain.entities import Usuario
-    from src.domain.enums import PerfilUsuario
-    
-    if not current_user.is_authenticated:
-        return None
-    
-    return Usuario(
-        id=current_user.id,
-        nome=current_user.nome,
-        email=current_user.email,
-        perfil=PerfilUsuario(current_user.perfil) if isinstance(current_user.perfil, str) else current_user.perfil,
-        ativo=current_user.ativo,
-        criado_em=current_user.criado_em,
-    )
 
 
 @categories_ns.route('')

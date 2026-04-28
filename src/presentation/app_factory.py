@@ -76,7 +76,7 @@ def create_app(config_name: str | None = None) -> Flask:
     
     CORS(app, resources={
         r"/api/*": {
-            "origins": "*",
+            "origins": [o.strip() for o in app.config.get("CORS_ORIGINS", "http://localhost:5000").split(",")],
             "methods": ["GET", "POST", "PUT", "DELETE", "PATCH"],
             "allow_headers": ["Content-Type", "Authorization"]
         }
@@ -223,15 +223,22 @@ def register_cli_commands(app: Flask) -> None:
         hasher = PasswordHasher()
         
         if not UsuarioModel.query.filter_by(email='admin@askly.com').first():
+            admin_password = os.environ.get('ADMIN_SEED_PASSWORD')
+            if not admin_password:
+                import secrets
+                admin_password = secrets.token_urlsafe(16)
+                click.echo(f'Generated admin password: {admin_password}')
+                click.echo('Set ADMIN_SEED_PASSWORD env var to use a fixed password.')
+            
             admin = UsuarioModel(
                 nome='Administrador',
                 email='admin@askly.com',
-                senha_hash=hasher.hash('admin123'),
+                senha_hash=hasher.hash(admin_password),
                 perfil='admin',
                 ativo=True,
             )
             db.session.add(admin)
-            click.echo('Admin user created: admin@askly.com / admin123')
+            click.echo('Admin user created: admin@askly.com')
         
         categorias = ['TI - Infraestrutura', 'TI - Software', 'RH', 'Financeiro', 'Facilities']
         for nome in categorias:

@@ -4,13 +4,13 @@ from uuid import UUID
 
 from flask import request
 from flask_restx import Namespace, Resource, fields
-from flask_login import current_user
 
 from src.application.use_cases import ListUsersUseCase, ChangeProfileUseCase
 from src.infrastructure import db, SQLAlchemyUnitOfWork
 from src.domain.enums import PerfilUsuario
 from src.domain.exceptions import DomainException
 from src.presentation.api.api_auth import api_auth_required
+from src.presentation.utils import get_current_user_entity
 
 users_ns = Namespace('usuarios', description='Gestão de usuários (admin)')
 
@@ -28,23 +28,6 @@ change_profile_model = users_ns.model('ChangeProfile', {
     'perfil': fields.String(required=True, description='Novo perfil', 
                            enum=['solicitante', 'atendente', 'admin']),
 })
-
-
-def get_current_user_entity():
-    """Convert Flask-Login user to domain entity."""
-    from src.domain.entities import Usuario
-    
-    if not current_user.is_authenticated:
-        return None
-    
-    return Usuario(
-        id=current_user.id,
-        nome=current_user.nome,
-        email=current_user.email,
-        perfil=PerfilUsuario(current_user.perfil) if isinstance(current_user.perfil, str) else current_user.perfil,
-        ativo=current_user.ativo,
-        criado_em=current_user.criado_em,
-    )
 
 
 @users_ns.route('')
@@ -76,7 +59,7 @@ class UserListResource(Resource):
             result = use_case.execute(
                 usuario=user,
                 page=request.args.get('page', 1, type=int),
-                per_page=request.args.get('per_page', 10, type=int),
+                per_page=min(request.args.get('per_page', 10, type=int), 100),
                 perfil=perfil,
             )
             

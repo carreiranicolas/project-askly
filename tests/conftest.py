@@ -114,7 +114,12 @@ def auth_headers(client, db, password_hasher):
         'senha': 'password123',
     })
     
-    return {'Content-Type': 'application/json'}
+    data = response.get_json()
+    token = data.get('access_token', '')
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {token}',
+    }
 
 
 @pytest.fixture

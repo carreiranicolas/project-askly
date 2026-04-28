@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Text
+from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -28,17 +28,17 @@ class HistoricoStatusModel(db.Model):
     )
     chamado_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("chamados.id"),
+        ForeignKey("chamados.id", ondelete="RESTRICT"),
         nullable=False,
         index=True
     )
     alterado_por_usuario_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("usuarios.id"),
+        ForeignKey("usuarios.id", ondelete="RESTRICT"),
         nullable=False
     )
-    status_anterior: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    status_novo: Mapped[str] = mapped_column(Text, nullable=False)
+    status_anterior: Mapped[str] = mapped_column(String(50), nullable=False, default="")
+    status_novo: Mapped[str] = mapped_column(String(50), nullable=False)
     motivo: Mapped[str | None] = mapped_column(Text, nullable=True)
     alterado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

@@ -48,10 +48,9 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         if exc_type is not None:
             self.rollback()
-        
-        if self._session:
-            self._session.close()
-            self._session = None
+        # Don't close the Flask scoped session — it's managed by the framework.
+        # Closing it here causes DetachedInstanceError in subsequent operations.
+        self._session = None
     
     def commit(self) -> None:
         """Confirma todas as operações da transação."""

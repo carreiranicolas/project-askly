@@ -56,7 +56,7 @@ class RegisterUseCase:
             nome=dto.nome.strip(),
             email=email.value,
             senha_hash=self.password_hasher.hash(senha.value),
-            perfil=dto.perfil,
+            perfil=PerfilUsuario.SOLICITANTE,  # Sempre solicitante no registro público
             ativo=True,
         )
         

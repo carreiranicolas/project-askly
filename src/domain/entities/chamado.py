@@ -148,6 +148,7 @@ class Chamado(Entity):
         """
         self.validar_transicao(novo_status, perfil_usuario, usuario_id)
         
+        status_anterior = self.status_atual
         self.status_atual = novo_status
         self.atualizado_em = Entity.now()
         
@@ -155,7 +156,7 @@ class Chamado(Entity):
             self.resolvido_em = Entity.now()
         elif novo_status == StatusChamado.FECHADO:
             self.fechado_em = Entity.now()
-        elif novo_status == StatusChamado.EM_ATENDIMENTO and self.is_resolvido:
+        elif novo_status == StatusChamado.EM_ATENDIMENTO and status_anterior == StatusChamado.RESOLVIDO:
             self.resolvido_em = None
     
     def atribuir_atendente(self, atendente_id: UUID) -> None:

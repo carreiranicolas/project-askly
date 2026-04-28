@@ -20,7 +20,9 @@ class Config:
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
     
     REMEMBER_COOKIE_DURATION = timedelta(days=7)
-    SESSION_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = True
+    
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:5000')
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     
@@ -47,6 +49,7 @@ class DevelopmentConfig(Config):
     """Development configuration."""
     
     DEBUG = True
+    SESSION_COOKIE_SECURE = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'postgresql://askly:askly_dev_password@localhost:5432/askly_db'
     SQLALCHEMY_ECHO = False
@@ -56,10 +59,10 @@ class TestingConfig(Config):
     """Testing configuration."""
     
     TESTING = True
-    # Prefer TEST_DATABASE_URL (documented). Keep fallback for older name TEST_DATABASE_URL.
+    SESSION_COOKIE_SECURE = False
     SQLALCHEMY_DATABASE_URI = (
         os.environ.get("TEST_DATABASE_URL")
-        or os.environ.get("TEST_DATABASE_URL")
+        or os.environ.get("TESTING_DATABASE_URL")
         or "postgresql://askly:askly_dev_password@localhost:5432/askly_test_db"
     )
     WTF_CSRF_ENABLED = False
@@ -78,7 +81,7 @@ class ProductionConfig(Config):
     TALISMAN_CONTENT_SECURITY_POLICY = {
         'default-src': "'self'",
         'style-src': ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-        'script-src': ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+        'script-src': ["'self'", "https://cdn.jsdelivr.net"],
         'font-src': ["'self'", "https://cdn.jsdelivr.net"],
     }
 

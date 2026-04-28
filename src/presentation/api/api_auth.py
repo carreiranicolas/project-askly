@@ -5,6 +5,7 @@ from __future__ import annotations
 from functools import wraps
 from uuid import UUID
 
+import jwt as pyjwt
 from flask import abort, current_app, g, request
 from flask_login import current_user
 
@@ -57,8 +58,13 @@ def api_auth_required(fn):
                 abort(401)
             g.api_user = user
             return fn(*args, **kwargs)
-        except Exception:
+        except pyjwt.ExpiredSignatureError:
             abort(401)
+        except pyjwt.InvalidTokenError:
+            abort(401)
+        except Exception:
+            current_app.logger.exception("Unexpected error in API auth")
+            abort(500)
 
     return wrapper
 

@@ -1,5 +1,7 @@
 """Auth web routes."""
 
+from urllib.parse import urlparse
+
 from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 
@@ -37,7 +39,7 @@ def login():
                 login_user(user_model, remember=dto.lembrar)
                 
                 next_page = request.args.get('next')
-                if next_page:
+                if next_page and urlparse(next_page).netloc == '':
                     return redirect(next_page)
                 return redirect(url_for('web.tickets.listar'))
             

@@ -27,18 +27,7 @@ from src.infrastructure.persistence.sqlalchemy.repositories import UsuarioReposi
 from src.domain.entities import Usuario
 from src.domain.enums import StatusChamado, Prioridade, PerfilUsuario
 from src.domain.exceptions import DomainException
-
-
-def get_current_user_entity() -> Usuario:
-    """Get domain entity from Flask-Login user."""
-    return Usuario(
-        id=current_user.id,
-        nome=current_user.nome,
-        email=current_user.email,
-        perfil=PerfilUsuario(current_user.perfil) if isinstance(current_user.perfil, str) else current_user.perfil,
-        ativo=current_user.ativo,
-        criado_em=current_user.criado_em,
-    )
+from src.presentation.utils import get_current_user_entity
 
 
 @tickets_bp.route('/')

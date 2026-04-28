@@ -28,13 +28,13 @@ class ComentarioModel(db.Model):
     )
     chamado_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("chamados.id"),
+        ForeignKey("chamados.id", ondelete="RESTRICT"),
         nullable=False,
         index=True
     )
     autor_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("usuarios.id"),
+        ForeignKey("usuarios.id", ondelete="RESTRICT"),
         nullable=False,
         index=True
     )
