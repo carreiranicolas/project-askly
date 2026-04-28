@@ -14,6 +14,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 from config.settings import get_config
+from config.env_validator import assert_required_env
 from src.infrastructure.persistence.sqlalchemy.models import db, UsuarioModel
 
 
@@ -43,6 +44,10 @@ def create_app(config_name: str | None = None) -> Flask:
     
     if config_name is None:
         config_name = os.environ.get('FLASK_ENV', 'development')
+
+    # Validate required env vars early (fail fast).
+    # This runs after python-dotenv has loaded `.env` (see config/settings.py).
+    assert_required_env()
     
     config_class = get_config(config_name)
     app.config.from_object(config_class)
