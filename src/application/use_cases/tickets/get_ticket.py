@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from src.application.dtos import ChamadoResponseDTO, ComentarioResponseDTO
-from src.domain.entities import HistoricoStatus, Usuario
+from src.domain.entities import Usuario
 from src.domain.enums import PerfilUsuario
 from src.domain.exceptions import AuthorizationException, EntityNotFoundException
 

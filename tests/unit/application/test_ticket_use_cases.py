@@ -12,7 +12,6 @@ from src.application.use_cases import (
     GetTicketUseCase,
     ListTicketsUseCase,
 )
-from src.domain.enums import PerfilUsuario, StatusChamado
 from src.domain.exceptions import (
     AuthorizationException,
     EntityNotFoundException,
@@ -22,7 +21,6 @@ from src.domain.exceptions import (
 from tests.fixtures.factories import (
     CategoriaFactory,
     ChamadoFactory,
-    ComentarioFactory,
     UsuarioFactory,
 )
 

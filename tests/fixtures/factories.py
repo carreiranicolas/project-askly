@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 import factory
-from factory import Faker, LazyAttribute, SubFactory
+from factory import Faker
 
 from src.domain.entities import Categoria, Chamado, Comentario, HistoricoStatus, Usuario
 from src.domain.enums import PerfilUsuario, Prioridade, StatusChamado

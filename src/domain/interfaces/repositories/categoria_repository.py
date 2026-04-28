@@ -23,7 +23,6 @@ class ICategoriaRepository(IRepository[Categoria]):
         Returns:
             Categoria encontrada ou None
         """
-        pass
 
     @abstractmethod
     def nome_exists(self, nome: str, exclude_id: UUID | None = None) -> bool:
@@ -37,7 +36,6 @@ class ICategoriaRepository(IRepository[Categoria]):
         Returns:
             True se nome existe, False caso contrário
         """
-        pass
 
     @abstractmethod
     def get_ativas(self) -> list[Categoria]:
@@ -47,7 +45,6 @@ class ICategoriaRepository(IRepository[Categoria]):
         Returns:
             Lista de categorias ativas ordenadas por nome
         """
-        pass
 
     @abstractmethod
     def get_all_ordered(self) -> list[Categoria]:
@@ -57,4 +54,3 @@ class ICategoriaRepository(IRepository[Categoria]):
         Returns:
             Lista de categorias ordenadas
         """
-        pass

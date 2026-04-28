@@ -1,7 +1,6 @@
 """Create Ticket Use Case."""
 
 from dataclasses import dataclass
-from uuid import UUID
 
 from src.application.dtos import ChamadoCreateDTO, ChamadoResponseDTO
 from src.domain.entities import Chamado, HistoricoStatus, Usuario

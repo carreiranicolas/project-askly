@@ -6,9 +6,7 @@ transitions from RESOLVIDO back to EM_ATENDIMENTO.
 
 from datetime import datetime, timedelta, timezone
 
-import pytest
-
-from src.domain.enums import PerfilUsuario, StatusChamado
+from src.domain.enums import StatusChamado
 from tests.fixtures.factories import ChamadoFactory, UsuarioFactory
 
 

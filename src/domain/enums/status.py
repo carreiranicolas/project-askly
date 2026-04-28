@@ -70,7 +70,6 @@ class StatusChamado(str, Enum):
 
     def transicoes_permitidas(self) -> list["StatusChamado"]:
         """Retorna lista de status para os quais pode transicionar."""
-        from src.domain.enums.perfil import PerfilUsuario
 
         transicoes = {
             self.ABERTO: [self.EM_ATENDIMENTO],

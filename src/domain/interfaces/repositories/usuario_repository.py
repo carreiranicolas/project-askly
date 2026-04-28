@@ -26,7 +26,6 @@ class IUsuarioRepository(IRepository[Usuario]):
         Returns:
             Usuário encontrado ou None
         """
-        pass
 
     @abstractmethod
     def email_exists(self, email: str, exclude_id: UUID | None = None) -> bool:
@@ -40,7 +39,6 @@ class IUsuarioRepository(IRepository[Usuario]):
         Returns:
             True se email existe, False caso contrário
         """
-        pass
 
     @abstractmethod
     def get_by_perfil(self, perfil: PerfilUsuario) -> list[Usuario]:
@@ -53,7 +51,6 @@ class IUsuarioRepository(IRepository[Usuario]):
         Returns:
             Lista de usuários com o perfil especificado
         """
-        pass
 
     @abstractmethod
     def get_ativos(self) -> list[Usuario]:
@@ -63,7 +60,6 @@ class IUsuarioRepository(IRepository[Usuario]):
         Returns:
             Lista de usuários ativos
         """
-        pass
 
     @abstractmethod
     def get_atendentes_ativos(self) -> list[Usuario]:
@@ -73,7 +69,6 @@ class IUsuarioRepository(IRepository[Usuario]):
         Returns:
             Lista de usuários atendentes ativos
         """
-        pass
 
     @abstractmethod
     def get_paginated(
@@ -95,4 +90,3 @@ class IUsuarioRepository(IRepository[Usuario]):
         Returns:
             Tupla com (lista de usuários, total de registros)
         """
-        pass

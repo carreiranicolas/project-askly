@@ -5,12 +5,11 @@ from uuid import uuid4
 
 import pytest
 
-from src.domain.entities import Chamado, HistoricoStatus, Usuario
+from src.domain.entities import HistoricoStatus, Usuario
 from src.domain.enums import PerfilUsuario, Prioridade, StatusChamado
 from src.domain.exceptions import (
     AuthorizationException,
     InvalidStatusTransitionException,
-    ReopenDeadlineExpiredException,
     TicketClosedException,
 )
 from tests.fixtures.factories import ChamadoFactory, UsuarioFactory

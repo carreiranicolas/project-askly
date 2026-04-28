@@ -40,7 +40,6 @@ class IUnitOfWork(ABC):
     @abstractmethod
     def __enter__(self) -> "IUnitOfWork":
         """Inicia o contexto da transação."""
-        pass
 
     @abstractmethod
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
@@ -49,7 +48,6 @@ class IUnitOfWork(ABC):
 
         Se houver exceção, faz rollback automaticamente.
         """
-        pass
 
     @abstractmethod
     def commit(self) -> None:
@@ -59,9 +57,7 @@ class IUnitOfWork(ABC):
         Raises:
             Exception: Se houver erro no commit
         """
-        pass
 
     @abstractmethod
     def rollback(self) -> None:
         """Desfaz todas as operações da transação."""
-        pass

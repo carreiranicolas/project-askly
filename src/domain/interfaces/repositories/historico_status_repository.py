@@ -26,7 +26,6 @@ class IHistoricoStatusRepository(IRepository[HistoricoStatus]):
         Returns:
             Lista de registros de histórico ordenados
         """
-        pass
 
     @abstractmethod
     def get_ultimo_by_chamado(self, chamado_id: UUID) -> HistoricoStatus | None:
@@ -39,7 +38,6 @@ class IHistoricoStatusRepository(IRepository[HistoricoStatus]):
         Returns:
             Último registro ou None
         """
-        pass
 
     @abstractmethod
     def count_by_chamado(self, chamado_id: UUID) -> int:
@@ -52,7 +50,6 @@ class IHistoricoStatusRepository(IRepository[HistoricoStatus]):
         Returns:
             Número de registros
         """
-        pass
 
     @abstractmethod
     def get_by_usuario(self, usuario_id: UUID) -> list[HistoricoStatus]:
@@ -65,4 +62,3 @@ class IHistoricoStatusRepository(IRepository[HistoricoStatus]):
         Returns:
             Lista de registros
         """
-        pass

@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from flask import flash, redirect, render_template, request, url_for
-from flask_login import current_user, login_required
+from flask_login import login_required
 
 from src.application.dtos import CategoriaCreateDTO
 from src.application.use_cases import (
@@ -12,13 +12,12 @@ from src.application.use_cases import (
     ListCategoriesUseCase,
     ListUsersUseCase,
 )
-from src.domain.entities import Usuario
 from src.domain.enums import PerfilUsuario
 from src.domain.exceptions import DomainException
 from src.infrastructure import SQLAlchemyUnitOfWork, db
 from src.infrastructure.persistence.sqlalchemy.models import CategoriaModel
 from src.infrastructure.security import admin_required
-from src.presentation.utils import get_current_user_entity, require_current_user_entity
+from src.presentation.utils import require_current_user_entity
 from src.presentation.web.blueprints.admin import admin_bp
 
 

@@ -8,7 +8,6 @@ from src.application.dtos import UsuarioCreateDTO
 from src.application.use_cases import RegisterUseCase
 from src.domain.enums import PerfilUsuario
 from src.domain.exceptions import UserAlreadyExistsException, ValidationException
-from tests.fixtures.factories import UsuarioFactory
 
 
 class TestRegisterUseCase:

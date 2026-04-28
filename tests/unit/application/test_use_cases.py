@@ -1,14 +1,12 @@
 """Tests for application use cases."""
 
 from unittest.mock import MagicMock, Mock
-from uuid import uuid4
 
 import pytest
 
 from src.application.dtos import AlterarStatusDTO, ChamadoCreateDTO, LoginDTO
 from src.application.use_cases import ChangeStatusUseCase, CreateTicketUseCase, LoginUseCase
-from src.domain.entities import Chamado, HistoricoStatus, Usuario
-from src.domain.enums import PerfilUsuario, Prioridade, StatusChamado
+from src.domain.enums import Prioridade, StatusChamado
 from src.domain.exceptions import InvalidCredentialsException, UserInactiveException
 from tests.fixtures.factories import CategoriaFactory, ChamadoFactory, UsuarioFactory
 

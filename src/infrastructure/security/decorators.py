@@ -3,7 +3,7 @@
 from functools import wraps
 from typing import Callable
 
-from flask import abort, flash, g, redirect, request, url_for
+from flask import abort, flash, redirect, request, url_for
 from flask_login import current_user
 from flask_login import login_required as flask_login_required
 

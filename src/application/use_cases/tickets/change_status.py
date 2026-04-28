@@ -1,11 +1,9 @@
 """Change Status Use Case."""
 
 from dataclasses import dataclass
-from uuid import UUID
 
 from src.application.dtos import AlterarStatusDTO, ChamadoResponseDTO
-from src.domain.entities import Chamado, HistoricoStatus, Usuario
-from src.domain.enums import StatusChamado
+from src.domain.entities import HistoricoStatus, Usuario
 from src.domain.exceptions import EntityNotFoundException
 
 

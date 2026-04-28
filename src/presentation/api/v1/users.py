@@ -10,7 +10,7 @@ from src.domain.enums import PerfilUsuario
 from src.domain.exceptions import DomainException
 from src.infrastructure import SQLAlchemyUnitOfWork, db
 from src.presentation.api.api_auth import api_auth_required
-from src.presentation.utils import get_current_user_entity, require_current_user_entity
+from src.presentation.utils import require_current_user_entity
 
 users_ns = Namespace("usuarios", description="Gestão de usuários (admin)")
 

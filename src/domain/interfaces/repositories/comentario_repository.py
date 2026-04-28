@@ -24,7 +24,6 @@ class IComentarioRepository(IRepository[Comentario]):
         Returns:
             Lista de comentários ordenados
         """
-        pass
 
     @abstractmethod
     def count_by_chamado(self, chamado_id: UUID) -> int:
@@ -37,7 +36,6 @@ class IComentarioRepository(IRepository[Comentario]):
         Returns:
             Número de comentários
         """
-        pass
 
     @abstractmethod
     def get_by_autor(self, autor_id: UUID) -> list[Comentario]:
@@ -50,4 +48,3 @@ class IComentarioRepository(IRepository[Comentario]):
         Returns:
             Lista de comentários
         """
-        pass

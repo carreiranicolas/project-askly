@@ -29,7 +29,6 @@ class IChamadoRepository(IRepository[Chamado]):
         Returns:
             Tupla com (lista de chamados, total)
         """
-        pass
 
     @abstractmethod
     def get_by_atendente(
@@ -46,7 +45,6 @@ class IChamadoRepository(IRepository[Chamado]):
         Returns:
             Tupla com (lista de chamados, total)
         """
-        pass
 
     @abstractmethod
     def get_fila_atendimento(
@@ -70,7 +68,6 @@ class IChamadoRepository(IRepository[Chamado]):
         Returns:
             Tupla com (lista de chamados, total)
         """
-        pass
 
     @abstractmethod
     def get_paginated_filtered(
@@ -102,7 +99,6 @@ class IChamadoRepository(IRepository[Chamado]):
         Returns:
             Tupla com (lista de chamados, total)
         """
-        pass
 
     @abstractmethod
     def count_by_status(self) -> dict[StatusChamado, int]:
@@ -112,7 +108,6 @@ class IChamadoRepository(IRepository[Chamado]):
         Returns:
             Dicionário status -> contagem
         """
-        pass
 
     @abstractmethod
     def count_by_categoria(self) -> dict[UUID, int]:
@@ -122,7 +117,6 @@ class IChamadoRepository(IRepository[Chamado]):
         Returns:
             Dicionário categoria_id -> contagem
         """
-        pass
 
     @abstractmethod
     def get_abertos_sem_atendente(self) -> list[Chamado]:
@@ -132,4 +126,3 @@ class IChamadoRepository(IRepository[Chamado]):
         Returns:
             Lista de chamados
         """
-        pass

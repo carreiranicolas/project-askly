@@ -1,7 +1,5 @@
 """Integration tests for Tickets API."""
 
-import pytest
-
 
 class TestTicketsAPI:
     """Tests for tickets API endpoints."""

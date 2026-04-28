@@ -1,7 +1,5 @@
 """Integration tests for Auth API."""
 
-import pytest
-
 
 class TestAuthAPI:
     """Tests for authentication API endpoints."""

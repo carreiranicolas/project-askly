@@ -28,7 +28,6 @@ class IRepository(ABC, Generic[T]):
         Returns:
             Entidade encontrada ou None
         """
-        pass
 
     @abstractmethod
     def get_all(self) -> list[T]:
@@ -38,7 +37,6 @@ class IRepository(ABC, Generic[T]):
         Returns:
             Lista de entidades
         """
-        pass
 
     @abstractmethod
     def add(self, entity: T) -> T:
@@ -51,7 +49,6 @@ class IRepository(ABC, Generic[T]):
         Returns:
             Entidade adicionada (com ID gerado se aplicável)
         """
-        pass
 
     @abstractmethod
     def update(self, entity: T) -> T:
@@ -64,7 +61,6 @@ class IRepository(ABC, Generic[T]):
         Returns:
             Entidade atualizada
         """
-        pass
 
     @abstractmethod
     def delete(self, entity_id: UUID) -> bool:
@@ -77,7 +73,6 @@ class IRepository(ABC, Generic[T]):
         Returns:
             True se removida, False se não encontrada
         """
-        pass
 
     @abstractmethod
     def exists(self, entity_id: UUID) -> bool:
@@ -90,7 +85,6 @@ class IRepository(ABC, Generic[T]):
         Returns:
             True se existe, False caso contrário
         """
-        pass
 
     @abstractmethod
     def count(self) -> int:
@@ -100,4 +94,3 @@ class IRepository(ABC, Generic[T]):
         Returns:
             Número total de entidades
         """
-        pass

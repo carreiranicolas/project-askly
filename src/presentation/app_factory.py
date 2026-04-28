@@ -132,7 +132,7 @@ def register_blueprints(app: Flask) -> None:
 
 def register_api(app: Flask) -> None:
     """Register REST API with Swagger."""
-    from src.presentation.api import api, api_bp
+    from src.presentation.api import api_bp
 
     csrf.exempt(api_bp)
     # API endpoints should not be forced to use CSRF (use Bearer JWT or session).
@@ -148,7 +148,6 @@ def register_error_handlers(app: Flask) -> None:
         AuthorizationException,
         DomainException,
         EntityNotFoundException,
-        ValidationException,
     )
 
     def is_api_request():

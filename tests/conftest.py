@@ -1,6 +1,5 @@
 """Pytest configuration and fixtures."""
 
-import os
 from uuid import uuid4
 
 import pytest

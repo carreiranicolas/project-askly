@@ -13,7 +13,7 @@ from src.application.use_cases import (
 )
 from src.domain.enums import PerfilUsuario
 from src.domain.exceptions import AuthorizationException, ValidationException
-from tests.fixtures.factories import CategoriaFactory, UsuarioFactory
+from tests.fixtures.factories import UsuarioFactory
 
 
 def _make_uow():
