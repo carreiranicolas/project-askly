@@ -29,6 +29,32 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.askly-page {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.askly-page--ready {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.askly-page--leaving {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .askly-page,
+  .askly-page--ready,
+  .askly-page--leaving {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+}
+
 .askly-auth-wrap {
   min-height: 100vh;
   display: grid;

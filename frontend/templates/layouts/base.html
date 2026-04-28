@@ -12,7 +12,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}" />
   </head>
   <body>
-    {% block content %}{% endblock %}
+    <div id="askly-page" class="askly-page">
+      {% block content %}{% endblock %}
+    </div>
+
+    <script defer src="{{ url_for('static', filename='js/page-transition.js') }}"></script>
   </body>
 </html>
 
