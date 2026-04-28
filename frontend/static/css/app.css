@@ -1,0 +1,1068 @@
+/* ============================================================
+   ASKLY — Global Styles
+   Built on top of design-tokens.css
+   Pure CSS — no framework dependencies
+   ============================================================ */
+
+/* ── Reset & Base ──────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+html body {
+  font-family: var(--ask-font-sans);
+  font-size: var(--ask-text-base);
+  line-height: var(--ask-leading-normal);
+  color: var(--ask-text-primary);
+  background: var(--ask-bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--ask-teal-300);
+  text-decoration: none;
+  transition: color var(--ask-duration-fast) var(--ask-ease-out);
+}
+
+a:hover {
+  color: var(--ask-teal-400);
+  text-decoration: underline;
+  text-decoration-color: rgba(94, 234, 212, 0.35);
+  text-underline-offset: 3px;
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* ── Mesh Gradient Background ──────────────────────────────── */
+.askly-mesh-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    var(--ask-gradient-mesh-1),
+    var(--ask-gradient-mesh-2),
+    var(--ask-gradient-mesh-3),
+    var(--ask-gradient-dark);
+  overflow: hidden;
+}
+
+/* Animated floating orbs */
+.askly-mesh-bg::before,
+.askly-mesh-bg::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.5;
+  will-change: transform;
+}
+
+.askly-mesh-bg::before {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(13, 148, 136, 0.30), transparent 70%);
+  top: -10%;
+  left: -5%;
+  animation: askly-float-1 18s ease-in-out infinite;
+}
+
+.askly-mesh-bg::after {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.25), transparent 70%);
+  bottom: -15%;
+  right: -8%;
+  animation: askly-float-2 22s ease-in-out infinite;
+}
+
+@keyframes askly-float-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(80px, 40px) scale(1.08); }
+  66%      { transform: translate(-40px, 80px) scale(0.95); }
+}
+
+@keyframes askly-float-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(-60px, -50px) scale(1.05); }
+  66%      { transform: translate(50px, -30px) scale(0.92); }
+}
+
+/* Third floating orb via extra span */
+.askly-mesh-orb {
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.20), transparent 70%);
+  filter: blur(60px);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: askly-float-3 25s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes askly-float-3 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  25%      { transform: translate(-30%, -60%) scale(1.12); }
+  50%      { transform: translate(-60%, -40%) scale(0.90); }
+  75%      { transform: translate(-45%, -55%) scale(1.05); }
+}
+
+/* Floating particles */
+.askly-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.askly-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(94, 234, 212, 0.50);
+  animation: askly-drift linear infinite;
+  will-change: transform, opacity;
+}
+
+.askly-particle:nth-child(1) { left: 12%; top: 20%; animation-duration: 14s; animation-delay: 0s; width: 3px; height: 3px; }
+.askly-particle:nth-child(2) { left: 35%; top: 70%; animation-duration: 18s; animation-delay: -4s; width: 5px; height: 5px; background: rgba(14, 165, 233, 0.40); }
+.askly-particle:nth-child(3) { left: 70%; top: 15%; animation-duration: 20s; animation-delay: -8s; }
+.askly-particle:nth-child(4) { left: 85%; top: 55%; animation-duration: 16s; animation-delay: -2s; width: 6px; height: 6px; background: rgba(16, 185, 129, 0.35); }
+.askly-particle:nth-child(5) { left: 50%; top: 40%; animation-duration: 22s; animation-delay: -6s; width: 3px; height: 3px; }
+.askly-particle:nth-child(6) { left: 25%; top: 85%; animation-duration: 19s; animation-delay: -10s; width: 4px; height: 4px; background: rgba(56, 189, 248, 0.35); }
+
+@keyframes askly-drift {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(-120px) translateX(40px) scale(0.5); opacity: 0; }
+}
+
+/* ── Page Transition ───────────────────────────────────────── */
+.askly-page {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--ask-duration-normal) var(--ask-ease-out),
+              transform var(--ask-duration-normal) var(--ask-ease-out);
+}
+
+.askly-page--ready {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.askly-page--leaving {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .askly-page,
+  .askly-page--ready,
+  .askly-page--leaving {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+  .askly-mesh-bg::before,
+  .askly-mesh-bg::after,
+  .askly-mesh-orb,
+  .askly-particle {
+    animation: none !important;
+  }
+}
+
+/* ── Auth Layout ───────────────────────────────────────────── */
+.askly-auth-wrap {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--ask-space-10) var(--ask-space-5);
+  position: relative;
+  z-index: var(--ask-z-above);
+}
+
+.askly-auth-card {
+  width: min(1040px, 100%);
+  border-radius: var(--ask-radius-2xl);
+  overflow: hidden;
+  box-shadow: var(--ask-shadow-xl);
+  border: 1px solid var(--ask-glass-border);
+  background: var(--ask-glass-bg);
+  backdrop-filter: blur(var(--ask-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ask-glass-blur));
+  animation: askly-card-enter 0.6s var(--ask-ease-out) both;
+  animation-delay: 0.1s;
+}
+
+@keyframes askly-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.askly-auth-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .askly-auth-grid {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+}
+
+/* ── Auth: Brand Panel (Left) ──────────────────────────────── */
+.askly-auth-brand {
+  padding: var(--ask-space-10) var(--ask-space-8);
+  background: linear-gradient(160deg, #0c1e3a 0%, #081428 40%, #060e1a 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(94, 234, 212, 0.08);
+  min-height: 380px;
+}
+
+@media (min-width: 768px) {
+  .askly-auth-brand {
+    border-bottom: none;
+    border-right: 1px solid rgba(94, 234, 212, 0.08);
+    padding: var(--ask-space-16) var(--ask-space-10);
+    min-height: auto;
+  }
+}
+
+/* Atmospheric inner glow on brand panel */
+.askly-auth-brand::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 500px 400px at 50% 30%, rgba(13, 148, 136, 0.18), transparent 70%),
+    radial-gradient(ellipse 400px 500px at 30% 70%, rgba(14, 165, 233, 0.12), transparent 65%),
+    radial-gradient(ellipse 300px 300px at 80% 60%, rgba(16, 185, 129, 0.10), transparent 60%);
+  pointer-events: none;
+  animation: askly-glow-pulse 8s ease-in-out infinite;
+}
+
+@keyframes askly-glow-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.7; }
+}
+
+.askly-brand-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.askly-brand-dot {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(94, 234, 212, 0.55);
+  box-shadow: 0 0 8px rgba(94, 234, 212, 0.40);
+  animation: askly-twinkle 4s ease-in-out infinite;
+}
+
+.askly-brand-dot:nth-child(1) { width: 5px; height: 5px; top: 12%; left: 18%; animation-delay: 0s; }
+.askly-brand-dot:nth-child(2) { width: 7px; height: 7px; top: 68%; left: 78%; animation-delay: 1.5s; background: rgba(14, 165, 233, 0.50); box-shadow: 0 0 10px rgba(14, 165, 233, 0.35); }
+.askly-brand-dot:nth-child(3) { width: 4px; height: 4px; top: 38%; left: 88%; animation-delay: 3s; }
+.askly-brand-dot:nth-child(4) { width: 6px; height: 6px; top: 82%; left: 25%; animation-delay: 0.8s; background: rgba(16, 185, 129, 0.45); box-shadow: 0 0 10px rgba(16, 185, 129, 0.30); }
+.askly-brand-dot:nth-child(5) { width: 5px; height: 5px; top: 22%; left: 72%; animation-delay: 2.2s; }
+.askly-brand-dot:nth-child(6) { width: 3px; height: 3px; top: 55%; left: 12%; animation-delay: 1.8s; background: rgba(56, 189, 248, 0.40); }
+.askly-brand-dot:nth-child(7) { width: 4px; height: 4px; top: 45%; left: 50%; animation-delay: 3.5s; }
+.askly-brand-dot:nth-child(8) { width: 6px; height: 6px; top: 90%; left: 65%; animation-delay: 0.5s; background: rgba(14, 165, 233, 0.40); box-shadow: 0 0 8px rgba(14, 165, 233, 0.25); }
+
+/* Diamond geometric shapes */
+.askly-brand-diamond {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid rgba(94, 234, 212, 0.25);
+  transform: rotate(45deg);
+  animation: askly-twinkle 5s ease-in-out infinite;
+}
+
+.askly-brand-diamond:nth-child(9)  { top: 28%; left: 10%; animation-delay: 1s; width: 12px; height: 12px; }
+.askly-brand-diamond:nth-child(10) { top: 62%; left: 85%; animation-delay: 2.5s; border-color: rgba(14, 165, 233, 0.22); }
+.askly-brand-diamond:nth-child(11) { top: 85%; left: 48%; animation-delay: 4s; width: 8px; height: 8px; border-color: rgba(16, 185, 129, 0.20); }
+
+@keyframes askly-twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(1) rotate(var(--_rot, 0deg)); }
+  50%      { opacity: 1; transform: scale(1.5) rotate(var(--_rot, 0deg)); }
+}
+
+.askly-brand-diamond { --_rot: 45deg; }
+
+.askly-logo-frame {
+  width: min(160px, 60%);
+  margin-bottom: var(--ask-space-8);
+  position: relative;
+  z-index: 1;
+  animation: askly-logo-float 6s ease-in-out infinite;
+}
+
+/* Glowing ring behind the logo */
+.askly-logo-frame::before {
+  content: '';
+  position: absolute;
+  inset: -15px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(13, 148, 136, 0.20), transparent 70%);
+  filter: blur(15px);
+  animation: askly-ring-pulse 4s ease-in-out infinite;
+}
+
+@keyframes askly-ring-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes askly-logo-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+.askly-logo {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 8px 25px rgba(13, 148, 136, 0.40));
+  position: relative;
+  z-index: 1;
+}
+
+.askly-brand-name {
+  font-size: var(--ask-text-3xl);
+  font-weight: 800;
+  letter-spacing: var(--ask-tracking-tight);
+  color: var(--ask-text-primary);
+  position: relative;
+  z-index: 1;
+  margin-bottom: var(--ask-space-3);
+}
+
+.askly-brand-accent {
+  background: linear-gradient(135deg, var(--ask-teal-300), var(--ask-sky-400));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(94, 234, 212, 0.30));
+}
+
+.askly-auth-tagline {
+  color: rgba(148, 163, 184, 0.85);
+  font-size: var(--ask-text-base);
+  line-height: var(--ask-leading-relaxed);
+  max-width: 320px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Auth: Form Panel (Right) ──────────────────────────────── */
+.askly-auth-form {
+  padding: var(--ask-space-10) var(--ask-space-8);
+  background: rgba(255, 255, 255, 0.97);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .askly-auth-form {
+    padding: var(--ask-space-12) var(--ask-space-10);
+  }
+}
+
+.askly-auth-form form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Typography Classes ────────────────────────────────────── */
+.askly-title {
+  font-weight: 800;
+  font-size: var(--ask-text-2xl);
+  letter-spacing: var(--ask-tracking-tight);
+  line-height: var(--ask-leading-tight);
+  color: var(--ask-text-dark);
+  margin-bottom: var(--ask-space-2);
+}
+
+.askly-subtitle {
+  color: var(--ask-gray-500);
+  font-size: var(--ask-text-base);
+  margin-bottom: var(--ask-space-8);
+}
+
+/* ── Form Controls ─────────────────────────────────────────── */
+.askly-field {
+  margin-bottom: var(--ask-space-5);
+}
+
+.askly-label {
+  display: block;
+  font-size: var(--ask-text-sm);
+  font-weight: 600;
+  color: var(--ask-gray-700);
+  margin-bottom: var(--ask-space-2);
+  letter-spacing: var(--ask-tracking-wide);
+  text-transform: uppercase;
+}
+
+.askly-input-wrap {
+  position: relative;
+}
+
+.askly-input-icon {
+  position: absolute;
+  left: var(--ask-space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--ask-gray-400);
+  pointer-events: none;
+  transition: color var(--ask-duration-fast) var(--ask-ease-out);
+}
+
+.askly-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 var(--ask-space-4) 0 var(--ask-space-12);
+  border: 1.5px solid var(--ask-gray-200);
+  border-radius: var(--ask-radius-md);
+  background: var(--ask-white);
+  color: var(--ask-text-dark);
+  font-size: var(--ask-text-base);
+  transition:
+    border-color var(--ask-duration-fast) var(--ask-ease-out),
+    box-shadow var(--ask-duration-normal) var(--ask-ease-out);
+  outline: none;
+}
+
+.askly-input::placeholder {
+  color: var(--ask-gray-400);
+}
+
+.askly-input:hover {
+  border-color: var(--ask-gray-300);
+}
+
+.askly-input:focus {
+  border-color: var(--ask-teal-500);
+  box-shadow:
+    0 0 0 4px rgba(13, 148, 136, 0.10),
+    var(--ask-shadow-inner-glow);
+}
+
+.askly-input:focus ~ .askly-input-icon {
+  color: var(--ask-teal-500);
+}
+
+/* Input without icon */
+.askly-input--no-icon {
+  padding-left: var(--ask-space-4);
+}
+
+/* Toggle password visibility */
+.askly-input-toggle {
+  position: absolute;
+  right: var(--ask-space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--ask-radius-sm);
+  color: var(--ask-gray-400);
+  transition: color var(--ask-duration-fast), background var(--ask-duration-fast);
+}
+
+.askly-input-toggle:hover {
+  color: var(--ask-gray-600);
+  background: var(--ask-gray-100);
+}
+
+/* ── Checkbox ──────────────────────────────────────────────── */
+.askly-checkbox-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--ask-space-2);
+  margin-bottom: var(--ask-space-6);
+}
+
+.askly-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--ask-teal-500);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.askly-checkbox-label {
+  font-size: var(--ask-text-sm);
+  color: var(--ask-gray-600);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.askly-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ask-space-2);
+  height: 48px;
+  padding: 0 var(--ask-space-8);
+  border: none;
+  border-radius: var(--ask-radius-md);
+  font-size: var(--ask-text-base);
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform var(--ask-duration-fast) var(--ask-ease-out),
+    box-shadow var(--ask-duration-normal) var(--ask-ease-out),
+    filter var(--ask-duration-fast);
+  outline: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.askly-btn:active {
+  transform: scale(0.98);
+}
+
+/* Primary action button */
+.askly-btn--primary {
+  width: 100%;
+  background: var(--ask-gradient-brand);
+  color: var(--ask-white);
+  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.25);
+  letter-spacing: 0.02em;
+}
+
+.askly-btn--primary:hover {
+  background: var(--ask-gradient-brand-hover);
+  box-shadow: 0 12px 32px rgba(13, 148, 136, 0.35);
+  transform: translateY(-1px);
+}
+
+.askly-btn--primary:focus-visible {
+  box-shadow:
+    0 0 0 3px var(--ask-accent-glow),
+    0 8px 24px rgba(13, 148, 136, 0.25);
+}
+
+/* Shimmer effect on button */
+.askly-btn--primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transition: left 0.5s var(--ask-ease-out);
+}
+
+.askly-btn--primary:hover::after {
+  left: 100%;
+}
+
+/* Ghost / secondary button */
+.askly-btn--ghost {
+  background: transparent;
+  color: var(--ask-teal-500);
+  border: 1.5px solid var(--ask-gray-200);
+}
+
+.askly-btn--ghost:hover {
+  border-color: var(--ask-teal-500);
+  background: rgba(13, 148, 136, 0.05);
+}
+
+/* ── Notifications / Flash Messages ────────────────────────── */
+.askly-notification {
+  padding: var(--ask-space-4) var(--ask-space-5);
+  border-radius: var(--ask-radius-md);
+  font-size: var(--ask-text-sm);
+  margin-bottom: var(--ask-space-5);
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  gap: var(--ask-space-3);
+}
+
+.askly-notification--danger {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.20);
+  color: #dc2626;
+}
+
+.askly-notification--success {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.20);
+  color: #059669;
+}
+
+.askly-notification--info {
+  background: rgba(14, 165, 233, 0.08);
+  border-color: rgba(14, 165, 233, 0.20);
+  color: #0284c7;
+}
+
+.askly-notification--warning {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.20);
+  color: #d97706;
+}
+
+/* ── Helper Text ───────────────────────────────────────────── */
+.askly-help {
+  color: var(--ask-gray-500);
+  font-size: var(--ask-text-sm);
+}
+
+.askly-help a {
+  color: var(--ask-teal-500);
+  font-weight: 600;
+}
+
+.askly-help a:hover {
+  color: var(--ask-teal-400);
+}
+
+/* ── Version Badge ─────────────────────────────────────────── */
+.askly-version {
+  margin-top: auto;
+  padding-top: var(--ask-space-6);
+  text-align: center;
+}
+
+.askly-kbd {
+  font-family: var(--ask-font-mono);
+  font-size: var(--ask-text-xs);
+  padding: 2px 8px;
+  border-radius: var(--ask-radius-sm);
+  background: var(--ask-gray-100);
+  color: var(--ask-gray-600);
+  border: 1px solid var(--ask-gray-200);
+}
+
+/* ── Columns Helper (replaces Bulma .columns) ──────────────── */
+.askly-columns {
+  display: grid;
+  gap: var(--ask-space-5);
+}
+
+@media (min-width: 768px) {
+  .askly-columns--2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ── Divider ───────────────────────────────────────────────── */
+.askly-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--ask-space-4);
+  color: var(--ask-gray-400);
+  font-size: var(--ask-text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--ask-tracking-wide);
+  margin: var(--ask-space-6) 0;
+}
+
+.askly-divider::before,
+.askly-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--ask-gray-200);
+}
+
+/* ── Utility Classes ───────────────────────────────────────── */
+.askly-mt-auto { margin-top: auto; }
+.askly-mt-4 { margin-top: var(--ask-space-4); }
+.askly-mt-5 { margin-top: var(--ask-space-5); }
+.askly-mt-6 { margin-top: var(--ask-space-6); }
+.askly-mb-4 { margin-bottom: var(--ask-space-4); }
+.askly-mb-5 { margin-bottom: var(--ask-space-5); }
+.askly-text-center { text-align: center; }
+
+/* ── Stagger Animation (children reveal) ──────────────────── */
+.askly-stagger > * {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: askly-fade-up 0.4s var(--ask-ease-out) forwards;
+}
+
+.askly-stagger > *:nth-child(1) { animation-delay: 0.15s; }
+.askly-stagger > *:nth-child(2) { animation-delay: 0.25s; }
+.askly-stagger > *:nth-child(3) { animation-delay: 0.35s; }
+.askly-stagger > *:nth-child(4) { animation-delay: 0.45s; }
+.askly-stagger > *:nth-child(5) { animation-delay: 0.55s; }
+.askly-stagger > *:nth-child(6) { animation-delay: 0.65s; }
+.askly-stagger > *:nth-child(7) { animation-delay: 0.75s; }
+.askly-stagger > *:nth-child(8) { animation-delay: 0.85s; }
+
+@keyframes askly-fade-up {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   APP SHELL (Logged In Area)
+   ============================================================ */
+
+.askly-app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--ask-gray-50);
+}
+
+/* ── Sidebar ───────────────────────────────────────────────── */
+.askly-sidebar {
+  width: 280px;
+  background: var(--ask-navy-900);
+  color: var(--ask-gray-400);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: var(--ask-z-above);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.askly-sidebar-header {
+  padding: var(--ask-space-6) var(--ask-space-6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.askly-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--ask-space-3);
+  text-decoration: none;
+  color: var(--ask-white);
+}
+
+.askly-sidebar-brand:hover {
+  text-decoration: none;
+  color: var(--ask-white);
+}
+
+.askly-sidebar-logo {
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 0 8px rgba(13, 148, 136, 0.4));
+}
+
+.askly-sidebar-name {
+  font-size: var(--ask-text-lg);
+  font-weight: 800;
+  letter-spacing: var(--ask-tracking-tight);
+}
+
+.askly-sidebar-nav {
+  flex: 1;
+  padding: var(--ask-space-6) var(--ask-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ask-space-2);
+  overflow-y: auto;
+}
+
+.askly-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--ask-space-3);
+  padding: var(--ask-space-3) var(--ask-space-4);
+  border-radius: var(--ask-radius-md);
+  color: var(--ask-gray-300);
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--ask-duration-fast) var(--ask-ease-out);
+}
+
+.askly-nav-item svg {
+  width: 20px;
+  height: 20px;
+  opacity: 0.7;
+}
+
+.askly-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ask-white);
+  text-decoration: none;
+}
+
+.askly-nav-item:hover svg {
+  opacity: 1;
+}
+
+.askly-nav-item.is-active {
+  background: rgba(13, 148, 136, 0.15);
+  color: var(--ask-teal-300);
+  border-left: 3px solid var(--ask-teal-400);
+}
+
+.askly-nav-item.is-active svg {
+  color: var(--ask-teal-400);
+  opacity: 1;
+}
+
+.askly-nav-divider {
+  font-size: var(--ask-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ask-gray-500);
+  margin-top: var(--ask-space-6);
+  margin-bottom: var(--ask-space-2);
+  padding-left: var(--ask-space-4);
+}
+
+.askly-sidebar-footer {
+  padding: var(--ask-space-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.askly-user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--ask-space-3);
+  padding: var(--ask-space-3);
+  margin-bottom: var(--ask-space-2);
+}
+
+.askly-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ask-gradient-brand);
+  color: var(--ask-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: var(--ask-text-sm);
+}
+
+.askly-user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.askly-user-name {
+  color: var(--ask-white);
+  font-weight: 600;
+  font-size: var(--ask-text-sm);
+}
+
+.askly-user-role {
+  font-size: var(--ask-text-xs);
+  color: var(--ask-gray-500);
+}
+
+.askly-nav-logout {
+  color: var(--ask-gray-400);
+  margin-top: auto;
+}
+
+.askly-nav-logout:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--ask-danger);
+}
+
+/* ── Main Content ──────────────────────────────────────────── */
+.askly-main {
+  flex: 1;
+  margin-left: 280px;
+  display: flex;
+  flex-direction: column;
+}
+
+.askly-app-header {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--ask-space-8);
+  background: var(--ask-white);
+  border-bottom: 1px solid var(--ask-gray-200);
+  position: sticky;
+  top: 0;
+  z-index: var(--ask-z-above);
+}
+
+.askly-app-title {
+  font-size: var(--ask-text-xl);
+  font-weight: 700;
+  color: var(--ask-gray-900);
+  letter-spacing: var(--ask-tracking-tight);
+}
+
+.askly-app-actions {
+  display: flex;
+  gap: var(--ask-space-3);
+}
+
+.askly-app-content {
+  padding: var(--ask-space-8);
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.askly-flash-container {
+  padding: var(--ask-space-4) var(--ask-space-8) 0;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ── Cards & Containers ──────────────────────────────────────── */
+.askly-card {
+  background: var(--ask-white);
+  border-radius: var(--ask-radius-lg);
+  box-shadow: var(--ask-shadow-sm);
+  border: 1px solid var(--ask-gray-200);
+  overflow: hidden;
+}
+
+/* ── Tables ────────────────────────────────────────────────── */
+.askly-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.askly-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.askly-table th,
+.askly-table td {
+  padding: var(--ask-space-4) var(--ask-space-5);
+  border-bottom: 1px solid var(--ask-gray-200);
+}
+
+.askly-table th {
+  background: var(--ask-gray-50);
+  font-weight: 600;
+  color: var(--ask-gray-600);
+  font-size: var(--ask-text-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--ask-tracking-wide);
+}
+
+.askly-table tbody tr {
+  transition: background var(--ask-duration-fast) var(--ask-ease-out);
+}
+
+.askly-table tbody tr:hover {
+  background: var(--ask-gray-50);
+}
+
+.askly-table td {
+  color: var(--ask-gray-800);
+  font-size: var(--ask-text-sm);
+}
+
+.askly-table td a {
+  color: var(--ask-gray-900);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.askly-table td a:hover {
+  color: var(--ask-teal-500);
+}
+
+/* ── Badges ────────────────────────────────────────────────── */
+.askly-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--ask-space-3);
+  border-radius: var(--ask-radius-full);
+  font-size: var(--ask-text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.askly-badge--info {
+  background: rgba(14, 165, 233, 0.1);
+  color: var(--ask-sky-500);
+}
+
+.askly-badge--success {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--ask-emerald-500);
+}
+
+.askly-badge--warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--ask-warning);
+}
+
+.askly-badge--danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--ask-danger);
+}
+
+.askly-badge--neutral {
+  background: var(--ask-gray-100);
+  color: var(--ask-gray-600);
+}

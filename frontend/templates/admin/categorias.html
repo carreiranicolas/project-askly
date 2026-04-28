@@ -1,0 +1,61 @@
+{% extends "layouts/base.html" %}
+{% block title %}Categorias | Admin | Askly{% endblock %}
+
+{% block content %}
+  <h1 class="title">Admin · Categorias</h1>
+
+  <div class="box">
+    <h2 class="subtitle">Nova categoria</h2>
+    <form method="post" action="{{ url_for('web_admin.criar_categoria') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <div class="columns">
+        <div class="column">
+          <div class="field">
+            <label class="label">Nome</label>
+            <div class="control">
+              <input class="input" type="text" name="nome" required />
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <div class="field">
+            <label class="label">Descrição</label>
+            <div class="control">
+              <input class="input" type="text" name="descricao" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="button is-link" type="submit">Criar</button>
+    </form>
+  </div>
+
+  <div class="table-container">
+    <table class="table is-fullwidth is-striped">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Ativa</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in categorias %}
+          <tr>
+            <td>{{ c.nome }}</td>
+            <td>{{ 'Sim' if c.ativa else 'Não' }}</td>
+            <td>
+              <form method="post" action="{{ url_for('web_admin.toggle_categoria', id=c.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button class="button is-light" type="submit">
+                  {{ 'Desativar' if c.ativa else 'Ativar' }}
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+
