@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from src.infrastructure.persistence.sqlalchemy.models.usuario_model import UsuarioModel
 
 
-class ChamadoModel(db.Model):
+class ChamadoModel(db.Model):  # type: ignore[name-defined, misc]
     """SQLAlchemy model for chamados table."""
 
     __tablename__ = "chamados"

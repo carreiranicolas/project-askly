@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from src.infrastructure.persistence.sqlalchemy.models.usuario_model import UsuarioModel
 
 
-class ComentarioModel(db.Model):
+class ComentarioModel(db.Model):  # type: ignore[name-defined, misc]
     """SQLAlchemy model for comentarios table."""
 
     __tablename__ = "comentarios"

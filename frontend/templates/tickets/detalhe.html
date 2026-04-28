@@ -3,7 +3,7 @@
 
 {% block page_title %}{{ chamado.titulo }}{% endblock %}
 {% block page_actions %}
-  <span class="askly-badge askly-badge--{{ 'info' if chamado.status.name == 'ABERTO' else ('warning' if chamado.status.name == 'EM_ANDAMENTO' else 'success') }}" style="font-size: var(--ask-text-sm); padding: var(--ask-space-2) var(--ask-space-4);">
+  <span class="askly-badge askly-badge--{{ 'info' if chamado.status_atual == 'aberto' else ('warning' if chamado.status_atual == 'em_andamento' else 'success') }}" style="font-size: var(--ask-text-sm); padding: var(--ask-space-2) var(--ask-space-4);">
     {{ chamado.status_display }}
   </span>
   <a class="askly-btn askly-btn--secondary" href="{{ url_for('web_tickets.listar') }}">
@@ -46,7 +46,13 @@
               <div style="background: var(--ask-gray-50); border: 1px solid var(--ask-gray-200); border-radius: var(--ask-radius-lg); padding: var(--ask-space-4); flex: 1;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: var(--ask-space-2);">
                   <strong style="font-size: var(--ask-text-sm); color: var(--ask-gray-900);">{{ c.autor_nome or 'Usuário' }}</strong>
-                  <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500);">{{ c.criado_em.strftime('%d/%m/%Y às %H:%M') }}</span>
+                  <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500);">
+                    {% if c.criado_em is string and c.criado_em|length > 15 %}
+                      {{ c.criado_em[8:10] }}/{{ c.criado_em[5:7] }}/{{ c.criado_em[0:4] }} às {{ c.criado_em[11:16] }}
+                    {% else %}
+                      {{ c.criado_em.strftime('%d/%m/%Y às %H:%M') }}
+                    {% endif %}
+                  </span>
                 </div>
                 <div style="color: var(--ask-gray-800); font-size: var(--ask-text-sm); white-space: pre-wrap;">{{ c.conteudo }}</div>
               </div>
@@ -73,7 +79,13 @@
             <tbody>
               {% for h in historico %}
                 <tr>
-                  <td>{{ h.alterado_em }}</td>
+                  <td>
+                    {% if h.alterado_em is string and h.alterado_em|length > 15 %}
+                      {{ h.alterado_em[8:10] }}/{{ h.alterado_em[5:7] }}/{{ h.alterado_em[0:4] }} às {{ h.alterado_em[11:16] }}
+                    {% else %}
+                      {{ h.alterado_em.strftime('%d/%m/%Y às %H:%M') }}
+                    {% endif %}
+                  </td>
                   <td><span class="askly-badge askly-badge--neutral">{{ h.status_novo }}</span></td>
                   <td>{{ h.alterado_por }}</td>
                   <td>{{ h.motivo or '-' }}</td>
@@ -98,17 +110,17 @@
           <div>
             <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); display: block; margin-bottom: var(--ask-space-1);">Criado por</span>
             <div style="display: flex; align-items: center; gap: var(--ask-space-2);">
-              <div class="askly-user-avatar" style="width: 24px; height: 24px; font-size: 10px;">{{ chamado.criador_nome[:1].upper() if chamado.criador_nome else '?' }}</div>
-              <strong style="font-size: var(--ask-text-sm); color: var(--ask-gray-900);">{{ chamado.criador_nome }}</strong>
+              <div class="askly-user-avatar" style="width: 24px; height: 24px; font-size: 10px;">{{ chamado.solicitante_nome[:1].upper() if chamado.solicitante_nome else '?' }}</div>
+              <strong style="font-size: var(--ask-text-sm); color: var(--ask-gray-900);">{{ chamado.solicitante_nome or 'Usuário' }}</strong>
             </div>
           </div>
           
           <div>
             <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); display: block; margin-bottom: var(--ask-space-1);">Responsável</span>
-            {% if chamado.atribuido_nome %}
+            {% if chamado.atendente_nome %}
               <div style="display: flex; align-items: center; gap: var(--ask-space-2);">
-                <div class="askly-user-avatar" style="width: 24px; height: 24px; font-size: 10px; background: var(--ask-sky-500);">{{ chamado.atribuido_nome[:1].upper() }}</div>
-                <strong style="font-size: var(--ask-text-sm); color: var(--ask-gray-900);">{{ chamado.atribuido_nome }}</strong>
+                <div class="askly-user-avatar" style="width: 24px; height: 24px; font-size: 10px; background: var(--ask-sky-500);">{{ chamado.atendente_nome[:1].upper() }}</div>
+                <strong style="font-size: var(--ask-text-sm); color: var(--ask-gray-900);">{{ chamado.atendente_nome }}</strong>
               </div>
             {% else %}
               <span style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); font-style: italic;">Não atribuído</span>
@@ -117,7 +129,7 @@
           
           <div>
             <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); display: block; margin-bottom: var(--ask-space-1);">Prioridade</span>
-            <span class="askly-badge askly-badge--{{ 'danger' if chamado.prioridade.name == 'ALTA' else ('warning' if chamado.prioridade.name == 'MEDIA' else 'neutral') }}">{{ chamado.prioridade_display }}</span>
+            <span class="askly-badge askly-badge--{{ 'danger' if chamado.prioridade == 'alta' else ('warning' if chamado.prioridade == 'media' else 'neutral') }}">{{ chamado.prioridade_display }}</span>
           </div>
 
           <div>
@@ -127,8 +139,40 @@
         </div>
       </div>
 
-      <!-- Ações: Alterar Status -->
-      {% if chamado.transicoes_disponiveis %}
+      <!-- Ações: Aprovação do Solicitante -->
+      {% if chamado.status_atual == 'resolvido' and 'FECHADO' in chamado.transicoes_disponiveis and current_user.perfil.name in ['SOLICITANTE', 'ADMIN'] %}
+        <div class="askly-card" style="padding: var(--ask-space-6); border: 2px solid var(--ask-amber-400); background-color: var(--ask-amber-50);">
+          <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-900); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-2); font-weight: 700;">Aprovar Solução?</h3>
+          <p style="font-size: var(--ask-text-sm); color: var(--ask-gray-700); margin-bottom: var(--ask-space-4);">O técnico marcou este chamado como resolvido. Você confirma que o problema foi solucionado?</p>
+          
+          <div style="display: flex; flex-direction: column; gap: var(--ask-space-3);">
+            <!-- Botão Aprovar (Fecha o chamado) -->
+            <form method="post" action="{{ url_for('web_tickets.alterar_status', id=chamado.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="hidden" name="status" value="FECHADO" />
+              <input type="hidden" name="motivo" value="Solução aprovada pelo solicitante." />
+              <button class="askly-btn askly-btn--primary" type="submit" style="width: 100%; justify-content: center; background-color: var(--ask-rose-500); border-color: var(--ask-rose-500);">
+                Aprovar e Fechar
+              </button>
+            </form>
+            
+            <!-- Botão Reprovar (Volta para atendimento) -->
+            {% if 'EM_ATENDIMENTO' in chamado.transicoes_disponiveis %}
+            <form method="post" action="{{ url_for('web_tickets.alterar_status', id=chamado.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="hidden" name="status" value="EM_ATENDIMENTO" />
+              <input type="hidden" name="motivo" value="Solução recusada pelo solicitante." />
+              <button class="askly-btn askly-btn--secondary" type="submit" style="width: 100%; justify-content: center;">
+                Ainda não resolvido
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Ações: Alterar Status Genérico -->
+      {% if chamado.transicoes_disponiveis and not (chamado.status_atual == 'resolvido' and current_user.perfil.name == 'SOLICITANTE') %}
         <div class="askly-card" style="padding: var(--ask-space-6);">
           <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-4); font-weight: 600;">Alterar Status</h3>
           <form method="post" action="{{ url_for('web_tickets.alterar_status', id=chamado.id) }}">
@@ -160,6 +204,18 @@
       {% if atendentes %}
         <div class="askly-card" style="padding: var(--ask-space-6);">
           <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-4); font-weight: 600;">Atribuição</h3>
+          
+          {% if current_user.perfil.name in ['ATENDENTE', 'ADMIN'] and chamado.atendente_id != current_user.id %}
+          <form method="post" action="{{ url_for('web_tickets.atribuir', id=chamado.id) }}" style="margin-bottom: var(--ask-space-4);">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="atendente_id" value="{{ current_user.id }}" />
+            <button class="askly-btn askly-btn--primary" type="submit" style="width: 100%; justify-content: center; background-color: var(--ask-teal-600); border-color: var(--ask-teal-600);">
+              Atribuir a Mim
+            </button>
+          </form>
+          <div style="text-align: center; color: var(--ask-gray-400); font-size: var(--ask-text-xs); margin-bottom: var(--ask-space-4);">ou</div>
+          {% endif %}
+
           <form method="post" action="{{ url_for('web_tickets.atribuir', id=chamado.id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <div class="askly-field">
@@ -167,12 +223,12 @@
                 <select class="askly-input" name="atendente_id" required>
                   <option value="" disabled selected>Selecionar atendente...</option>
                   {% for a in atendentes %}
-                    <option value="{{ a.id }}">{{ a.nome }}</option>
+                    <option value="{{ a.id }}" {% if chamado.atendente_id == a.id %}selected{% endif %}>{{ a.nome }}</option>
                   {% endfor %}
                 </select>
               </div>
             </div>
-            <button class="askly-btn askly-btn--secondary" type="submit" style="width: 100%; justify-content: center;">Atribuir Responsável</button>
+            <button class="askly-btn askly-btn--secondary" type="submit" style="width: 100%; justify-content: center;">Atribuir</button>
           </form>
         </div>
       {% endif %}

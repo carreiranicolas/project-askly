@@ -571,6 +571,10 @@ button, input, select, textarea {
   transform: scale(0.98);
 }
 
+a.askly-btn:hover {
+  text-decoration: none;
+}
+
 /* Primary action button */
 .askly-btn--primary {
   width: 100%;
@@ -580,10 +584,16 @@ button, input, select, textarea {
   letter-spacing: 0.02em;
 }
 
+a.askly-btn--primary:hover {
+  color: var(--ask-white);
+  text-decoration: none;
+}
+
 .askly-btn--primary:hover {
   background: var(--ask-gradient-brand-hover);
   box-shadow: 0 12px 32px rgba(13, 148, 136, 0.35);
   transform: translateY(-1px);
+  color: var(--ask-white);
 }
 
 .askly-btn--primary:focus-visible {
@@ -613,16 +623,31 @@ button, input, select, textarea {
   left: 100%;
 }
 
-/* Ghost / secondary button */
+/* Secondary / Ghost Button */
 .askly-btn--ghost {
   background: transparent;
   color: var(--ask-teal-500);
   border: 1.5px solid var(--ask-gray-200);
 }
 
-.askly-btn--ghost:hover {
+.askly-btn--ghost:hover,
+a.askly-btn--ghost:hover {
   border-color: var(--ask-teal-500);
   background: rgba(13, 148, 136, 0.05);
+  color: var(--ask-teal-500);
+}
+
+.askly-btn--secondary {
+  background: var(--ask-white);
+  color: var(--ask-gray-700);
+  border: 1.5px solid var(--ask-gray-200);
+}
+
+.askly-btn--secondary:hover,
+a.askly-btn--secondary:hover {
+  background: var(--ask-gray-50);
+  border-color: var(--ask-gray-300);
+  color: var(--ask-gray-900);
 }
 
 /* ── Notifications / Flash Messages ────────────────────────── */

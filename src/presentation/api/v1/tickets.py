@@ -24,7 +24,7 @@ from src.domain.enums import Prioridade, StatusChamado
 from src.domain.exceptions import DomainException
 from src.infrastructure import SQLAlchemyUnitOfWork, db
 from src.presentation.api.api_auth import api_auth_required
-from src.presentation.utils import get_current_user_entity
+from src.presentation.utils import get_current_user_entity, require_current_user_entity
 
 tickets_ns = Namespace("chamados", description="Gestão de chamados/tickets")
 
@@ -145,7 +145,7 @@ class TicketListResource(Resource):
         Solicitantes veem apenas seus chamados.
         Atendentes e admins veem todos.
         """
-        user = get_current_user_entity()
+        user = require_current_user_entity()
 
         status = request.args.get("status")
         prioridade = request.args.get("prioridade")
@@ -204,7 +204,7 @@ class TicketListResource(Resource):
         Cria um chamado com status ABERTO.
         Apenas solicitantes podem criar chamados.
         """
-        user = get_current_user_entity()
+        user = require_current_user_entity()
         data = request.json
 
         prioridade_str = data.get("prioridade", "MEDIA")
@@ -251,7 +251,7 @@ class TicketResource(Resource):
 
         Retorna informações completas incluindo comentários e histórico.
         """
-        user = get_current_user_entity()
+        user = require_current_user_entity()
 
         uow = SQLAlchemyUnitOfWork(lambda: db.session)
         use_case = GetTicketUseCase(unit_of_work=uow)
@@ -306,7 +306,7 @@ class TicketStatusResource(Resource):
 
         Toda alteração gera registro no histórico (auditoria).
         """
-        user = get_current_user_entity()
+        user = require_current_user_entity()
         data = request.json
 
         dto = AlterarStatusDTO(
@@ -348,7 +348,7 @@ class TicketAssignResource(Resource):
 
         Apenas atendentes e admins podem atribuir.
         """
-        user = get_current_user_entity()
+        user = require_current_user_entity()
         data = request.json
 
         dto = AtribuirAtendenteDTO(
@@ -387,7 +387,7 @@ class TicketCommentsResource(Resource):
 
         Participantes podem comentar em chamados não fechados.
         """
-        user = get_current_user_entity()
+        user = require_current_user_entity()
         data = request.json
 
         dto = ComentarioCreateDTO(

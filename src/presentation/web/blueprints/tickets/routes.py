@@ -26,7 +26,7 @@ from src.domain.enums import PerfilUsuario, Prioridade, StatusChamado
 from src.domain.exceptions import DomainException
 from src.infrastructure import SQLAlchemyUnitOfWork, db
 from src.infrastructure.persistence.sqlalchemy.repositories import UsuarioRepository
-from src.presentation.utils import get_current_user_entity
+from src.presentation.utils import get_current_user_entity, require_current_user_entity
 from src.presentation.web.blueprints.tickets import tickets_bp
 
 
@@ -34,7 +34,7 @@ from src.presentation.web.blueprints.tickets import tickets_bp
 @login_required
 def listar():
     """List tickets."""
-    user = get_current_user_entity()
+    user = require_current_user_entity()
 
     status = request.args.get("status")
     prioridade = request.args.get("prioridade")
@@ -61,10 +61,34 @@ def listar():
     cat_use_case = ListCategoriesUseCase(unit_of_work=uow)
     categorias = cat_use_case.execute(apenas_ativas=True)
 
+    metrics = None
+    if tipo == "meus":
+        from sqlalchemy import func
+
+        from src.infrastructure.persistence.sqlalchemy.models import ChamadoModel
+
+        with uow:
+            counts = (
+                db.session.query(ChamadoModel.status_atual, func.count(ChamadoModel.id))
+                .filter(ChamadoModel.solicitante_id == user.id)
+                .group_by(ChamadoModel.status_atual)
+                .all()
+            )
+
+            metrics = {}
+            for st_val, count in counts:
+                metrics[st_val] = count
+
+            for s in StatusChamado:
+                if s.value not in metrics:
+                    metrics[s.value] = 0
+            metrics["total"] = sum(metrics.values())
+
     return render_template(
         "tickets/listar.html",
         chamados=result,
         categorias=categorias,
+        metrics=metrics,
         filtros={
             "status": status,
             "prioridade": prioridade,
@@ -78,7 +102,7 @@ def listar():
 @login_required
 def novo():
     """Create new ticket."""
-    user = get_current_user_entity()
+    user = require_current_user_entity()
 
     uow = SQLAlchemyUnitOfWork(lambda: db.session)
     cat_use_case = ListCategoriesUseCase(unit_of_work=uow)
@@ -108,7 +132,7 @@ def novo():
 @login_required
 def detalhe(id: UUID):
     """Ticket details."""
-    user = get_current_user_entity()
+    user = require_current_user_entity()
 
     uow = SQLAlchemyUnitOfWork(lambda: db.session)
     use_case = GetTicketUseCase(unit_of_work=uow)
@@ -118,7 +142,7 @@ def detalhe(id: UUID):
 
         atendentes = []
         if user.pode_atribuir_chamados():
-            repo = UsuarioRepository(db.session)
+            repo = UsuarioRepository(db.session)  # type: ignore[arg-type]
             atendentes = repo.get_atendentes_ativos()
 
         return render_template(
@@ -137,7 +161,7 @@ def detalhe(id: UUID):
 @login_required
 def alterar_status(id: UUID):
     """Change ticket status."""
-    user = get_current_user_entity()
+    user = require_current_user_entity()
 
     dto = AlterarStatusDTO(
         chamado_id=id,
@@ -161,7 +185,7 @@ def alterar_status(id: UUID):
 @login_required
 def atribuir(id: UUID):
     """Assign attendant."""
-    user = get_current_user_entity()
+    user = require_current_user_entity()
 
     atendente_id = request.form.get("atendente_id")
     if not atendente_id:
@@ -188,7 +212,7 @@ def atribuir(id: UUID):
 @login_required
 def adicionar_comentario(id: UUID):
     """Add comment."""
-    user = get_current_user_entity()
+    user = require_current_user_entity()
 
     dto = ComentarioCreateDTO(
         chamado_id=id,

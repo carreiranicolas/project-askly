@@ -70,7 +70,7 @@
       </nav>
 
       <div class="askly-sidebar-footer">
-        <div class="askly-user-info">
+        <a href="{{ url_for('web_auth.perfil') }}" class="askly-user-info" style="text-decoration: none; cursor: pointer; transition: opacity var(--ask-duration-fast);">
           <div class="askly-user-avatar">
             {{ current_user.nome[:1].upper() if current_user else '?' }}
           </div>
@@ -78,7 +78,7 @@
             <span class="askly-user-name">{{ current_user.nome if current_user else 'Usuário' }}</span>
             <span class="askly-user-role">{{ current_user.perfil.value if current_user else '' }}</span>
           </div>
-        </div>
+        </a>
         <form method="post" action="{{ url_for('web_auth.logout') }}" style="width: 100%;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <button type="submit" class="askly-nav-item askly-nav-logout" style="width: 100%; text-align: left; background: none; border: none; cursor: pointer;">

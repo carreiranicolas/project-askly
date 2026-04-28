@@ -29,6 +29,7 @@ class Usuario(Entity):
     email: str = ""
     senha_hash: str = ""
     perfil: PerfilUsuario = PerfilUsuario.SOLICITANTE
+    categoria_id: UUID | None = None
     ativo: bool = True
     criado_em: datetime = field(default_factory=Entity.now)
 

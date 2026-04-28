@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from src.infrastructure.persistence.sqlalchemy.models.usuario_model import UsuarioModel
 
 
-class HistoricoStatusModel(db.Model):
+class HistoricoStatusModel(db.Model):  # type: ignore[name-defined, misc]
     """SQLAlchemy model for historico_status table (audit trail)."""
 
     __tablename__ = "historico_status"

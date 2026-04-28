@@ -105,7 +105,6 @@ class StatusChamado(str, Enum):
             ],
             (self.RESOLVIDO, self.FECHADO): [
                 PerfilUsuario.SOLICITANTE,
-                PerfilUsuario.ATENDENTE,
                 PerfilUsuario.ADMIN,
             ],
             (self.RESOLVIDO, self.EM_ATENDIMENTO): [

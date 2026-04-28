@@ -18,7 +18,7 @@ from src.domain.exceptions import DomainException
 from src.infrastructure import SQLAlchemyUnitOfWork, db
 from src.infrastructure.persistence.sqlalchemy.models import CategoriaModel
 from src.infrastructure.security import admin_required
-from src.presentation.utils import get_current_user_entity
+from src.presentation.utils import get_current_user_entity, require_current_user_entity
 from src.presentation.web.blueprints.admin import admin_bp
 
 
@@ -27,7 +27,7 @@ from src.presentation.web.blueprints.admin import admin_bp
 @admin_required
 def usuarios():
     """List users."""
-    user = get_current_user_entity()
+    user = require_current_user_entity()
 
     perfil_str = request.args.get("perfil")
     perfil = PerfilUsuario(perfil_str) if perfil_str else None
@@ -54,7 +54,7 @@ def usuarios():
 @admin_required
 def alterar_perfil(id: UUID):
     """Change user profile."""
-    admin = get_current_user_entity()
+    admin = require_current_user_entity()
 
     novo_perfil = PerfilUsuario(request.form.get("perfil"))
 
@@ -87,7 +87,7 @@ def categorias():
 @admin_required
 def criar_categoria():
     """Create category."""
-    user = get_current_user_entity()
+    user = require_current_user_entity()
 
     dto = CategoriaCreateDTO(
         nome=request.form.get("nome", ""),

@@ -54,9 +54,9 @@ def perfil_required(*perfis: PerfilUsuario | str) -> Callable:
 
 def admin_required(f: Callable) -> Callable:
     """Decorator to require admin profile."""
-    return perfil_required(PerfilUsuario.ADMIN)(f)
+    return perfil_required(PerfilUsuario.ADMIN)(f)  # type: ignore[no-any-return]
 
 
 def atendente_required(f: Callable) -> Callable:
     """Decorator to require atendente or admin profile."""
-    return perfil_required(PerfilUsuario.ATENDENTE, PerfilUsuario.ADMIN)(f)
+    return perfil_required(PerfilUsuario.ATENDENTE, PerfilUsuario.ADMIN)(f)  # type: ignore[no-any-return]

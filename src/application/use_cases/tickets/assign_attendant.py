@@ -65,8 +65,13 @@ class AssignAttendantUseCase:
             self.unit_of_work.chamados.update(chamado)
             self.unit_of_work.commit()
 
-            categoria = self.unit_of_work.categorias.get_by_id(chamado.categoria_id)
-            solicitante = self.unit_of_work.usuarios.get_by_id(chamado.solicitante_id)
+            categoria = None
+            if chamado.categoria_id:
+                categoria = self.unit_of_work.categorias.get_by_id(chamado.categoria_id)
+
+            solicitante = None
+            if chamado.solicitante_id:
+                solicitante = self.unit_of_work.usuarios.get_by_id(chamado.solicitante_id)
 
         transicoes = chamado.transicoes_disponiveis(usuario_atual.perfil, usuario_atual.id)
 

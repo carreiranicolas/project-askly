@@ -13,7 +13,39 @@
 {% endblock %}
 
 {% block content %}
-  <div class="askly-card askly-stagger">
+  <div class="askly-stagger" style="display: flex; flex-direction: column; gap: var(--ask-space-6);">
+    
+    {% if metrics %}
+    <!-- Dashboard de Métricas -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--ask-space-4);">
+      <div class="askly-card" style="padding: var(--ask-space-5); border-left: 4px solid var(--ask-gray-300);">
+        <div style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); text-transform: uppercase; font-weight: 600;">Total Abertos (Por mim)</div>
+        <div style="font-size: var(--ask-text-3xl); font-weight: 700; color: var(--ask-gray-900); margin-top: var(--ask-space-2);">{{ metrics['total'] }}</div>
+      </div>
+      
+      <div class="askly-card" style="padding: var(--ask-space-5); border-left: 4px solid var(--ask-sky-500);">
+        <div style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); text-transform: uppercase; font-weight: 600;">Aberto (Na fila)</div>
+        <div style="font-size: var(--ask-text-2xl); font-weight: 700; color: var(--ask-gray-900); margin-top: var(--ask-space-2);">{{ metrics['ABERTO'] }}</div>
+      </div>
+      
+      <div class="askly-card" style="padding: var(--ask-space-5); border-left: 4px solid var(--ask-teal-500);">
+        <div style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); text-transform: uppercase; font-weight: 600;">Aguardando Retorno</div>
+        <div style="font-size: var(--ask-text-2xl); font-weight: 700; color: var(--ask-gray-900); margin-top: var(--ask-space-2);">{{ metrics['AGUARDANDO_RETORNO'] }}</div>
+      </div>
+      
+      <div class="askly-card" style="padding: var(--ask-space-5); border-left: 4px solid var(--ask-amber-400);">
+        <div style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); text-transform: uppercase; font-weight: 600;">Solucionados</div>
+        <div style="font-size: var(--ask-text-2xl); font-weight: 700; color: var(--ask-gray-900); margin-top: var(--ask-space-2);">{{ metrics['RESOLVIDO'] }}</div>
+      </div>
+      
+      <div class="askly-card" style="padding: var(--ask-space-5); border-left: 4px solid var(--ask-rose-500);">
+        <div style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); text-transform: uppercase; font-weight: 600;">Fechados</div>
+        <div style="font-size: var(--ask-text-2xl); font-weight: 700; color: var(--ask-gray-900); margin-top: var(--ask-space-2);">{{ metrics['FECHADO'] }}</div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="askly-card">
     <div class="askly-table-wrapper">
       <table class="askly-table">
         <thead>
@@ -32,12 +64,12 @@
                 <a href="{{ url_for('web_tickets.detalhe', id=c.id) }}">{{ c.titulo }}</a>
               </td>
               <td>
-                <span class="askly-badge askly-badge--{{ 'info' if c.status.name == 'ABERTO' else ('warning' if c.status.name == 'EM_ANDAMENTO' else 'success') }}">
+                <span class="askly-badge askly-badge--{{ 'info' if c.status_atual == 'aberto' else ('warning' if c.status_atual == 'em_andamento' else 'success') }}">
                   {{ c.status_display }}
                 </span>
               </td>
               <td>
-                <span class="askly-badge askly-badge--{{ 'danger' if c.prioridade.name == 'ALTA' else ('warning' if c.prioridade.name == 'MEDIA' else 'neutral') }}">
+                <span class="askly-badge askly-badge--{{ 'danger' if c.prioridade == 'alta' else ('warning' if c.prioridade == 'media' else 'neutral') }}">
                   {{ c.prioridade_display }}
                 </span>
               </td>
@@ -59,6 +91,7 @@
         </tbody>
       </table>
     </div>
+  </div>
   </div>
 {% endblock %}
 

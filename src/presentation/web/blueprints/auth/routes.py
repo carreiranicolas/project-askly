@@ -89,3 +89,48 @@ def logout():
     logout_user()
     flash("Você saiu do sistema.", "info")
     return redirect(url_for("web_auth.login"))
+
+
+@auth_bp.route("/perfil", methods=["GET", "POST"])
+@login_required
+def perfil():
+    """Página de Perfil do Usuário."""
+    from src.application.use_cases import ListCategoriesUseCase
+    from src.domain.enums import PerfilUsuario
+    from src.presentation.utils import get_current_user_entity
+
+    user = get_current_user_entity()
+    uow = SQLAlchemyUnitOfWork(lambda: db.session)
+
+    if request.method == "POST":
+        novo_nome = request.form.get("nome")
+        nova_categoria = request.form.get("categoria_id")
+
+        with uow:
+            user_model = uow.usuarios.get_by_id(user.id)
+            if user_model:
+                if novo_nome:
+                    user_model.nome = novo_nome
+                if nova_categoria and user.perfil == PerfilUsuario.ATENDENTE:
+                    from uuid import UUID
+
+                    try:
+                        user_model.categoria_id = UUID(nova_categoria)
+                    except ValueError:
+                        pass
+            uow.commit()
+
+        flash("Perfil atualizado com sucesso!", "success")
+        return redirect(url_for("web_auth.perfil"))
+
+    cat_use_case = ListCategoriesUseCase(unit_of_work=uow)
+    categorias = cat_use_case.execute(apenas_ativas=True)
+
+    # Refresh user model to get latest categoria_id
+    with uow:
+        user_model = uow.usuarios.get_by_id(user.id)
+        current_cat_id = user_model.categoria_id if user_model else None
+
+    return render_template(
+        "auth/perfil.html", user=user, categorias=categorias, current_cat_id=current_cat_id
+    )

@@ -59,3 +59,13 @@ def get_current_user_entity() -> Usuario | None:
         ativo=ativo,
         criado_em=criado_em,
     )
+
+
+def require_current_user_entity() -> Usuario:
+    """Get current user entity and raise 401 if missing."""
+    from src.domain.exceptions import AuthorizationException
+
+    user = get_current_user_entity()
+    if user is None:
+        raise AuthorizationException("Autenticação necessária")
+    return user

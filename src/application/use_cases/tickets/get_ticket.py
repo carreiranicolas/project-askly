@@ -52,8 +52,14 @@ class GetTicketUseCase:
                 if chamado.solicitante_id != usuario.id:
                     raise AuthorizationException("Você não tem acesso a este chamado")
 
-            categoria = self.unit_of_work.categorias.get_by_id(chamado.categoria_id)
-            solicitante = self.unit_of_work.usuarios.get_by_id(chamado.solicitante_id)
+            categoria = None
+            if chamado.categoria_id:
+                categoria = self.unit_of_work.categorias.get_by_id(chamado.categoria_id)
+
+            solicitante = None
+            if chamado.solicitante_id:
+                solicitante = self.unit_of_work.usuarios.get_by_id(chamado.solicitante_id)
+
             atendente = None
             if chamado.atendente_id:
                 atendente = self.unit_of_work.usuarios.get_by_id(chamado.atendente_id)
@@ -62,19 +68,22 @@ class GetTicketUseCase:
                 chamado_id, order_asc=True
             )
 
-            usuarios_cache = {solicitante.id: solicitante.nome if solicitante else None}
+            usuarios_cache = {}
+            if solicitante:
+                usuarios_cache[solicitante.id] = solicitante.nome
             if atendente:
                 usuarios_cache[atendente.id] = atendente.nome
 
             comentarios = []
             for c in comentarios_entities:
-                if c.autor_id not in usuarios_cache:
-                    autor = self.unit_of_work.usuarios.get_by_id(c.autor_id)
-                    usuarios_cache[c.autor_id] = autor.nome if autor else None
+                autor_nome = "Desconhecido"
+                if c.autor_id:
+                    if c.autor_id not in usuarios_cache:
+                        autor = self.unit_of_work.usuarios.get_by_id(c.autor_id)
+                        usuarios_cache[c.autor_id] = autor.nome if autor else "Desconhecido"
+                    autor_nome = usuarios_cache.get(c.autor_id) or "Desconhecido"
 
-                comentarios.append(
-                    ComentarioResponseDTO.from_entity(c, autor_nome=usuarios_cache.get(c.autor_id))
-                )
+                comentarios.append(ComentarioResponseDTO.from_entity(c, autor_nome=autor_nome))
 
             historico_entities = self.unit_of_work.historico_status.get_by_chamado(
                 chamado_id, order_asc=True
@@ -82,9 +91,14 @@ class GetTicketUseCase:
 
             historico = []
             for h in historico_entities:
-                if h.alterado_por_usuario_id not in usuarios_cache:
-                    user = self.unit_of_work.usuarios.get_by_id(h.alterado_por_usuario_id)
-                    usuarios_cache[h.alterado_por_usuario_id] = user.nome if user else None
+                alterado_por = "Sistema"
+                if h.alterado_por_usuario_id:
+                    if h.alterado_por_usuario_id not in usuarios_cache:
+                        user = self.unit_of_work.usuarios.get_by_id(h.alterado_por_usuario_id)
+                        usuarios_cache[h.alterado_por_usuario_id] = (
+                            user.nome if user else "Desconhecido"
+                        )
+                    alterado_por = usuarios_cache.get(h.alterado_por_usuario_id) or "Sistema"
 
                 historico.append(
                     {
@@ -92,7 +106,7 @@ class GetTicketUseCase:
                         "status_anterior": h.status_anterior or "Novo",
                         "status_novo": h.status_novo,
                         "motivo": h.motivo,
-                        "alterado_por": usuarios_cache.get(h.alterado_por_usuario_id),
+                        "alterado_por": alterado_por,
                         "alterado_em": h.alterado_em.isoformat(),
                     }
                 )

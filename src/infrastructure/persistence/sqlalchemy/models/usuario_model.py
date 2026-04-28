@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from src.infrastructure.persistence.sqlalchemy.models.comentario_model import ComentarioModel
 
 
-class UsuarioModel(db.Model, UserMixin):
+class UsuarioModel(db.Model, UserMixin):  # type: ignore[name-defined, misc]
     """SQLAlchemy model for usuarios table."""
 
     __tablename__ = "usuarios"
@@ -28,6 +28,9 @@ class UsuarioModel(db.Model, UserMixin):
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
     senha_hash: Mapped[str] = mapped_column(Text, nullable=False)
     perfil: Mapped[str] = mapped_column(String(50), nullable=False)
+    categoria_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), db.ForeignKey("categorias.id"), nullable=True
+    )
     ativo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     criado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
@@ -57,6 +60,7 @@ class UsuarioModel(db.Model, UserMixin):
             email=self.email,
             senha_hash=self.senha_hash,
             perfil=PerfilUsuario(self.perfil),
+            categoria_id=self.categoria_id,
             ativo=self.ativo,
             criado_em=self.criado_em,
         )
@@ -72,6 +76,7 @@ class UsuarioModel(db.Model, UserMixin):
             perfil=(
                 entity.perfil.value if isinstance(entity.perfil, PerfilUsuario) else entity.perfil
             ),
+            categoria_id=entity.categoria_id,
             ativo=entity.ativo,
             criado_em=entity.criado_em,
         )
@@ -84,6 +89,7 @@ class UsuarioModel(db.Model, UserMixin):
         self.perfil = (
             entity.perfil.value if isinstance(entity.perfil, PerfilUsuario) else entity.perfil
         )
+        self.categoria_id = entity.categoria_id
         self.ativo = entity.ativo
 
     def __repr__(self) -> str:

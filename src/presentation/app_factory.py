@@ -70,8 +70,8 @@ def create_app(config_name: str | None = None) -> Flask:
 
     # Rate limiting (Flask-Limiter 4.x)
     # Configure limits through attributes before init_app, to avoid incompatible kwargs.
-    limiter._default_limits = [app.config.get("RATELIMIT_DEFAULT", "200 per day, 50 per hour")]
-    limiter._storage_uri = app.config.get("RATELIMIT_STORAGE_URL", "memory://")
+    limiter._default_limits = [app.config.get("RATELIMIT_DEFAULT", "200 per day, 50 per hour")]  # type: ignore[attr-defined]
+    limiter._storage_uri = app.config.get("RATELIMIT_STORAGE_URL", "memory://")  # type: ignore[attr-defined]
     limiter.enabled = bool(app.config.get("RATELIMIT_ENABLED", True))
     limiter.init_app(app)
 

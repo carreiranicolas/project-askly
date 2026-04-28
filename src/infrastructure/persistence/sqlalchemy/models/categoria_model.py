@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from src.infrastructure.persistence.sqlalchemy.models.chamado_model import ChamadoModel
 
 
-class CategoriaModel(db.Model):
+class CategoriaModel(db.Model):  # type: ignore[name-defined, misc]
     """SQLAlchemy model for categorias table."""
 
     __tablename__ = "categorias"

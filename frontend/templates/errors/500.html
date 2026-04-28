@@ -1,7 +1,30 @@
 {% extends "layouts/base.html" %}
-{% block title %}500 | Askly{% endblock %}
-{% block content %}
-  <h1 class="title">500</h1>
-  <p>Erro interno do servidor.</p>
-{% endblock %}
+{% block title %}Erro Interno | Askly{% endblock %}
 
+{% block body %}
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--ask-gray-50); padding: var(--ask-space-6);">
+  <div class="askly-card" style="max-width: 480px; width: 100%; text-align: center; padding: var(--ask-space-12) var(--ask-space-8);">
+    
+    <div style="width: 80px; height: 80px; border-radius: var(--ask-radius-full); background: var(--ask-rose-100); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--ask-space-6);">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--ask-rose-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+    </div>
+
+    <h1 style="font-size: var(--ask-text-4xl); font-weight: 800; color: var(--ask-gray-900); margin-bottom: var(--ask-space-2);">500</h1>
+    <h2 style="font-size: var(--ask-text-xl); font-weight: 600; color: var(--ask-gray-800); margin-bottom: var(--ask-space-4);">Ops! Erro no Servidor</h2>
+    <p style="color: var(--ask-gray-600); margin-bottom: var(--ask-space-8); line-height: var(--ask-leading-relaxed);">Tivemos um problema técnico ao processar sua requisição. Nossa equipe já foi notificada. Por favor, tente novamente em alguns instantes.</p>
+    
+    <div style="display: flex; gap: var(--ask-space-4); justify-content: center;">
+      <a href="javascript:history.back()" class="askly-btn askly-btn--secondary">
+        Tentar Novamente
+      </a>
+      <a href="{{ url_for('web_tickets.listar') }}" class="askly-btn askly-btn--primary">
+        Ir para o Início
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

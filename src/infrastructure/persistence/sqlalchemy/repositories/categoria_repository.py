@@ -44,9 +44,11 @@ class CategoriaRepository(ICategoriaRepository):
         return False
 
     def exists(self, entity_id: UUID) -> bool:
-        return self._session.query(
-            self._session.query(CategoriaModel).filter_by(id=entity_id).exists()
-        ).scalar()
+        return bool(
+            self._session.query(
+                self._session.query(CategoriaModel).filter_by(id=entity_id).exists()
+            ).scalar()
+        )
 
     def count(self) -> int:
         return self._session.query(CategoriaModel).count()

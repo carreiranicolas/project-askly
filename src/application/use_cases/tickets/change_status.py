@@ -62,8 +62,13 @@ class ChangeStatusUseCase:
 
             self.unit_of_work.commit()
 
-            categoria = self.unit_of_work.categorias.get_by_id(chamado.categoria_id)
-            solicitante = self.unit_of_work.usuarios.get_by_id(chamado.solicitante_id)
+            categoria = None
+            if chamado.categoria_id:
+                categoria = self.unit_of_work.categorias.get_by_id(chamado.categoria_id)
+
+            solicitante = None
+            if chamado.solicitante_id:
+                solicitante = self.unit_of_work.usuarios.get_by_id(chamado.solicitante_id)
             atendente = None
             if chamado.atendente_id:
                 atendente = self.unit_of_work.usuarios.get_by_id(chamado.atendente_id)

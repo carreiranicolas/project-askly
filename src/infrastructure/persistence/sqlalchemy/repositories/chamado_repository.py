@@ -47,9 +47,11 @@ class ChamadoRepository(IChamadoRepository):
         return False
 
     def exists(self, entity_id: UUID) -> bool:
-        return self._session.query(
-            self._session.query(ChamadoModel).filter_by(id=entity_id).exists()
-        ).scalar()
+        return bool(
+            self._session.query(
+                self._session.query(ChamadoModel).filter_by(id=entity_id).exists()
+            ).scalar()
+        )
 
     def count(self) -> int:
         return self._session.query(ChamadoModel).count()
@@ -170,7 +172,7 @@ class ChamadoRepository(IChamadoRepository):
             .all()
         )
 
-        return dict(results)
+        return {cat_id: count for cat_id, count in results if cat_id is not None}
 
     def get_abertos_sem_atendente(self) -> list[Chamado]:
         models = (

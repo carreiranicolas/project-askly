@@ -1,0 +1,68 @@
+{% extends "layouts/app.html" %}
+{% block title %}Meu Perfil | Askly{% endblock %}
+
+{% block page_title %}Meu Perfil{% endblock %}
+{% block page_actions %}
+  <a class="askly-btn askly-btn--secondary" href="{{ url_for('web_tickets.listar') }}">Voltar</a>
+{% endblock %}
+
+{% block content %}
+  <div class="askly-card askly-stagger" style="max-width: 600px; margin: 0 auto; padding: var(--ask-space-8);">
+    
+    <div style="display: flex; align-items: center; gap: var(--ask-space-6); margin-bottom: var(--ask-space-8); padding-bottom: var(--ask-space-8); border-bottom: 1px solid var(--ask-gray-200);">
+      <div class="askly-user-avatar" style="width: 80px; height: 80px; font-size: 2rem;">
+        {{ user.nome[:1].upper() if user.nome else '?' }}
+      </div>
+      <div>
+        <h2 style="font-size: var(--ask-text-xl); font-weight: 600; color: var(--ask-gray-900); margin-bottom: var(--ask-space-2);">{{ user.nome }}</h2>
+        <div style="display: flex; gap: var(--ask-space-3); align-items: center;">
+          <span style="color: var(--ask-gray-500); font-size: var(--ask-text-sm);">{{ user.email }}</span>
+          <span class="askly-badge askly-badge--{{ 'info' if user.perfil.name == 'ATENDENTE' else ('warning' if user.perfil.name == 'ADMIN' else 'neutral') }}">
+            {{ user.perfil.value }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+      <div class="askly-field">
+        <label class="askly-label">Nome Completo</label>
+        <div class="askly-input-wrap">
+          <input class="askly-input" type="text" name="nome" value="{{ user.nome }}" required />
+        </div>
+      </div>
+
+      <div class="askly-field">
+        <label class="askly-label">E-mail</label>
+        <div class="askly-input-wrap">
+          <input class="askly-input" type="email" value="{{ user.email }}" disabled style="background: var(--ask-gray-50); color: var(--ask-gray-500); cursor: not-allowed;" />
+        </div>
+        <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); margin-top: var(--ask-space-1); display: block;">O e-mail não pode ser alterado.</span>
+      </div>
+
+      {% if user.perfil.name == 'ATENDENTE' %}
+      <div class="askly-field" style="margin-top: var(--ask-space-6);">
+        <label class="askly-label">Sua Área de Atendimento</label>
+        <div class="askly-input-wrap">
+          <select class="askly-input" name="categoria_id">
+            <option value="">Não vinculada (Ver todos os chamados)</option>
+            {% for cat in categorias %}
+              <option value="{{ cat.id }}" {% if current_cat_id and current_cat_id|string == cat.id|string %}selected{% endif %}>
+                {{ cat.nome }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); margin-top: var(--ask-space-1); display: block;">Como técnico, você verá por padrão apenas os chamados desta área.</span>
+      </div>
+      {% endif %}
+
+      <div style="margin-top: var(--ask-space-8); text-align: right;">
+        <button type="submit" class="askly-btn askly-btn--primary">Salvar Alterações</button>
+      </div>
+    </form>
+
+  </div>
+{% endblock %}

@@ -34,9 +34,13 @@ class ListTicketsUseCase:
             Resultado paginado com chamados
         """
         solicitante_id = filters.solicitante_id
+        categoria_id = filters.categoria_id
 
         if usuario.perfil == PerfilUsuario.SOLICITANTE:
             solicitante_id = usuario.id
+
+        if usuario.perfil == PerfilUsuario.ATENDENTE and usuario.categoria_id:
+            categoria_id = usuario.categoria_id
 
         with self.unit_of_work:
             chamados, total = self.unit_of_work.chamados.get_paginated_filtered(
@@ -44,7 +48,7 @@ class ListTicketsUseCase:
                 per_page=filters.per_page,
                 status=filters.status,
                 prioridade=filters.prioridade,
-                categoria_id=filters.categoria_id,
+                categoria_id=categoria_id,
                 solicitante_id=solicitante_id,
                 atendente_id=filters.atendente_id,
                 data_inicio=filters.data_inicio,
