@@ -7,7 +7,7 @@
   <div class="box">
     <h2 class="subtitle">Nova categoria</h2>
     <form method="post" action="{{ url_for('web_admin.criar_categoria') }}">
-      {{ csrf_token() }}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <div class="columns">
         <div class="column">
           <div class="field">
@@ -46,7 +46,7 @@
             <td>{{ 'Sim' if c.ativa else 'Não' }}</td>
             <td>
               <form method="post" action="{{ url_for('web_admin.toggle_categoria', id=c.id) }}">
-                {{ csrf_token() }}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <button class="button is-light" type="submit">
                   {{ 'Desativar' if c.ativa else 'Ativar' }}
                 </button>

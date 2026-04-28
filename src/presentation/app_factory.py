@@ -36,9 +36,10 @@ def create_app(config_name: str | None = None) -> Flask:
     Returns:
         Configured Flask application
     """
-    base_dir = Path(__file__).resolve().parent
-    templates_dir = base_dir / "web" / "templates"
-    static_dir = base_dir / "web" / "static"
+    # Frontend is kept separate from backend code (see /frontend).
+    project_root = Path(__file__).resolve().parents[2]
+    templates_dir = project_root / "frontend" / "templates"
+    static_dir = project_root / "frontend" / "static"
 
     app = Flask(__name__, template_folder=str(templates_dir), static_folder=str(static_dir))
     
@@ -194,6 +195,7 @@ def register_error_handlers(app: Flask) -> None:
 def register_context_processors(app: Flask) -> None:
     """Register template context processors."""
     from src.domain.enums import StatusChamado, Prioridade, PerfilUsuario
+    from src import __version__ as askly_version
     
     @app.context_processor
     def inject_enums():
@@ -202,6 +204,7 @@ def register_context_processors(app: Flask) -> None:
             'Prioridade': Prioridade,
             'PerfilUsuario': PerfilUsuario,
             'STATUS_COLORS': app.config.get('STATUS_COLORS', {}),
+            'ASKLY_VERSION': askly_version,
         }
 
 

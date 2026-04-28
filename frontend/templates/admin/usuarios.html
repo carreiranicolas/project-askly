@@ -24,7 +24,7 @@
             <td>{{ 'Sim' if u.ativo else 'Não' }}</td>
             <td>
               <form method="post" action="{{ url_for('web_admin.alterar_perfil', id=u.id) }}">
-                {{ csrf_token() }}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <div class="field has-addons">
                   <div class="control">
                     <div class="select">

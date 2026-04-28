@@ -1,0 +1,86 @@
+{% extends "layouts/base.html" %}
+{% block title %}Cadastro | Askly{% endblock %}
+
+{% block content %}
+  <main class="askly-auth-wrap">
+    <section class="askly-auth-card">
+      <div class="askly-auth-grid">
+        <aside class="askly-auth-brand">
+          <div class="askly-logo-frame" aria-hidden="true">
+            {% include "components/askly_logo.svg" %}
+          </div>
+          <p class="askly-auth-tagline">
+            Um cadastro rápido para você abrir e acompanhar seus chamados.
+          </p>
+          <p class="askly-help mt-4">
+            Já tem conta? <a href="{{ url_for('web_auth.login') }}">Voltar para o login</a>.
+          </p>
+        </aside>
+
+        <div class="askly-auth-form">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <div class="mb-4">
+                {% for category, message in messages %}
+                  <div class="notification is-{{ 'danger' if category in ['danger','error'] else category }}">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endwith %}
+
+          <h1 class="title is-3 askly-title">Criar conta</h1>
+          <p class="askly-subtitle">Comece como solicitante e acompanhe o status e histórico.</p>
+
+          <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+            <div class="field">
+              <label class="label">Nome</label>
+              <div class="control">
+                <input class="input askly-input" type="text" name="nome" autocomplete="name" required />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Email</label>
+              <div class="control">
+                <input class="input askly-input" type="email" name="email" autocomplete="email" required />
+              </div>
+            </div>
+
+            <div class="columns is-variable is-4">
+              <div class="column">
+                <div class="field">
+                  <label class="label">Senha</label>
+                  <div class="control">
+                    <input class="input askly-input" type="password" name="senha" minlength="6" autocomplete="new-password" required />
+                  </div>
+                  <p class="help askly-help">Mínimo de 6 caracteres.</p>
+                </div>
+              </div>
+              <div class="column">
+                <div class="field">
+                  <label class="label">Confirmar senha</label>
+                  <div class="control">
+                    <input class="input askly-input" type="password" name="confirmar_senha" minlength="6" autocomplete="new-password" required />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="field mt-5">
+              <button class="button askly-primary is-fullwidth" type="submit">Cadastrar</button>
+            </div>
+
+            <p class="askly-help mt-4">
+              Ao criar sua conta, você concorda em usar o Askly apenas para chamados internos.
+            </p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+{% endblock %}
+

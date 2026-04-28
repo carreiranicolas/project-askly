@@ -1,0 +1,75 @@
+{% extends "layouts/base.html" %}
+{% block title %}Login | Askly{% endblock %}
+
+{% block content %}
+  <main class="askly-auth-wrap">
+    <section class="askly-auth-card">
+      <div class="askly-auth-grid">
+        <aside class="askly-auth-brand">
+          <div class="askly-logo-frame" aria-hidden="true">
+            {% include "components/askly_logo.svg" %}
+          </div>
+          <p class="askly-auth-tagline">
+            Gestão de chamados internos com auditoria de status, RBAC e fluxo simples.
+          </p>
+        </aside>
+
+        <div class="askly-auth-form">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <div class="mb-4">
+                {% for category, message in messages %}
+                  <div class="notification is-{{ 'danger' if category in ['danger','error'] else category }}">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endwith %}
+
+          <h1 class="title is-3 askly-title">Bem-vindo</h1>
+          <p class="askly-subtitle">Acesse sua conta para continuar.</p>
+
+          <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+            <div class="field">
+              <label class="label">Email</label>
+              <div class="control">
+                <input class="input askly-input" type="email" name="email" autocomplete="email" required />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Senha</label>
+              <div class="control">
+                <input class="input askly-input" type="password" name="senha" autocomplete="current-password" required />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="checkbox">
+                <input type="checkbox" name="lembrar" />
+                Lembrar-me
+              </label>
+            </div>
+
+            <div class="field mt-5">
+              <button class="button askly-primary is-fullwidth" type="submit">Entrar</button>
+            </div>
+
+            <p class="askly-help mt-4">
+              Ainda não tem conta?
+              <a href="{{ url_for('web_auth.cadastro') }}">Criar cadastro</a>
+            </p>
+          </form>
+
+          <p class="askly-help askly-version has-text-centered">
+            Versão <span class="askly-kbd">v{{ ASKLY_VERSION }}</span>
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+{% endblock %}
+

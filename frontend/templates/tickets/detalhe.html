@@ -19,7 +19,7 @@
     <div class="box">
       <h2 class="subtitle">Ações</h2>
       <form method="post" action="{{ url_for('web_tickets.alterar_status', id=chamado.id) }}">
-        {{ csrf_token() }}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="field is-grouped">
           <div class="control">
             <div class="select">
@@ -42,7 +42,7 @@
       {% if atendentes %}
         <hr />
         <form method="post" action="{{ url_for('web_tickets.atribuir', id=chamado.id) }}">
-          {{ csrf_token() }}
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <div class="field is-grouped">
             <div class="control">
               <div class="select">
@@ -96,7 +96,7 @@
     <div class="column">
       <h2 class="subtitle">Comentários</h2>
       <form method="post" action="{{ url_for('web_tickets.adicionar_comentario', id=chamado.id) }}">
-        {{ csrf_token() }}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="field">
           <div class="control">
             <textarea class="textarea" name="conteudo" placeholder="Escreva um comentário..." required></textarea>

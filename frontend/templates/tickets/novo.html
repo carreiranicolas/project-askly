@@ -5,7 +5,7 @@
   <h1 class="title">Novo chamado</h1>
 
   <form method="post">
-    {{ csrf_token() }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
     <div class="field">
       <label class="label">Título</label>
