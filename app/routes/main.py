@@ -1,15 +1,22 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, redirect, render_template, url_for
 
 main_bp = Blueprint("main", __name__)
 
+
 @main_bp.route("/")
 def home():
-    return render_template('layouts/base.html')
+    return redirect(url_for("web_auth.login"))
 
 
-auth_bp = Blueprint("auth", __name__)
+web_auth_bp = Blueprint("web_auth", __name__)
 
-@auth_bp.route("/login")
-def auth():
-    return render_template("layouts/auth.html")
+
+@web_auth_bp.route("/login")
+def login():
+    return render_template("auth/login.html")
+
+
+@web_auth_bp.route("/cadastro")
+def cadastro():
+    return render_template("auth/cadastro.html")
 
