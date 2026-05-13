@@ -1,6 +1,6 @@
 from typing import List, Optional, TYPE_CHECKING
 from app.ext.db import db
-from sql_alchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
 if TYPE_CHECKING:

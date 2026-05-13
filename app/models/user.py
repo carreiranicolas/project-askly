@@ -1,5 +1,5 @@
 from app.ext.db import db
-from sql_alchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
 class Usuario(db.Model):
