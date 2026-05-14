@@ -1,5 +1,5 @@
 from app.ext.db import db
-from typing import List, TYPE_CHECKING , Optional
+from typing import TYPE_CHECKING, Optional
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
@@ -12,23 +12,21 @@ class Chamado(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    titulo: Mapped[str] = mapped_column(db.String(150), nullable=False)
-    descricao: Mapped[str] = mapped_column(db.Text, nullable=False)
-    prioridade: Mapped[str] = mapped_column(db.String(20), default='media')
+    title: Mapped[str] = mapped_column(db.String(150), nullable=False)
+    description: Mapped[str] = mapped_column(db.Text, nullable=False)
+    priority: Mapped[str] = mapped_column(db.String(20), default='media')
     status: Mapped[str] = mapped_column(db.String(30), default='Aberto')
-    solicitante_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
-    atendente_id: Mapped[Optional[int]] = mapped_column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
-    categoria_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('categorias.id'), nullable=False)
-    criado_em: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=datetime.now)
-    atualizado_em: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=datetime.now, onupdate=datetime.now)
+    requester_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    assignee_id: Mapped[Optional[int]] = mapped_column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
+    category_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('categorias.id'), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=datetime.now, onupdate=datetime.now)
 
-    solicitante: Mapped[List["Usuario"]] = relationship(
+    requester: Mapped["Usuario"] = relationship(
         "Usuario",
-        back_populates="usuario",
-        cascade="all, delete-orphan",
+        foreign_keys=[requester_id],
     )
-    atendente: Mapped[List["Usuario"]] = relationship(
+    assignee: Mapped[Optional["Usuario"]] = relationship(
         "Usuario",
-        back_populates="usuario",
-        cascade="all, delete-orphan",
+        foreign_keys=[assignee_id],
     )

@@ -1,4 +1,4 @@
-from typing import List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from app.ext.db import db
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
@@ -12,18 +12,16 @@ class Comentario(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
-    conteudo: Mapped[str] = mapped_column(db.Text, nullable=False)
-    crido_em: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=datetime.now)
-    id_chamado: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('chamados.id'), nullable=False)
-    id_autor: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    content: Mapped[str] = mapped_column(db.Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=datetime.now)
+    ticket_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('chamados.id'), nullable=False)
+    author_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
 
-    chamado: Mapped[List['Chamado']] = relationship(
+    chamado: Mapped["Chamado"] = relationship(
         'Chamado',
-        back_populates='comentarios',
-        cascade="all, delete-orphan",
+        foreign_keys=[ticket_id],
     )
-    autor: Mapped[List['Usuario']] = relationship(
+    author: Mapped["Usuario"] = relationship(
         'Usuario',
-        back_populates='comentarios',
-        cascade="all, delete-orphan",
+        foreign_keys=[author_id],
     )
