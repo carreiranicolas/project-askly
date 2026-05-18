@@ -11,3 +11,4 @@ def register_models():
     import app.models.ticket
     import app.models.commentary
     import app.models.history
+    import app.models.role
