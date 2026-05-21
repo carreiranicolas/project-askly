@@ -16,6 +16,7 @@ class Comentario(db.Model):
     created_at: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=datetime.now)
     ticket_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('chamados.id'), nullable=False)
     author_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    is_active: Mapped[bool] = mapped_column(db.Boolean, default=True)
 
     chamado: Mapped["Chamado"] = relationship(
         'Chamado',

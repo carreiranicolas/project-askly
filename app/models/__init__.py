@@ -6,5 +6,6 @@ from .category import Categoria
 from .ticket import Chamado
 from .commentary import Comentario
 from .history import HistoricoStatus
+from .priority import Prioridade
 
-__all__ = ["db", "Usuario", "Cargo", "Categoria", "Chamado", "Comentario", "HistoricoStatus"]
+__all__ = ["db", "Usuario", "Cargo", "Categoria", "Chamado", "Prioridade", "Comentario", "HistoricoStatus"]

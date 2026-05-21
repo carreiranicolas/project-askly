@@ -2,10 +2,25 @@ from app.ext.db import db
 from typing import TYPE_CHECKING, Optional
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+import enum
 
 if TYPE_CHECKING:
     from app.models.user import Usuario
     from app.models.category import Categoria
+    from app.models.priority import Prioridade
+
+class StatusEnum(enum.Enum):
+    ABERTO = 'Aberto'
+    EM_ANALISE = 'Em Análise'
+    EM_ATENDIMENTO = 'Em Atendimento'
+    AGUARDANDO_CLIENTE = 'Aguardando Cliente'
+    AGUARDANDO_TECNICO = 'Aguardando Técnico'
+    AGUARDANDO_PECA = 'Aguardando Peça'
+    ATENDIMENTO_AGENDADO = 'Atendimento Agendado'
+    RESOLVIDO = 'Resolvido'
+    FECHADO = 'Fechado'
+    CANCELADO = 'Cancelado'
+
 
 class Chamado(db.Model):
     __tablename__ = 'chamados'
@@ -14,8 +29,8 @@ class Chamado(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     title: Mapped[str] = mapped_column(db.String(150), nullable=False)
     description: Mapped[str] = mapped_column(db.Text, nullable=False)
-    priority: Mapped[str] = mapped_column(db.String(20), default='media')
-    status: Mapped[str] = mapped_column(db.String(30), default='Aberto')
+    priority_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('prioridades.id'), nullable=False)
+    status: Mapped[StatusEnum] = mapped_column(db.Enum(StatusEnum), default=StatusEnum.ABERTO)
     requester_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     assignee_id: Mapped[Optional[int]] = mapped_column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
     category_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('categorias.id'), nullable=False)
@@ -29,4 +44,16 @@ class Chamado(db.Model):
     assignee: Mapped[Optional["Usuario"]] = relationship(
         "Usuario",
         foreign_keys=[assignee_id],
+    )
+
+    category: Mapped["Categoria"] = relationship(
+        "Categoria",
+        backref='chamados',
+        foreign_keys=[category_id]
+    )
+
+    priority: Mapped["Prioridade"] = relationship(
+        "Prioridade",
+        backref='chamados',
+        foreign_keys=[priority_id]
     )

@@ -8,5 +8,5 @@ class Cargo(db.Model):
 
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     name: Mapped[str] = mapped_column(db.String(60), nullable=False)
-    description: Mapped[str] = mapped_column(db.String(255))
+    description: Mapped[str] = mapped_column(db.Text)
     is_active: Mapped[bool] = mapped_column(db.Boolean, default=True)
