@@ -21,8 +21,10 @@ class Comentario(db.Model):
     chamado: Mapped["Chamado"] = relationship(
         'Chamado',
         foreign_keys=[ticket_id],
+        backref = db.backref('comentarios', order_by=created_at.desc(), lazy='dynamic')
     )
     author: Mapped["Usuario"] = relationship(
         'Usuario',
         foreign_keys=[author_id],
+        backref = db.backref('comentarios', lazy='dynamic')
     )
