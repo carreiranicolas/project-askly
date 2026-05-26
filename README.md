@@ -48,20 +48,28 @@ source venv/bin/activate #Linux/Mac
 pip install .
 ```
 
-
-### 5) Rodar
+### 3) Variáveis de ambiente
 
 ```bash
-flask run 
-
-#ou
-
-python run.py
+cp .env.example .env
+# ajuste POSTGRES_PORT/credenciais conforme o seu docker-compose
 ```
+
+O `.flaskenv` já define `FLASK_APP=app` e `FLASK_DEBUG=1`, então não é
+preciso exportar variáveis na mão.
+
+### 4) Rodar
+
+```bash
+flask run
+```
+
+Ao subir o servidor, as migrations pendentes são aplicadas automaticamente
+no Postgres (`flask db upgrade`), criando o banco com todas as tabelas.
 
 ## Comandos úteis
 
-- **Criar migração**: `flask db migrate -m "..." && flask db upgrade`
+- **Criar migração**: `flask db migrate -m "..."` (o `flask run` aplica no próximo boot, ou rode `flask db upgrade`)
 - **Rodar testes**: `pytest`
 - **Seed**: `flask seed`
 
