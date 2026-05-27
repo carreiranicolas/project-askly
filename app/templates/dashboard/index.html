@@ -5,16 +5,16 @@
 {% block content %}
   <div class="askly-stagger" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--ask-space-4); margin-bottom: var(--ask-space-6);">
     {% set cards = [
-      ('Total', metrics.total, 'neutral'),
-      ('Abertos', metrics.abertos, 'info'),
-      ('Resolvidos', metrics.resolvidos, 'success'),
-      ('Fechados', metrics.fechados, 'neutral'),
-      ('Atrasados (SLA)', metrics.atrasados, 'danger'),
+      ('Total', metrics.total, 'var(--ask-gray-900)'),
+      ('Abertos', metrics.abertos, 'var(--ask-info)'),
+      ('Resolvidos', metrics.resolvidos, 'var(--ask-success)'),
+      ('Fechados', metrics.fechados, 'var(--ask-gray-500)'),
+      ('Atrasados (SLA)', metrics.atrasados, 'var(--ask-danger)'),
     ] %}
-    {% for label, value, tone in cards %}
+    {% for label, value, color in cards %}
       <div class="askly-card" style="padding: var(--ask-space-6);">
         <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide);">{{ label }}</span>
-        <div class="askly-badge askly-badge--{{ tone }}" style="margin-top: var(--ask-space-2); font-size: var(--ask-text-2xl, 1.5rem); font-weight: 700; padding: var(--ask-space-2) var(--ask-space-3);">{{ value }}</div>
+        <div style="margin-top: var(--ask-space-2); font-size: 2.25rem; font-weight: 800; line-height: 1.1; color: {{ color }};">{{ value }}</div>
       </div>
     {% endfor %}
   </div>

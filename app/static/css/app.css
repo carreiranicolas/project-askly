@@ -375,6 +375,12 @@ button, input, select, textarea {
   margin-bottom: var(--ask-space-3);
 }
 
+/* Wordmark como herói do painel de marca (sem logo de imagem). */
+.askly-brand-name--hero {
+  font-size: clamp(2.75rem, 5vw, 4rem);
+  margin-bottom: var(--ask-space-4);
+}
+
 .askly-brand-accent {
   background: linear-gradient(135deg, var(--ask-teal-300), var(--ask-sky-400));
   -webkit-background-clip: text;
@@ -810,6 +816,9 @@ button, input, select, textarea {
   font-size: var(--ask-text-lg);
   font-weight: 800;
   letter-spacing: var(--ask-tracking-tight);
+  /* Sidebar é sempre escura (nos dois temas); texto fixo claro para o brand
+     não sumir no dark, onde --ask-white é remapeado para um tom escuro. */
+  color: #ffffff;
 }
 
 .askly-sidebar-nav {
@@ -925,7 +934,7 @@ button, input, select, textarea {
 }
 
 .askly-user-name {
-  color: var(--ask-text-primary);
+  color: var(--ask-gray-900);
   font-weight: 600;
   font-size: var(--ask-text-sm);
   white-space: nowrap;
