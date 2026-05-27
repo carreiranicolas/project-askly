@@ -76,7 +76,7 @@
                   <td>{{ h.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
                   <td><span class="askly-badge askly-badge--neutral">{{ h.new_status }}</span></td>
                   <td>{{ h.changed_by.name if h.changed_by else '-' }}</td>
-                  <td>{{ h.previous_status }} &rarr; {{ h.new_status }}</td>
+                  <td>{{ h.previous_status }} &rarr; {{ h.new_status }}{% if h.motivo %} · {{ h.motivo }}{% endif %}</td>
                 </tr>
               {% else %}
                 <tr><td colspan="4" class="askly-text-center">Nenhum histórico registrado.</td></tr>
@@ -124,6 +124,17 @@
             <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); display: block; margin-bottom: var(--ask-space-1);">Área</span>
             <span style="font-size: var(--ask-text-sm); color: var(--ask-gray-900); font-weight: 500;">{{ chamado.category.name if chamado.category else '-' }}</span>
           </div>
+
+          <div>
+            <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); display: block; margin-bottom: var(--ask-space-1);">SLA</span>
+            {% if sla_deadline %}
+              <span class="askly-badge askly-badge--{{ 'danger' if sla_overdue else 'neutral' }}">
+                {{ 'Atrasado' if sla_overdue else 'No prazo' }} · vence {{ sla_deadline.strftime('%d/%m/%Y %H:%M') }}
+              </span>
+            {% else %}
+              <span style="font-size: var(--ask-text-sm); color: var(--ask-gray-500);">—</span>
+            {% endif %}
+          </div>
         </div>
       </div>
 
@@ -139,9 +150,15 @@
                 <select class="askly-input" name="status" required>
                   <option value="" disabled selected>Selecionar status...</option>
                   {% for s in status_options %}
-                    <option value="{{ s.name }}" {% if s == chamado.status %}disabled{% endif %}>{{ s.value }}</option>
+                    <option value="{{ s.name }}">{{ s.value }}</option>
                   {% endfor %}
                 </select>
+              </div>
+            </div>
+
+            <div class="askly-field">
+              <div class="askly-input-wrap">
+                <input class="askly-input" type="text" name="motivo" placeholder="Motivo (opcional)" maxlength="255" />
               </div>
             </div>
 

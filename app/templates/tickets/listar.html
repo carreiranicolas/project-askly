@@ -1,7 +1,7 @@
 {% extends "layouts/app.html" %}
 {% block title %}Chamados | Askly{% endblock %}
 
-{% block page_title %}Meus Chamados{% endblock %}
+{% block page_title %}Chamados{% endblock %}
 {% block page_actions %}
   <a class="askly-btn askly-btn--primary" href="{{ url_for('web_tickets.novo') }}">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -13,6 +13,11 @@
 {% endblock %}
 
 {% block content %}
+  <form method="get" action="{{ url_for('web_tickets.listar') }}" class="askly-card askly-stagger" style="padding: var(--ask-space-4); margin-bottom: var(--ask-space-5); display: flex; gap: var(--ask-space-3);">
+    <input class="askly-input" type="search" name="q" value="{{ q }}" placeholder="Buscar por título ou descrição..." />
+    <button class="askly-btn askly-btn--secondary" type="submit">Buscar</button>
+  </form>
+
   <div class="askly-card askly-stagger">
     <div class="askly-table-wrapper">
       <table class="askly-table">
@@ -21,12 +26,13 @@
             <th>Título</th>
             <th>Status</th>
             <th>Prioridade</th>
-            <th>Categoria</th>
+            <th>Área</th>
+            <th>SLA</th>
             <th>Criado em</th>
           </tr>
         </thead>
         <tbody>
-          {% for c in chamados %}
+          {% for c in chamados.items %}
             <tr>
               <td>
                 <a href="{{ url_for('web_tickets.detalhe', id=c.id) }}">{{ c.title }}</a>
@@ -42,11 +48,18 @@
                 </span>
               </td>
               <td>{{ c.category.name if c.category else '-' }}</td>
+              <td>
+                {% if is_overdue(c) %}
+                  <span class="askly-badge askly-badge--danger">Atrasado</span>
+                {% else %}
+                  <span class="askly-badge askly-badge--neutral">No prazo</span>
+                {% endif %}
+              </td>
               <td>{{ c.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
             </tr>
           {% else %}
             <tr>
-              <td colspan="5" class="askly-text-center" style="padding: var(--ask-space-8); color: var(--ask-gray-500);">
+              <td colspan="6" class="askly-text-center" style="padding: var(--ask-space-8); color: var(--ask-gray-500);">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto var(--ask-space-4); opacity: 0.5; display: block;">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                   <line x1="3" y1="9" x2="21" y2="9"/>
@@ -60,5 +73,20 @@
       </table>
     </div>
   </div>
-{% endblock %}
 
+  {% if chamados.pages > 1 %}
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: var(--ask-space-5);">
+      <span style="color: var(--ask-gray-500); font-size: var(--ask-text-sm);">
+        {{ chamados.total }} chamado(s) · página {{ chamados.page }} de {{ chamados.pages }}
+      </span>
+      <div style="display: flex; gap: var(--ask-space-2);">
+        {% if chamados.has_prev %}
+          <a class="askly-btn askly-btn--secondary" href="{{ url_for('web_tickets.listar', page=chamados.prev_num, q=q) }}">Anterior</a>
+        {% endif %}
+        {% if chamados.has_next %}
+          <a class="askly-btn askly-btn--secondary" href="{{ url_for('web_tickets.listar', page=chamados.next_num, q=q) }}">Próxima</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

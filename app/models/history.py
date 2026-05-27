@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from app.extensions import db
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
@@ -15,6 +15,7 @@ class HistoricoStatus(db.Model):
     ticket_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('chamados.id'), nullable=False)
     previous_status: Mapped[str] = mapped_column(db.String(30), nullable=False)
     new_status: Mapped[str] = mapped_column(db.String(30), nullable=False)
+    motivo: Mapped[Optional[str]] = mapped_column(db.String(255), nullable=True)
     changed_by_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     created_at: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=datetime.now, nullable=False)
 

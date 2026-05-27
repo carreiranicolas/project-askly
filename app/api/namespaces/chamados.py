@@ -47,7 +47,12 @@ status_input = ns.model(
             required=True,
             example="EM_ATENDIMENTO",
             description="Nome do status. Valores possíveis: " + ", ".join(STATUS_NAMES),
-        )
+        ),
+        "motivo": fields.String(
+            required=False,
+            example="Aguardando retorno do fornecedor.",
+            description="Justificativa opcional registrada na auditoria.",
+        ),
     },
 )
 
@@ -89,6 +94,7 @@ historico_model = ns.model(
         "id": fields.Integer(readonly=True, example=1),
         "previous_status": fields.String(example="Aberto"),
         "new_status": fields.String(example="Em Atendimento"),
+        "motivo": fields.String(example="Aguardando retorno do fornecedor."),
         "changed_by_id": fields.Integer(example=8),
         "created_at": fields.DateTime(example="2026-05-26T15:10:00"),
     },
@@ -150,7 +156,9 @@ class ChamadoStatus(Resource):
     def post(self, ticket_id):
         """Altera o status (gera registro de auditoria obrigatório)."""
         d = ns.payload
-        return ticket_service.change_status(current_user(), ticket_id, d["status"])
+        return ticket_service.change_status(
+            current_user(), ticket_id, d["status"], motivo=d.get("motivo")
+        )
 
 
 @ns.route("/<int:ticket_id>/atribuir")

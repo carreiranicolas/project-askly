@@ -80,6 +80,43 @@ def test_atendente_sees_only_own_area(client, make_user, api_login, areas):
     assert client.get("/api/v1/chamados", headers=api_login(infra_email)).get_json() == []
 
 
+def test_status_change_records_motivo(client, make_user, api_login, catalog):
+    sol_email, _ = make_user(role="Solicitante", email="sol@test.com")
+    adm_email, _ = make_user(role="Admin", email="adm@test.com")
+    tid = _create_ticket(client, api_login(sol_email), catalog).get_json()["id"]
+
+    resp = client.post(
+        f"/api/v1/chamados/{tid}/status",
+        json={"status": "EM_ATENDIMENTO", "motivo": "Iniciando atendimento"},
+        headers=api_login(adm_email),
+    )
+    assert resp.status_code == 200
+    hist = client.get(
+        f"/api/v1/chamados/{tid}/historico", headers=api_login(adm_email)
+    ).get_json()
+    assert hist[0]["motivo"] == "Iniciando atendimento"
+
+
+def test_invalid_transition_rejected(client, make_user, api_login, catalog):
+    sol_email, _ = make_user(role="Solicitante", email="sol@test.com")
+    adm_email, _ = make_user(role="Admin", email="adm@test.com")
+    adm_headers = api_login(adm_email)
+    tid = _create_ticket(client, api_login(sol_email), catalog).get_json()["id"]
+
+    # ABERTO -> CANCELADO é válido
+    assert client.post(
+        f"/api/v1/chamados/{tid}/status",
+        json={"status": "CANCELADO"},
+        headers=adm_headers,
+    ).status_code == 200
+    # CANCELADO é terminal: qualquer transição é inválida
+    assert client.post(
+        f"/api/v1/chamados/{tid}/status",
+        json={"status": "EM_ATENDIMENTO"},
+        headers=adm_headers,
+    ).status_code == 400
+
+
 def test_solicitante_sees_only_own_tickets(client, make_user, api_login, catalog):
     a_email, _ = make_user(role="Solicitante", email="a@test.com")
     b_email, _ = make_user(role="Solicitante", email="b@test.com")

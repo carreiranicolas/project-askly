@@ -783,7 +783,7 @@ button, input, select, textarea {
 }
 
 .askly-sidebar-header {
-  padding: var(--ask-space-6) var(--ask-space-6);
+  padding: var(--ask-space-6) var(--ask-space-5);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -801,8 +801,8 @@ button, input, select, textarea {
 }
 
 .askly-sidebar-logo {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   filter: drop-shadow(0 0 8px rgba(13, 148, 136, 0.4));
 }
 
@@ -814,10 +814,10 @@ button, input, select, textarea {
 
 .askly-sidebar-nav {
   flex: 1;
-  padding: var(--ask-space-6) var(--ask-space-4);
+  padding: var(--ask-space-4) var(--ask-space-3);
   display: flex;
   flex-direction: column;
-  gap: var(--ask-space-2);
+  gap: 2px;
   overflow-y: auto;
 }
 
@@ -825,18 +825,24 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   gap: var(--ask-space-3);
-  padding: var(--ask-space-3) var(--ask-space-4);
-  border-radius: var(--ask-radius-md);
-  color: var(--ask-gray-300);
+  padding: var(--ask-space-2) var(--ask-space-3);
+  border-radius: var(--ask-radius-sm);
+  color: var(--ask-gray-400);
+  font-size: var(--ask-text-sm);
   font-weight: 500;
   text-decoration: none;
-  transition: all var(--ask-duration-fast) var(--ask-ease-out);
+  border-left: 3px solid transparent;
+  transition:
+    background var(--ask-duration-fast) var(--ask-ease-out),
+    color var(--ask-duration-fast) var(--ask-ease-out),
+    border-color var(--ask-duration-fast) var(--ask-ease-out);
 }
 
 .askly-nav-item svg {
-  width: 20px;
-  height: 20px;
-  opacity: 0.7;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  opacity: 0.65;
 }
 
 .askly-nav-item:hover {
@@ -850,9 +856,10 @@ button, input, select, textarea {
 }
 
 .askly-nav-item.is-active {
-  background: rgba(13, 148, 136, 0.15);
+  background: rgba(13, 148, 136, 0.14);
   color: var(--ask-teal-300);
-  border-left: 3px solid var(--ask-teal-400);
+  border-left-color: var(--ask-teal-400);
+  font-weight: 600;
 }
 
 .askly-nav-item.is-active svg {
@@ -860,33 +867,44 @@ button, input, select, textarea {
   opacity: 1;
 }
 
-.askly-nav-divider {
-  font-size: var(--ask-text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--ask-gray-500);
-  margin-top: var(--ask-space-6);
-  margin-bottom: var(--ask-space-2);
-  padding-left: var(--ask-space-4);
-}
-
-.askly-sidebar-footer {
-  padding: var(--ask-space-4);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.askly-user-info {
-  display: flex;
+/* Hash glyph used for category ("Áreas") nav items */
+.askly-nav-hash {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  display: inline-flex;
   align-items: center;
-  gap: var(--ask-space-3);
-  padding: var(--ask-space-3);
-  margin-bottom: var(--ask-space-2);
+  justify-content: center;
+  font-size: var(--ask-text-sm);
+  font-weight: 700;
+  opacity: 0.55;
 }
 
+.askly-nav-item:hover .askly-nav-hash,
+.askly-nav-item.is-active .askly-nav-hash {
+  opacity: 1;
+}
+
+.askly-nav-divider {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ask-gray-500);
+  margin-top: var(--ask-space-5);
+  margin-bottom: var(--ask-space-1);
+  padding: 0 var(--ask-space-3);
+}
+
+.askly-sidebar-nav > .askly-nav-divider:first-child {
+  margin-top: 0;
+}
+
+/* Shared user identity bits (avatar + name + role) — used in the
+   header user menu. */
 .askly-user-avatar {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: var(--ask-gradient-brand);
   color: var(--ask-white);
@@ -895,32 +913,29 @@ button, input, select, textarea {
   justify-content: center;
   font-weight: 700;
   font-size: var(--ask-text-sm);
+  flex-shrink: 0;
 }
 
 .askly-user-details {
   display: flex;
   flex-direction: column;
+  line-height: 1.25;
+  text-align: left;
+  min-width: 0;
 }
 
 .askly-user-name {
-  color: var(--ask-white);
+  color: var(--ask-text-primary);
   font-weight: 600;
   font-size: var(--ask-text-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .askly-user-role {
   font-size: var(--ask-text-xs);
-  color: var(--ask-gray-500);
-}
-
-.askly-nav-logout {
-  color: var(--ask-gray-400);
-  margin-top: auto;
-}
-
-.askly-nav-logout:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--ask-danger);
+  color: var(--ask-text-muted);
 }
 
 /* ── Main Content ──────────────────────────────────────────── */
@@ -951,10 +966,176 @@ button, input, select, textarea {
   letter-spacing: var(--ask-tracking-tight);
 }
 
+.askly-app-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--ask-space-4);
+}
+
 .askly-app-actions {
   display: flex;
+  align-items: center;
   gap: var(--ask-space-3);
 }
+
+/* ── Header User Menu (top-right dropdown) ─────────────────── */
+.askly-user-menu {
+  position: relative;
+}
+
+/* Hide the native disclosure triangle */
+.askly-user-menu > summary {
+  list-style: none;
+}
+.askly-user-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.askly-user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--ask-space-3);
+  padding: var(--ask-space-1) var(--ask-space-3) var(--ask-space-1) var(--ask-space-1);
+  border-radius: var(--ask-radius-full);
+  border: 1px solid var(--ask-border);
+  background: var(--ask-surface);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background var(--ask-duration-fast) var(--ask-ease-out),
+    border-color var(--ask-duration-fast) var(--ask-ease-out),
+    box-shadow var(--ask-duration-fast) var(--ask-ease-out);
+}
+
+.askly-user-menu-trigger:hover {
+  border-color: var(--ask-gray-300);
+  background: var(--ask-surface-sunken);
+}
+
+.askly-user-menu-trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ask-accent-glow);
+}
+
+.askly-user-menu-caret {
+  width: 16px;
+  height: 16px;
+  color: var(--ask-text-muted);
+  transition: transform var(--ask-duration-fast) var(--ask-ease-out);
+}
+
+.askly-user-menu[open] .askly-user-menu-caret {
+  transform: rotate(180deg);
+}
+
+/* Hide name/role on small headers, keep avatar */
+@media (max-width: 640px) {
+  .askly-user-menu-trigger .askly-user-details {
+    display: none;
+  }
+  .askly-user-menu-trigger {
+    padding: var(--ask-space-1);
+  }
+}
+
+.askly-user-menu-panel {
+  position: absolute;
+  top: calc(100% + var(--ask-space-2));
+  right: 0;
+  min-width: 220px;
+  padding: var(--ask-space-2);
+  background: var(--ask-surface);
+  border: 1px solid var(--ask-border);
+  border-radius: var(--ask-radius-md);
+  box-shadow: var(--ask-shadow-md);
+  z-index: var(--ask-z-modal);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: askly-menu-enter var(--ask-duration-fast) var(--ask-ease-out);
+}
+
+@keyframes askly-menu-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.askly-user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--ask-space-3);
+  width: 100%;
+  padding: var(--ask-space-2) var(--ask-space-3);
+  border: none;
+  border-radius: var(--ask-radius-sm);
+  background: none;
+  color: var(--ask-text-secondary);
+  font-size: var(--ask-text-sm);
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background var(--ask-duration-fast) var(--ask-ease-out),
+    color var(--ask-duration-fast) var(--ask-ease-out);
+}
+
+.askly-user-menu-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.askly-user-menu-item:hover {
+  background: var(--ask-surface-sunken);
+  color: var(--ask-text-primary);
+  text-decoration: none;
+}
+
+.askly-user-menu-item:hover svg {
+  opacity: 1;
+}
+
+.askly-user-menu-item.is-active {
+  color: var(--ask-accent);
+}
+
+.askly-user-menu-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ask-accent-glow);
+}
+
+.askly-user-menu-logout {
+  color: var(--ask-danger);
+}
+
+.askly-user-menu-logout:hover {
+  background: rgba(239, 68, 68, 0.10);
+  color: var(--ask-danger);
+}
+
+.askly-user-menu-logout svg {
+  opacity: 0.85;
+}
+
+.askly-user-menu-sep {
+  height: 1px;
+  margin: var(--ask-space-1) 0;
+  background: var(--ask-border);
+}
+
+/* Theme labels inside the menu: show the action the click performs */
+.askly-user-menu-item .askly-theme-label-light { display: none; }
+.askly-user-menu-item .askly-theme-label-dark { display: inline; }
+:root[data-theme="dark"] .askly-user-menu-item .askly-theme-label-light { display: inline; }
+:root[data-theme="dark"] .askly-user-menu-item .askly-theme-label-dark { display: none; }
 
 .askly-app-content {
   padding: var(--ask-space-8);
@@ -1069,7 +1250,8 @@ button, input, select, textarea {
 
 /* ============================================================
    THEME TOGGLE
-   Floating control (base.html) + sidebar control (app.html).
+   Floating control (base.html). On logged-in pages the toggle
+   instead lives in the header user menu (see .askly-user-menu).
    Works in both light and dark themes.
    ============================================================ */
 .askly-theme-toggle {
@@ -1104,11 +1286,13 @@ button, input, select, textarea {
   height: 18px;
 }
 
-/* Show sun in dark mode (click → light), moon in light mode. */
-.askly-theme-toggle .askly-theme-icon-sun { display: none; }
-.askly-theme-toggle .askly-theme-icon-moon { display: block; }
-:root[data-theme="dark"] .askly-theme-toggle .askly-theme-icon-sun { display: block; }
-:root[data-theme="dark"] .askly-theme-toggle .askly-theme-icon-moon { display: none; }
+/* Show sun in dark mode (click → light), moon in light mode.
+   Applies to any [data-theme-toggle] control (floating button in
+   base.html and the user-menu item in the app header). */
+[data-theme-toggle] .askly-theme-icon-sun { display: none; }
+[data-theme-toggle] .askly-theme-icon-moon { display: block; }
+:root[data-theme="dark"] [data-theme-toggle] .askly-theme-icon-sun { display: block; }
+:root[data-theme="dark"] [data-theme-toggle] .askly-theme-icon-moon { display: none; }
 
 /* Floating variant (global, bottom-right) */
 .askly-theme-toggle--float {
@@ -1127,25 +1311,9 @@ button, input, select, textarea {
   transform: translateY(-2px);
 }
 
-/* Inline variant inside the sidebar footer */
-.askly-theme-toggle--inline {
-  width: 100%;
-  height: 40px;
-  padding: 0 var(--ask-space-4);
-  justify-content: flex-start;
-  gap: var(--ask-space-3);
-  border-radius: var(--ask-radius-md);
-  font-size: var(--ask-text-sm);
-  font-weight: 500;
-  margin-bottom: var(--ask-space-2);
-}
-
-.askly-theme-toggle--inline svg {
-  opacity: 0.8;
-}
-
-/* When the floating toggle would overlap the sidebar inline one,
-   hide the float on logged-in pages that opt in via this flag. */
+/* On logged-in pages the theme control lives in the header user
+   menu, so the global floating toggle is hidden via this flag set
+   on the app layout root. */
 .askly-has-sidebar-toggle .askly-theme-toggle--float {
   display: none;
 }

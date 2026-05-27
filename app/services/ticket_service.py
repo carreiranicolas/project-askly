@@ -1,3 +1,7 @@
+from datetime import datetime, timedelta
+
+from sqlalchemy import false, or_
+
 from app.extensions import db
 from app.models.category import Categoria
 from app.models.commentary import Comentario
@@ -8,6 +12,10 @@ from app.models.user import Usuario
 
 from . import ROLE_ADMIN, ROLE_ATENDENTE, is_staff, role_of
 from .exceptions import NotFoundError, PermissionDenied, ValidationError
+
+# Estados terminais/ativos para a máquina de transições.
+_CLOSED_OR_RESOLVED = (StatusEnum.RESOLVIDO, StatusEnum.FECHADO, StatusEnum.CANCELADO)
+_ACTIVE = [s for s in StatusEnum if s not in _CLOSED_OR_RESOLVED]
 
 
 def parse_status(value):
@@ -25,6 +33,37 @@ def parse_status(value):
     raise ValidationError(f"Status inválido: {value}.")
 
 
+def allowed_transitions(current):
+    """Transições válidas a partir do status atual (máquina de estados)."""
+    if current == StatusEnum.CANCELADO:
+        return []
+    if current == StatusEnum.FECHADO:
+        return [StatusEnum.ABERTO]  # reabertura
+    if current == StatusEnum.RESOLVIDO:
+        return [StatusEnum.FECHADO, StatusEnum.ABERTO]
+    # Estados ativos: podem ir para outro estado ativo, resolver ou cancelar.
+    return [s for s in _ACTIVE if s != current] + [
+        StatusEnum.RESOLVIDO,
+        StatusEnum.CANCELADO,
+    ]
+
+
+# ------------------------------- SLA -------------------------------
+def sla_deadline(ticket):
+    if ticket.priority is None or ticket.priority.sla_hours is None:
+        return None
+    return ticket.created_at + timedelta(hours=ticket.priority.sla_hours)
+
+
+def is_overdue(ticket):
+    deadline = sla_deadline(ticket)
+    if deadline is None or ticket.status in _CLOSED_OR_RESOLVED:
+        return False
+    now = datetime.now(deadline.tzinfo) if deadline.tzinfo else datetime.now()
+    return now > deadline
+
+
+# ----------------------------- Consultas -----------------------------
 def _can_view(user, ticket):
     role = role_of(user)
     if role == ROLE_ADMIN:
@@ -36,19 +75,18 @@ def _can_view(user, ticket):
     return False
 
 
-def list_tickets(user, tipo=None, categoria_id=None):
+def tickets_query(user, tipo=None, categoria_id=None, q=None):
+    """Query de chamados já com RBAC + filtros (para listar/paginar/contar)."""
     role = role_of(user)
     query = Chamado.query
 
     if role == ROLE_ADMIN:
-        pass  # admin vê todos os chamados
+        pass  # admin vê todos
     elif role == ROLE_ATENDENTE:
-        # Atendente vê apenas os chamados da sua área.
         if user.area_id is None:
-            return []
+            return query.filter(false())  # sem área => nada
         query = query.filter(Chamado.category_id == user.area_id)
     else:
-        # Solicitante vê apenas os próprios chamados.
         query = query.filter(Chamado.requester_id == user.id)
 
     if tipo == "atribuidos":
@@ -57,7 +95,16 @@ def list_tickets(user, tipo=None, categoria_id=None):
         query = query.filter(Chamado.requester_id == user.id)
     if categoria_id:
         query = query.filter(Chamado.category_id == categoria_id)
-    return query.order_by(Chamado.created_at.desc()).all()
+    if q and q.strip():
+        like = f"%{q.strip()}%"
+        query = query.filter(
+            or_(Chamado.title.ilike(like), Chamado.description.ilike(like))
+        )
+    return query.order_by(Chamado.created_at.desc())
+
+
+def list_tickets(user, tipo=None, categoria_id=None, q=None):
+    return tickets_query(user, tipo=tipo, categoria_id=categoria_id, q=q).all()
 
 
 def get_ticket(user, ticket_id):
@@ -75,7 +122,7 @@ def create_ticket(user, title, description, category_id, priority_id):
     if not description or not description.strip():
         raise ValidationError("A descrição é obrigatória.")
     if db.session.get(Categoria, category_id) is None:
-        raise ValidationError("Categoria informada não existe.")
+        raise ValidationError("Área informada não existe.")
     if db.session.get(Prioridade, priority_id) is None:
         raise ValidationError("Prioridade informada não existe.")
 
@@ -92,7 +139,7 @@ def create_ticket(user, title, description, category_id, priority_id):
     return ticket
 
 
-def change_status(user, ticket_id, new_status):
+def change_status(user, ticket_id, new_status, motivo=None):
     ticket = get_ticket(user, ticket_id)
     target = parse_status(new_status)
 
@@ -104,14 +151,20 @@ def change_status(user, ticket_id, new_status):
         if not (ticket.requester_id == user.id and target == StatusEnum.CANCELADO):
             raise PermissionDenied("Você não pode alterar o status deste chamado.")
 
+    if target not in allowed_transitions(ticket.status):
+        raise ValidationError(
+            f"Transição inválida: de '{ticket.status.value}' para '{target.value}'."
+        )
+
     previous = ticket.status
     ticket.status = target
-    # Auditoria obrigatória: toda mudança de status gera histórico.
+    # Auditoria obrigatória: toda mudança de status gera histórico (com motivo).
     db.session.add(
         HistoricoStatus(
             ticket_id=ticket.id,
             previous_status=previous.value,
             new_status=target.value,
+            motivo=(motivo.strip() if motivo and motivo.strip() else None),
             changed_by_id=user.id,
         )
     )
@@ -131,9 +184,7 @@ def assign_ticket(actor, ticket_id, assignee_id):
     if assignee is None:
         raise ValidationError("Usuário atribuído não existe.")
     if not is_staff(assignee):
-        raise ValidationError(
-            "Só é possível atribuir a atendentes ou administradores."
-        )
+        raise ValidationError("Só é possível atribuir a atendentes ou administradores.")
 
     ticket.assignee_id = assignee_id
     db.session.commit()
@@ -166,3 +217,26 @@ def add_comment(user, ticket_id, content):
     db.session.add(comment)
     db.session.commit()
     return comment
+
+
+# ----------------------------- Dashboard -----------------------------
+def dashboard_metrics(user):
+    tickets = tickets_query(user).all()
+    by_status = {}
+    by_area = {}
+    overdue = 0
+    for t in tickets:
+        by_status[t.status.value] = by_status.get(t.status.value, 0) + 1
+        area = t.category.name if t.category else "—"
+        by_area[area] = by_area.get(area, 0) + 1
+        if is_overdue(t):
+            overdue += 1
+    return {
+        "total": len(tickets),
+        "abertos": sum(1 for t in tickets if t.status == StatusEnum.ABERTO),
+        "resolvidos": sum(1 for t in tickets if t.status == StatusEnum.RESOLVIDO),
+        "fechados": sum(1 for t in tickets if t.status == StatusEnum.FECHADO),
+        "atrasados": overdue,
+        "por_status": sorted(by_status.items(), key=lambda kv: kv[0]),
+        "por_area": sorted(by_area.items(), key=lambda kv: kv[0]),
+    }

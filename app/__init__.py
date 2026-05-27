@@ -117,6 +117,7 @@ def create_app():
             return None
 
     from .routes.admin import web_admin_bp
+    from .routes.dashboard import web_dashboard_bp
     from .routes.main import main_bp, web_auth_bp
     from .routes.profile import web_profile_bp
     from .routes.tickets import web_tickets_bp
@@ -126,6 +127,7 @@ def create_app():
     app.register_blueprint(web_tickets_bp)
     app.register_blueprint(web_admin_bp)
     app.register_blueprint(web_profile_bp)
+    app.register_blueprint(web_dashboard_bp)
 
     # API REST (JWT) — isenta de CSRF por não usar cookies de sessão.
     from .api import api_bp

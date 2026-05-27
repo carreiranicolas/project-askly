@@ -1,22 +1,34 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from app.models.ticket import StatusEnum
 from app.services import catalog_service, is_staff, ticket_service, user_service
 from app.services.exceptions import ServiceError
 
 web_tickets_bp = Blueprint("web_tickets", __name__, url_prefix="/chamados")
 
+PER_PAGE = 10
+
 
 @web_tickets_bp.route("/")
 @login_required
 def listar():
-    chamados = ticket_service.list_tickets(
+    query = ticket_service.tickets_query(
         current_user,
         tipo=request.args.get("tipo"),
         categoria_id=request.args.get("categoria", type=int),
+        q=request.args.get("q"),
     )
-    return render_template("tickets/listar.html", chamados=chamados)
+    pagination = query.paginate(
+        page=request.args.get("page", 1, type=int),
+        per_page=PER_PAGE,
+        error_out=False,
+    )
+    return render_template(
+        "tickets/listar.html",
+        chamados=pagination,
+        q=request.args.get("q", ""),
+        is_overdue=ticket_service.is_overdue,
+    )
 
 
 @web_tickets_bp.route("/novo", methods=["GET", "POST"])
@@ -59,8 +71,10 @@ def detalhe(id):
         chamado=chamado,
         comentarios=ticket_service.list_comments(current_user, id),
         historico=ticket_service.list_history(current_user, id),
-        status_options=list(StatusEnum) if staff else [],
+        status_options=ticket_service.allowed_transitions(chamado.status) if staff else [],
         atendentes=user_service.list_staff() if staff else [],
+        sla_deadline=ticket_service.sla_deadline(chamado),
+        sla_overdue=ticket_service.is_overdue(chamado),
     )
 
 
@@ -79,7 +93,12 @@ def adicionar_comentario(id):
 @login_required
 def alterar_status(id):
     try:
-        ticket_service.change_status(current_user, id, request.form.get("status"))
+        ticket_service.change_status(
+            current_user,
+            id,
+            request.form.get("status"),
+            motivo=request.form.get("motivo"),
+        )
         flash("Status atualizado.", "success")
     except ServiceError as exc:
         flash(exc.message, "danger")
