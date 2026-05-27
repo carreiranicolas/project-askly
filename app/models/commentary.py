@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from app.extensions import db
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime
+from datetime import datetime, timezone
 
 if TYPE_CHECKING:
     from .ticket import Chamado
@@ -13,7 +13,7 @@ class Comentario(db.Model):
 
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     content: Mapped[str] = mapped_column(db.Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=datetime.now)
+    created_at: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     ticket_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('chamados.id'), nullable=False)
     author_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     is_active: Mapped[bool] = mapped_column(db.Boolean, default=True)

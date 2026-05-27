@@ -47,7 +47,7 @@
               <div style="background: var(--ask-surface-sunken); border: 1px solid var(--ask-border); border-radius: var(--ask-radius-lg); padding: var(--ask-space-4); flex: 1;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: var(--ask-space-2);">
                   <strong style="font-size: var(--ask-text-sm); color: var(--ask-gray-900);">{{ c.author.name if c.author else 'Usuário' }}</strong>
-                  <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500);">{{ c.created_at.strftime('%d/%m/%Y às %H:%M') }}</span>
+                  <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500);">{{ c.created_at | local('%d/%m/%Y às %H:%M') }}</span>
                 </div>
                 <div style="color: var(--ask-gray-800); font-size: var(--ask-text-sm); white-space: pre-wrap;">{{ c.content }}</div>
               </div>
@@ -74,7 +74,7 @@
             <tbody>
               {% for h in historico %}
                 <tr>
-                  <td>{{ h.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                  <td>{{ h.created_at | local }}</td>
                   <td><span class="askly-badge askly-badge--neutral">{{ h.new_status }}</span></td>
                   <td>{{ h.changed_by.name if h.changed_by else '-' }}</td>
                   <td>{{ h.previous_status }} &rarr; {{ h.new_status }}{% if h.motivo %} · {{ h.motivo }}{% endif %}</td>
@@ -91,21 +91,34 @@
     <!-- ─── Direita: Ações do Chamado ───────────────────────── -->
     <div style="display: flex; flex-direction: column; gap: var(--ask-space-6);">
 
-      <!-- Ação: Aprovar solução (somente quem abriu o chamado) -->
+      <!-- Ação: avaliar a solução (somente quem abriu o chamado) -->
       {% if pode_aprovar %}
         <div class="askly-card" style="padding: var(--ask-space-6); border-color: rgba(16, 185, 129, 0.4);">
-          <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-3); font-weight: 600;">Aprovação da solução</h3>
+          <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-3); font-weight: 600;">Avaliação da solução</h3>
           <p style="font-size: var(--ask-text-sm); color: var(--ask-gray-600); margin-bottom: var(--ask-space-4); line-height: var(--ask-leading-normal);">
-            O responsável marcou este chamado como resolvido. Se a solução atende, aprove para fechar o chamado.
+            O responsável marcou este chamado como resolvido. <strong>Aprove</strong> para fechar o chamado, ou <strong>recuse</strong> para reabri-lo e devolvê-lo ao responsável.
           </p>
-          <form method="post" action="{{ url_for('web_tickets.aprovar', id=chamado.id) }}">
+          <form method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <button class="askly-btn askly-btn--primary" type="submit" style="width: 100%; justify-content: center;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-              Aprovar e fechar chamado
-            </button>
+            <div class="askly-field">
+              <div class="askly-input-wrap">
+                <textarea class="askly-input askly-input--no-icon" name="motivo" rows="2" placeholder="Comentário (opcional) — útil ao recusar, para orientar o responsável..." style="height: auto; min-height: 64px; padding-top: var(--ask-space-3); padding-bottom: var(--ask-space-3); line-height: var(--ask-leading-normal); resize: vertical;"></textarea>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: var(--ask-space-3);">
+              <button class="askly-btn askly-btn--primary askly-btn--lg" type="submit" formaction="{{ url_for('web_tickets.aprovar', id=chamado.id) }}" style="width: 100%; justify-content: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Aprovar solução
+              </button>
+              <button class="askly-btn askly-btn--danger askly-btn--lg" type="submit" formaction="{{ url_for('web_tickets.recusar', id=chamado.id) }}" style="width: 100%; justify-content: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                Recusar solução
+              </button>
+            </div>
           </form>
         </div>
       {% endif %}
@@ -229,7 +242,7 @@
             <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); display: block; margin-bottom: var(--ask-space-1);">SLA</span>
             {% if sla_deadline %}
               <span class="askly-badge askly-badge--{{ 'danger' if sla_overdue else 'neutral' }}">
-                {{ 'Atrasado' if sla_overdue else 'No prazo' }} · vence {{ sla_deadline.strftime('%d/%m/%Y %H:%M') }}
+                {{ 'Atrasado' if sla_overdue else 'No prazo' }} · vence {{ sla_deadline | local }}
               </span>
             {% else %}
               <span style="font-size: var(--ask-text-sm); color: var(--ask-gray-500);">—</span>

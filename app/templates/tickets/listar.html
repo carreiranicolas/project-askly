@@ -57,7 +57,7 @@
                   <span class="askly-badge askly-badge--neutral">No prazo</span>
                 {% endif %}
               </td>
-              <td>{{ c.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+              <td>{{ c.created_at | local }}</td>
             </tr>
           {% else %}
             <tr>

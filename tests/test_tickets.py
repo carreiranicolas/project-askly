@@ -223,6 +223,36 @@ def test_approval_closes_ticket(app, client, make_user, api_login, areas):
     assert resp.get_json()["status"] == "Fechado"
 
 
+def test_rejection_reopens_ticket(app, client, make_user, api_login, areas):
+    sol_email, _ = make_user(role="Solicitante", email="sol@test.com", area="RH")
+    adm_email, _ = make_user(role="Admin", email="adm@test.com")
+    rh_email, _ = make_user(role="Atendente", email="rh@test.com", area="RH")
+    adm_headers = api_login(adm_email)
+    sol_headers = api_login(sol_email)
+
+    pid = client.get("/api/v1/prioridades", headers=adm_headers).get_json()[0]["id"]
+    tid = _open_ticket_in(client, sol_headers, areas["RH"], pid)
+    client.post(
+        f"/api/v1/chamados/{tid}/atribuir",
+        json={"assignee_id": _user_id(app, rh_email)},
+        headers=adm_headers,
+    )
+    client.post(
+        f"/api/v1/chamados/{tid}/status",
+        json={"status": "AGUARDANDO_APROVACAO"},
+        headers=adm_headers,
+    )
+
+    # Quem não abriu não pode recusar.
+    assert client.post(
+        f"/api/v1/chamados/{tid}/recusar", headers=adm_headers
+    ).status_code == 403
+    # Quem abriu recusa: o chamado reabre (volta para "Aberto").
+    resp = client.post(f"/api/v1/chamados/{tid}/recusar", headers=sol_headers)
+    assert resp.status_code == 200
+    assert resp.get_json()["status"] == "Aberto"
+
+
 def test_solicitante_sees_only_own_tickets(client, make_user, api_login, catalog):
     a_email, _ = make_user(role="Solicitante", email="a@test.com")
     b_email, _ = make_user(role="Solicitante", email="b@test.com")

@@ -66,6 +66,37 @@ def test_dashboard_em_aberto_counts_active_states(app, make_user, areas):
         assert m["aguardando_aprovacao"] == 1
 
 
+def test_fresh_ticket_is_not_overdue(app, make_user, areas):
+    """Regressão: chamado recém-aberto não pode constar como atrasado
+    (created_at é gravado em UTC consciente, evitando o deslocamento de fuso)."""
+    from datetime import datetime, timedelta, timezone
+
+    from app.extensions import db
+    from app.models.priority import Prioridade
+    from app.models.ticket import Chamado
+    from app.models.user import Usuario
+    from app.services import ticket_service
+
+    sol_email, _ = make_user(role="Solicitante", email="sol-sla@test.com", area="RH")
+    with app.app_context():
+        sol = Usuario.query.filter_by(email=sol_email).first()
+        # SLA curto (1h) — pior caso para o bug de fuso.
+        p = Prioridade(name="Imediata", description="x", sla_hours=1, is_active=True)
+        db.session.add(p)
+        db.session.commit()
+
+        t = ticket_service.create_ticket(
+            sol, title="novo", description="x", category_id=areas["RH"], priority_id=p.id
+        )
+        assert ticket_service.is_overdue(db.session.get(Chamado, t.id)) is False
+
+        # Forçar criação bem no passado deve, sim, marcar como atrasado.
+        old = db.session.get(Chamado, t.id)
+        old.created_at = datetime.now(timezone.utc) - timedelta(hours=5)
+        db.session.commit()
+        assert ticket_service.is_overdue(db.session.get(Chamado, t.id)) is True
+
+
 def test_sla_report_has_expected_shape(app, make_user):
     from app.models.user import Usuario
     from app.services import ticket_service

@@ -175,6 +175,19 @@ def _configure_logging(app):
     app.logger.setLevel(level)
 
 
+def _app_timezone():
+    """Fuso para exibição (datas são armazenadas em UTC). Configurável via env."""
+    name = os.environ.get("APP_TIMEZONE", "America/Sao_Paulo")
+    try:
+        from zoneinfo import ZoneInfo
+
+        return ZoneInfo(name)
+    except Exception:  # pragma: no cover - fallback se a tz não existir no SO
+        from datetime import timezone
+
+        return timezone.utc
+
+
 def _register_context_processors(app):
     from .models.category import Categoria
 
@@ -191,6 +204,17 @@ def _register_context_processors(app):
                 return []
 
         return {"ASKLY_VERSION": "0.1.0", "get_categorias": get_categorias}
+
+    @app.template_filter("local")
+    def _local(value, fmt="%d/%m/%Y %H:%M"):
+        """Converte um datetime (UTC ou naive-assumido-UTC) para o fuso local."""
+        from datetime import timezone
+
+        if value is None:
+            return "—"
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(_app_timezone()).strftime(fmt)
 
 
 def _register_error_handlers(app):

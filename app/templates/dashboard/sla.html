@@ -129,7 +129,7 @@
                   {{ r.ticket.priority.name }}
                 </span>
               </td>
-              <td>{{ r.deadline.strftime('%d/%m/%Y %H:%M') if r.deadline else '—' }}</td>
+              <td>{{ r.deadline | local }}</td>
               <td>
                 <span class="askly-badge askly-badge--{{ 'danger' if r.overdue else 'success' }}">{{ r.remaining_label }}</span>
               </td>

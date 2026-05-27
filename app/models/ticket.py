@@ -1,7 +1,7 @@
 from app.extensions import db
 from typing import TYPE_CHECKING, Optional
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime
+from datetime import datetime, timezone
 import enum
 
 if TYPE_CHECKING:
@@ -38,8 +38,8 @@ class Chamado(db.Model):
     requester_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     assignee_id: Mapped[Optional[int]] = mapped_column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
     category_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('categorias.id'), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=datetime.now)
-    updated_at: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=datetime.now, onupdate=datetime.now)
+    created_at: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     requester: Mapped["Usuario"] = relationship(
         "Usuario",
