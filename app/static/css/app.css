@@ -395,7 +395,7 @@ button, input, select, textarea {
 /* ── Auth: Form Panel (Right) ──────────────────────────────── */
 .askly-auth-form {
   padding: var(--ask-space-10) var(--ask-space-8);
-  background: rgba(255, 255, 255, 0.97);
+  background: var(--ask-auth-form-bg, rgba(255, 255, 255, 0.97));
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -464,9 +464,9 @@ button, input, select, textarea {
   width: 100%;
   height: 48px;
   padding: 0 var(--ask-space-4) 0 var(--ask-space-12);
-  border: 1.5px solid var(--ask-gray-200);
+  border: 1.5px solid var(--ask-input-border);
   border-radius: var(--ask-radius-md);
-  background: var(--ask-white);
+  background: var(--ask-input-bg);
   color: var(--ask-text-dark);
   font-size: var(--ask-text-base);
   transition:
@@ -764,7 +764,7 @@ button, input, select, textarea {
 .askly-app-layout {
   display: flex;
   min-height: 100vh;
-  background: var(--ask-gray-50);
+  background: var(--ask-surface-app);
 }
 
 /* ── Sidebar ───────────────────────────────────────────────── */
@@ -937,8 +937,8 @@ button, input, select, textarea {
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--ask-space-8);
-  background: var(--ask-white);
-  border-bottom: 1px solid var(--ask-gray-200);
+  background: var(--ask-surface);
+  border-bottom: 1px solid var(--ask-border);
   position: sticky;
   top: 0;
   z-index: var(--ask-z-above);
@@ -972,10 +972,10 @@ button, input, select, textarea {
 
 /* ── Cards & Containers ──────────────────────────────────────── */
 .askly-card {
-  background: var(--ask-white);
+  background: var(--ask-surface);
   border-radius: var(--ask-radius-lg);
   box-shadow: var(--ask-shadow-sm);
-  border: 1px solid var(--ask-gray-200);
+  border: 1px solid var(--ask-border);
   overflow: hidden;
 }
 
@@ -994,11 +994,11 @@ button, input, select, textarea {
 .askly-table th,
 .askly-table td {
   padding: var(--ask-space-4) var(--ask-space-5);
-  border-bottom: 1px solid var(--ask-gray-200);
+  border-bottom: 1px solid var(--ask-border);
 }
 
 .askly-table th {
-  background: var(--ask-gray-50);
+  background: var(--ask-surface-sunken);
   font-weight: 600;
   color: var(--ask-gray-600);
   font-size: var(--ask-text-sm);
@@ -1011,7 +1011,7 @@ button, input, select, textarea {
 }
 
 .askly-table tbody tr:hover {
-  background: var(--ask-gray-50);
+  background: var(--ask-surface-sunken);
 }
 
 .askly-table td {
@@ -1065,4 +1065,147 @@ button, input, select, textarea {
 .askly-badge--neutral {
   background: var(--ask-gray-100);
   color: var(--ask-gray-600);
+}
+
+/* ============================================================
+   THEME TOGGLE
+   Floating control (base.html) + sidebar control (app.html).
+   Works in both light and dark themes.
+   ============================================================ */
+.askly-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ask-space-2);
+  border: 1px solid var(--ask-glass-border);
+  background: var(--ask-glass-bg-strong);
+  color: var(--ask-text-secondary);
+  cursor: pointer;
+  border-radius: var(--ask-radius-full);
+  transition:
+    color var(--ask-duration-fast) var(--ask-ease-out),
+    background var(--ask-duration-fast) var(--ask-ease-out),
+    border-color var(--ask-duration-fast) var(--ask-ease-out),
+    transform var(--ask-duration-fast) var(--ask-ease-out);
+}
+
+.askly-theme-toggle:hover {
+  color: var(--ask-text-primary);
+  border-color: var(--ask-glass-border-hover);
+}
+
+.askly-theme-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ask-accent-glow);
+}
+
+.askly-theme-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Show sun in dark mode (click → light), moon in light mode. */
+.askly-theme-toggle .askly-theme-icon-sun { display: none; }
+.askly-theme-toggle .askly-theme-icon-moon { display: block; }
+:root[data-theme="dark"] .askly-theme-toggle .askly-theme-icon-sun { display: block; }
+:root[data-theme="dark"] .askly-theme-toggle .askly-theme-icon-moon { display: none; }
+
+/* Floating variant (global, bottom-right) */
+.askly-theme-toggle--float {
+  position: fixed;
+  right: var(--ask-space-5);
+  bottom: var(--ask-space-5);
+  width: 48px;
+  height: 48px;
+  z-index: var(--ask-z-top);
+  box-shadow: var(--ask-shadow-md);
+  backdrop-filter: blur(var(--ask-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ask-glass-blur));
+}
+
+.askly-theme-toggle--float:hover {
+  transform: translateY(-2px);
+}
+
+/* Inline variant inside the sidebar footer */
+.askly-theme-toggle--inline {
+  width: 100%;
+  height: 40px;
+  padding: 0 var(--ask-space-4);
+  justify-content: flex-start;
+  gap: var(--ask-space-3);
+  border-radius: var(--ask-radius-md);
+  font-size: var(--ask-text-sm);
+  font-weight: 500;
+  margin-bottom: var(--ask-space-2);
+}
+
+.askly-theme-toggle--inline svg {
+  opacity: 0.8;
+}
+
+/* When the floating toggle would overlap the sidebar inline one,
+   hide the float on logged-in pages that opt in via this flag. */
+.askly-has-sidebar-toggle .askly-theme-toggle--float {
+  display: none;
+}
+
+/* ============================================================
+   DARK THEME — COMPONENT FINE-TUNING
+   Variable remaps cover most surfaces; these rules fix the few
+   components that hard-code light values or need stronger
+   contrast against the dark base.
+   ============================================================ */
+:root[data-theme="dark"] {
+  /* Auth form panel becomes a dark glass surface */
+  --ask-auth-form-bg: rgba(13, 22, 40, 0.96);
+}
+
+/* Notifications: lift text/background for legibility on dark */
+:root[data-theme="dark"] .askly-notification--danger {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.40);
+  color: #fca5a5;
+}
+
+:root[data-theme="dark"] .askly-notification--success {
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(16, 185, 129, 0.40);
+  color: #6ee7b7;
+}
+
+:root[data-theme="dark"] .askly-notification--info {
+  background: rgba(14, 165, 233, 0.16);
+  border-color: rgba(14, 165, 233, 0.40);
+  color: #7dd3fc;
+}
+
+:root[data-theme="dark"] .askly-notification--warning {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.40);
+  color: #fcd34d;
+}
+
+/* Badges: brighten the accent text so it reads on dark fills */
+:root[data-theme="dark"] .askly-badge--info { color: var(--ask-sky-400); }
+:root[data-theme="dark"] .askly-badge--success { color: var(--ask-emerald-400); }
+:root[data-theme="dark"] .askly-badge--warning { color: #fbbf24; }
+:root[data-theme="dark"] .askly-badge--danger { color: #f87171; }
+
+/* Ghost button + kbd already use remapped grays; nudge accents */
+:root[data-theme="dark"] .askly-btn--ghost {
+  color: var(--ask-teal-300);
+}
+
+:root[data-theme="dark"] .askly-btn--ghost:hover {
+  border-color: var(--ask-teal-400);
+  background: rgba(20, 184, 166, 0.10);
+}
+
+/* Inputs: brighten focus glow against the darker field */
+:root[data-theme="dark"] .askly-input:focus {
+  border-color: var(--ask-teal-400);
+  box-shadow:
+    0 0 0 4px rgba(20, 184, 166, 0.18),
+    var(--ask-shadow-inner-glow);
 }

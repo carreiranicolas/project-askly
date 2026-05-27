@@ -26,23 +26,23 @@
           </tr>
         </thead>
         <tbody>
-          {% for c in chamados.items %}
+          {% for c in chamados %}
             <tr>
               <td>
-                <a href="{{ url_for('web_tickets.detalhe', id=c.id) }}">{{ c.titulo }}</a>
+                <a href="{{ url_for('web_tickets.detalhe', id=c.id) }}">{{ c.title }}</a>
               </td>
               <td>
-                <span class="askly-badge askly-badge--{{ 'info' if c.status.name == 'ABERTO' else ('warning' if c.status.name == 'EM_ANDAMENTO' else 'success') }}">
-                  {{ c.status_display }}
+                <span class="askly-badge askly-badge--{{ 'info' if c.status.name == 'ABERTO' else ('success' if c.status.name in ['RESOLVIDO', 'FECHADO'] else ('neutral' if c.status.name == 'CANCELADO' else 'warning')) }}">
+                  {{ c.status.value }}
                 </span>
               </td>
               <td>
-                <span class="askly-badge askly-badge--{{ 'danger' if c.prioridade.name == 'ALTA' else ('warning' if c.prioridade.name == 'MEDIA' else 'neutral') }}">
-                  {{ c.prioridade_display }}
+                <span class="askly-badge askly-badge--{{ 'danger' if c.priority.name in ['Alta', 'Crítica'] else ('warning' if c.priority.name == 'Média' else 'neutral') }}">
+                  {{ c.priority.name }}
                 </span>
               </td>
-              <td>{{ c.categoria_nome or '-' }}</td>
-              <td>{{ c.criado_em.strftime('%d/%m/%Y %H:%M') }}</td>
+              <td>{{ c.category.name if c.category else '-' }}</td>
+              <td>{{ c.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
             </tr>
           {% else %}
             <tr>

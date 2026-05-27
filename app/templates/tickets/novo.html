@@ -20,14 +20,14 @@
       <div class="askly-field">
         <label class="askly-label">Título</label>
         <div class="askly-input-wrap">
-          <input class="askly-input" type="text" name="titulo" placeholder="Ex: Problema com acesso ao sistema financeiro" required />
+          <input class="askly-input" type="text" name="title" placeholder="Ex: Problema com acesso ao sistema financeiro" required />
         </div>
       </div>
 
       <div class="askly-field">
         <label class="askly-label">Descrição</label>
         <div class="askly-input-wrap">
-          <textarea class="askly-input" name="descricao" rows="6" placeholder="Detalhe o seu problema ou solicitação o máximo possível..." required></textarea>
+          <textarea class="askly-input" name="description" rows="6" placeholder="Detalhe o seu problema ou solicitação o máximo possível..." required></textarea>
         </div>
       </div>
 
@@ -35,10 +35,10 @@
         <div class="askly-field" style="margin-bottom: 0;">
           <label class="askly-label">Área</label>
           <div class="askly-input-wrap">
-            <select class="askly-input" name="categoria_id" required>
+            <select class="askly-input" name="category_id" required>
               <option value="" disabled selected>Selecione a área responsável...</option>
               {% for cat in categorias %}
-                <option value="{{ cat.id }}">{{ cat.nome }}</option>
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
               {% endfor %}
             </select>
           </div>
@@ -47,9 +47,9 @@
         <div class="askly-field" style="margin-bottom: 0;">
           <label class="askly-label">Prioridade</label>
           <div class="askly-input-wrap">
-            <select class="askly-input" name="prioridade" required>
-              {% for p in Prioridade %}
-                <option value="{{ p.value }}" {% if p.name == 'NORMAL' %}selected{% endif %}>{{ p.display_name }}</option>
+            <select class="askly-input" name="priority_id" required>
+              {% for p in prioridades %}
+                <option value="{{ p.id }}">{{ p.name }}</option>
               {% endfor %}
             </select>
           </div>

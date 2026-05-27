@@ -1,4 +1,4 @@
-from app.ext.db import db
+from app.extensions import db
 from sqlalchemy.orm import Mapped, mapped_column
 
 class Prioridade(db.Model):

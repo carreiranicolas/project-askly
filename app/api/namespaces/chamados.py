@@ -1,0 +1,196 @@
+from flask import request
+from flask_restx import Namespace, Resource, fields
+
+from app.api.common import error_model
+from app.api.security import current_user, roles_required, token_required
+from app.models.ticket import StatusEnum
+from app.services import ROLE_ADMIN, ROLE_ATENDENTE, ticket_service
+
+ns = Namespace("Chamados", description="Chamados, comentários e histórico de status.")
+
+STATUS_NAMES = [s.name for s in StatusEnum]
+
+chamado_model = ns.model(
+    "Chamado",
+    {
+        "id": fields.Integer(readonly=True, example=1),
+        "title": fields.String(example="Sem acesso ao ERP"),
+        "description": fields.String(
+            example="Recebo erro 500 ao logar no Sankhya desde hoje de manhã."
+        ),
+        "status": fields.String(attribute="status.value", example="Aberto"),
+        "category_id": fields.Integer(example=2),
+        "priority_id": fields.Integer(example=3),
+        "requester_id": fields.Integer(example=5),
+        "assignee_id": fields.Integer(example=8),
+        "created_at": fields.DateTime(example="2026-05-26T14:30:00"),
+        "updated_at": fields.DateTime(example="2026-05-26T15:10:00"),
+    },
+)
+
+chamado_input = ns.model(
+    "ChamadoInput",
+    {
+        "title": fields.String(required=True, example="Sem acesso ao ERP"),
+        "description": fields.String(
+            required=True, example="Recebo erro 500 ao logar no Sankhya desde hoje."
+        ),
+        "category_id": fields.Integer(required=True, example=2),
+        "priority_id": fields.Integer(required=True, example=3),
+    },
+)
+
+status_input = ns.model(
+    "StatusInput",
+    {
+        "status": fields.String(
+            required=True,
+            example="EM_ATENDIMENTO",
+            description="Nome do status. Valores possíveis: " + ", ".join(STATUS_NAMES),
+        )
+    },
+)
+
+assign_input = ns.model(
+    "AssignInput",
+    {
+        "assignee_id": fields.Integer(
+            required=True, example=8, description="ID de um Atendente ou Admin."
+        )
+    },
+)
+
+comentario_model = ns.model(
+    "Comentario",
+    {
+        "id": fields.Integer(readonly=True, example=1),
+        "content": fields.String(
+            example="Já estamos verificando com a equipe de infraestrutura."
+        ),
+        "ticket_id": fields.Integer(example=1),
+        "author_id": fields.Integer(example=8),
+        "created_at": fields.DateTime(example="2026-05-26T15:00:00"),
+    },
+)
+
+comentario_input = ns.model(
+    "ComentarioInput",
+    {
+        "content": fields.String(
+            required=True,
+            example="Já estamos verificando com a equipe de infraestrutura.",
+        )
+    },
+)
+
+historico_model = ns.model(
+    "HistoricoStatus",
+    {
+        "id": fields.Integer(readonly=True, example=1),
+        "previous_status": fields.String(example="Aberto"),
+        "new_status": fields.String(example="Em Atendimento"),
+        "changed_by_id": fields.Integer(example=8),
+        "created_at": fields.DateTime(example="2026-05-26T15:10:00"),
+    },
+)
+
+err = error_model(ns)
+
+
+@ns.route("")
+class ChamadoList(Resource):
+    @ns.doc(
+        security="Bearer",
+        params={
+            "tipo": "Filtro (staff): meus | atribuidos",
+            "categoria_id": "Filtra por categoria",
+        },
+    )
+    @ns.marshal_list_with(chamado_model)
+    @token_required
+    def get(self):
+        """Lista chamados conforme o perfil (Solicitante vê apenas os próprios)."""
+        tipo = request.args.get("tipo")
+        categoria_id = request.args.get("categoria_id", type=int)
+        return ticket_service.list_tickets(
+            current_user(), tipo=tipo, categoria_id=categoria_id
+        )
+
+    @ns.doc(security="Bearer")
+    @ns.expect(chamado_input, validate=True)
+    @ns.marshal_with(chamado_model, code=201)
+    @token_required
+    def post(self):
+        """Abre um novo chamado (o solicitante é o usuário autenticado)."""
+        d = ns.payload
+        obj = ticket_service.create_ticket(
+            current_user(), d["title"], d["description"], d["category_id"], d["priority_id"]
+        )
+        return obj, 201
+
+
+@ns.route("/<int:ticket_id>")
+class ChamadoItem(Resource):
+    @ns.doc(security="Bearer")
+    @ns.response(404, "Não encontrado", err)
+    @ns.marshal_with(chamado_model)
+    @token_required
+    def get(self, ticket_id):
+        """Detalha um chamado (respeitando o RBAC)."""
+        return ticket_service.get_ticket(current_user(), ticket_id)
+
+
+@ns.route("/<int:ticket_id>/status")
+class ChamadoStatus(Resource):
+    @ns.doc(security="Bearer")
+    @ns.expect(status_input, validate=True)
+    @ns.response(403, "Sem permissão", err)
+    @ns.marshal_with(chamado_model)
+    @token_required
+    def post(self, ticket_id):
+        """Altera o status (gera registro de auditoria obrigatório)."""
+        d = ns.payload
+        return ticket_service.change_status(current_user(), ticket_id, d["status"])
+
+
+@ns.route("/<int:ticket_id>/atribuir")
+class ChamadoAssign(Resource):
+    @ns.doc(security="Bearer")
+    @ns.expect(assign_input, validate=True)
+    @ns.response(403, "Sem permissão", err)
+    @ns.marshal_with(chamado_model)
+    @roles_required(ROLE_ATENDENTE, ROLE_ADMIN)
+    def post(self, ticket_id):
+        """Atribui o chamado a um atendente/admin (staff)."""
+        d = ns.payload
+        return ticket_service.assign_ticket(current_user(), ticket_id, d["assignee_id"])
+
+
+@ns.route("/<int:ticket_id>/comentarios")
+class ChamadoComentarios(Resource):
+    @ns.doc(security="Bearer")
+    @ns.marshal_list_with(comentario_model)
+    @token_required
+    def get(self, ticket_id):
+        """Lista os comentários do chamado."""
+        return ticket_service.list_comments(current_user(), ticket_id)
+
+    @ns.doc(security="Bearer")
+    @ns.expect(comentario_input, validate=True)
+    @ns.marshal_with(comentario_model, code=201)
+    @token_required
+    def post(self, ticket_id):
+        """Adiciona um comentário ao chamado."""
+        d = ns.payload
+        obj = ticket_service.add_comment(current_user(), ticket_id, d["content"])
+        return obj, 201
+
+
+@ns.route("/<int:ticket_id>/historico")
+class ChamadoHistorico(Resource):
+    @ns.doc(security="Bearer")
+    @ns.marshal_list_with(historico_model)
+    @token_required
+    def get(self, ticket_id):
+        """Histórico de mudanças de status (auditoria)."""
+        return ticket_service.list_history(current_user(), ticket_id)

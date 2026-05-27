@@ -84,7 +84,7 @@
                     id="cadastro-nome"
                     class="askly-input"
                     type="text"
-                    name="nome"
+                    name="name"
                     placeholder="Seu nome completo"
                     autocomplete="name"
                     required
@@ -125,14 +125,14 @@
                       id="cadastro-senha"
                       class="askly-input"
                       type="password"
-                      name="senha"
-                      placeholder="Mín. 6 caracteres"
-                      minlength="6"
+                      name="password"
+                      placeholder="Mín. 8 caracteres"
+                      minlength="8"
                       autocomplete="new-password"
                       required
                     />
                   </div>
-                  <p class="askly-help askly-mt-4" style="font-size: 0.75rem;">Mínimo de 6 caracteres.</p>
+                  <p class="askly-help askly-mt-4" style="font-size: 0.75rem;">Mínimo de 8 caracteres.</p>
                 </div>
 
                 <div class="askly-field">
@@ -145,12 +145,28 @@
                       id="cadastro-confirmar"
                       class="askly-input"
                       type="password"
-                      name="confirmar_senha"
+                      name="confirm_password"
                       placeholder="Repita a senha"
-                      minlength="6"
+                      minlength="8"
                       autocomplete="new-password"
                       required
                     />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cargo + Área -->
+              <div class="askly-columns askly-columns--2">
+                <div class="askly-field">
+                  <label class="askly-label" for="cadastro-cargo">Cargo</label>
+                  <div class="askly-input-wrap">
+                    {{ form.role(class="askly-input", id="cadastro-cargo") }}
+                  </div>
+                </div>
+                <div class="askly-field">
+                  <label class="askly-label" for="cadastro-area">Área</label>
+                  <div class="askly-input-wrap">
+                    {{ form.area(class="askly-input", id="cadastro-area") }}
                   </div>
                 </div>
               </div>

@@ -29,8 +29,21 @@ Plataforma web para **gestão de chamados internos** (MVP), construída em **Fla
 - **Docs API**: `flask-restx` (Swagger UI)
 - **UI**: Jinja2 + Bulma
 
-## Arquitetura 
+## Arquitetura
 
+Web (Jinja) e API REST compartilham a mesma **camada de serviço** — as regras
+de negócio (RBAC, validações, auditoria de status) ficam num lugar só.
+
+```
+app/
+  extensions.py      # singletons: db, csrf, login_manager, migrate
+  cli.py             # comando flask seed
+  models/            # ORM (SQLAlchemy)
+  forms/             # WTForms (web)
+  routes/            # web (server-rendered): main(auth), tickets, admin
+  services/          # regras de negócio compartilhadas (web + API)
+  api/               # REST API (flask-restx): security(JWT) + namespaces/
+```
 
 ## Setup rápido
 
@@ -67,22 +80,35 @@ flask run
 Ao subir o servidor, as migrations pendentes são aplicadas automaticamente
 no Postgres (`flask db upgrade`), criando o banco com todas as tabelas.
 
+### 5) Dados base (cargos, categorias, prioridades)
+
+```bash
+flask seed
+```
+
+Necessário para que o cadastro tenha cargos selecionáveis e os chamados
+tenham categorias/prioridades. É idempotente.
+
+## API REST
+
+- Base: `/api/v1` — **Swagger UI** em `http://127.0.0.1:5000/api/v1/docs`.
+- Autenticação **JWT Bearer**: `POST /api/v1/auth/login` (ou `/auth/register`)
+  devolve `access_token`; envie `Authorization: Bearer <token>` nas demais rotas.
+- Namespaces: `auth`, `usuarios`, `cargos`, `categorias`, `prioridades`,
+  `chamados` (com `/status`, `/atribuir`, `/comentarios`, `/historico`).
+- Escrita em catálogos (cargos/categorias/prioridades) e gestão de usuários
+  exigem perfil **Admin** (RBAC por decorator).
+
 ## Comandos úteis
 
 - **Criar migração**: `flask db migrate -m "..."` (o `flask run` aplica no próximo boot, ou rode `flask db upgrade`)
-- **Rodar testes**: `pytest`
 - **Seed**: `flask seed`
-
-
+- **Rodar testes**: `pytest`
 
 ## Testes
 
-Estrutura:
-- Unit: `tests/unit/`
-- Integração API: `tests/integration/api/`
-- Factories: `tests/fixtures/factories.py`
-
-Rodar:
+Suíte em `tests/` (usa o banco `askly_test_db`), cobrindo autenticação da API,
+RBAC, fluxo de chamados com auditoria de status e o fluxo web de auth:
 
 ```bash
 pytest

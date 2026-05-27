@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "A web platform for managing orders and internal operations for small and medium-sized businesses."
 readme = "README.md"
 requires-python = ">=3.11"
-license = {file = "LICENSE"}
+license = {file = "LICENSE.txt"}
 authors = [
     {name = "Davi Dias D'Avila", email = "dddavila.dev@gmail.com"},
     {name = "Matheus Braga de Carvalho", email = "matheusbc1234@gmail.com"},
@@ -36,6 +36,7 @@ dependencies = [
     "bcrypt>=4.1",
     "python-dotenv>=1.0",
     "python-dateutil>=2.8",
+    "gunicorn>=21.2",
 ]
 
 [project.optional-dependencies]

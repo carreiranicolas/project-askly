@@ -1,80 +1,100 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from urllib.parse import urlsplit
+
+from flask import (
+    Blueprint,
+    render_template,
+    redirect,
+    url_for,
+    flash,
+    request,
+    current_app,
+)
 from flask_login import login_user, logout_user, login_required, current_user
 
-from app import db
-from app.models.user import Usuario
+from app.extensions import db, limiter
 from app.forms.LoginForm import LoginForm
-from app.forms.RegisterNewUserForm import RegistrarUsuario  # <-- Importando seu form de cadastro
+from app.forms.RegisterNewUserForm import RegistrarUsuario
+from app.services import auth_service
+from app.services.exceptions import ServiceError
 
 main_bp = Blueprint("main", __name__)
 web_auth_bp = Blueprint("web_auth", __name__)
 
 
+def _safe_next(target):
+    """Evita open redirect: só aceita caminhos relativos do próprio site."""
+    if not target:
+        return None
+    parts = urlsplit(target)
+    if parts.scheme or parts.netloc or not target.startswith("/"):
+        return None
+    return target
+
+
 @main_bp.route("/")
 def home():
-    # Se o usuário já estiver logado, você pode redirecioná-lo para uma página interna (ex: de tickets)
     if current_user.is_authenticated:
-        # Substitua 'main.home' pela rota da sua dashboard real futuramente se quiser
-        return render_template("index.html") 
+        return redirect(url_for("web_tickets.listar"))
     return redirect(url_for("web_auth.login"))
 
 
 @web_auth_bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute", methods=["POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("main.home"))  # <-- Ajustado de 'main.index' para 'main.home'
+        return redirect(url_for("main.home"))
 
     form = LoginForm()
 
     if form.validate_on_submit():
-        user = Usuario.query.filter_by(email=form.email.data).first()
+        try:
+            user = auth_service.authenticate(form.email.data, form.password.data)
+        except ServiceError as exc:
+            flash(exc.message, "danger")
+            return render_template("auth/login.html", form=form)
 
-        if user and user.check_password(form.password.data):
-            login_user(user, remember=form.remember_me.data)
-
-            next_page = request.args.get("next")
-            return redirect(next_page) if next_page else redirect(url_for("main.home"))  # <-- Ajustado aqui também
-        else:
-            flash("E-mail ou senha incorretos.", "danger")
+        login_user(user, remember=form.remember_me.data)
+        next_page = _safe_next(request.args.get("next"))
+        return redirect(next_page or url_for("main.home"))
 
     return render_template("auth/login.html", form=form)
 
 
-@web_auth_bp.route("/cadastro", methods=["GET", "POST"])  # <-- Habilitado POST para receber dados
+@web_auth_bp.route("/cadastro", methods=["GET", "POST"])
+@limiter.limit("10 per minute", methods=["POST"])
 def cadastro():
     if current_user.is_authenticated:
         return redirect(url_for("main.home"))
 
-    form = RegistrarUsuario()  # <-- Instanciando seu formulário com WTForms e QuerySelectField
+    form = RegistrarUsuario()
 
     if form.validate_on_submit():
-        # Verifica se o e-mail já existe
-        user_exists = Usuario.query.filter_by(email=form.email.data).first()
-        if user_exists:
-            flash("Este e-mail já está cadastrado no sistema.", "danger")
+        try:
+            novo_usuario = auth_service.register(
+                name=form.name.data,
+                email=form.email.data,
+                password=form.password.data,
+                role_id=form.role.data.id,
+                area_id=form.area.data.id,
+            )
+        except ServiceError as exc:
+            flash(exc.message, "danger")
+            return render_template("auth/cadastro.html", form=form)
+        except Exception:
+            db.session.rollback()
+            current_app.logger.exception("Falha ao cadastrar usuário")
+            flash("Não foi possível concluir o cadastro. Tente novamente.", "danger")
             return render_template("auth/cadastro.html", form=form)
 
-        # Cria o novo usuário com os campos do seu formulário
-        novo_usuario = Usuario(
-            name=form.name.data,
-            email=form.email.data,
-            role_id=form.role.data.id  # Atribui o ID do Cargo selecionado no banco
-        )
-        novo_usuario.set_password(form.password.data)  # Criptografa a senha
-
-        try:
-            db.session.add(novo_usuario)
-            db.session.commit()
-            flash("Usuário registrado com sucesso! Faça o login.", "success")
-            return redirect(url_for("web_auth.login"))
-        except Exception as e:
-            db.session.rollback()
-            flash("Erro ao salvar o usuário. Tente novamente.", "danger")
+        # Já entra logado na plataforma após o cadastro.
+        login_user(novo_usuario)
+        flash(f"Bem-vindo(a), {novo_usuario.name}! Sua conta foi criada.", "success")
+        return redirect(url_for("main.home"))
 
     return render_template("auth/cadastro.html", form=form)
 
 
-@web_auth_bp.route("/logout")
+@web_auth_bp.route("/logout", methods=["POST"])
 @login_required
 def logout():
     logout_user()

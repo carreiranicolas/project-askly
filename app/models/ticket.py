@@ -1,4 +1,4 @@
-from app.ext.db import db
+from app.extensions import db
 from typing import TYPE_CHECKING, Optional
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime

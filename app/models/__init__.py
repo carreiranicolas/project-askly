@@ -1,4 +1,4 @@
-from app.ext.db import db
+from app.extensions import db
 
 from .user import Usuario
 from .role import Cargo
