@@ -169,7 +169,20 @@ class ChamadoAprovar(Resource):
     @token_required
     def post(self, ticket_id):
         """Quem abriu o chamado aprova a solução; o chamado é fechado."""
-        return ticket_service.approve_resolution(current_user(), ticket_id)
+        motivo = (request.get_json(silent=True) or {}).get("motivo")
+        return ticket_service.approve_resolution(current_user(), ticket_id, motivo=motivo)
+
+
+@ns.route("/<int:ticket_id>/recusar")
+class ChamadoRecusar(Resource):
+    @ns.doc(security="Bearer")
+    @ns.response(403, "Sem permissão", err)
+    @ns.marshal_with(chamado_model)
+    @token_required
+    def post(self, ticket_id):
+        """Quem abriu o chamado recusa a solução; o chamado é reaberto."""
+        motivo = (request.get_json(silent=True) or {}).get("motivo")
+        return ticket_service.reject_resolution(current_user(), ticket_id, motivo=motivo)
 
 
 @ns.route("/<int:ticket_id>/atribuir")

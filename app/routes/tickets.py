@@ -112,8 +112,23 @@ def alterar_status(id):
 @login_required
 def aprovar(id):
     try:
-        ticket_service.approve_resolution(current_user, id)
+        ticket_service.approve_resolution(
+            current_user, id, motivo=request.form.get("motivo")
+        )
         flash("Solução aprovada. Chamado fechado.", "success")
+    except ServiceError as exc:
+        flash(exc.message, "danger")
+    return redirect(url_for("web_tickets.detalhe", id=id))
+
+
+@web_tickets_bp.route("/<int:id>/recusar", methods=["POST"])
+@login_required
+def recusar(id):
+    try:
+        ticket_service.reject_resolution(
+            current_user, id, motivo=request.form.get("motivo")
+        )
+        flash("Solução recusada. O chamado foi reaberto para o responsável.", "info")
     except ServiceError as exc:
         flash(exc.message, "danger")
     return redirect(url_for("web_tickets.detalhe", id=id))

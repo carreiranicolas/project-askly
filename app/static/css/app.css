@@ -677,6 +677,37 @@ select.askly-input option {
   background: rgba(13, 148, 136, 0.05);
 }
 
+/* Secondary (neutral) button */
+.askly-btn--secondary {
+  background: var(--ask-surface);
+  color: var(--ask-gray-700);
+  border: 1.5px solid var(--ask-border);
+}
+
+.askly-btn--secondary:hover {
+  border-color: var(--ask-gray-300);
+  background: var(--ask-surface-sunken);
+}
+
+/* Danger / decline button */
+.askly-btn--danger {
+  background: var(--ask-danger);
+  color: var(--ask-white);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.25);
+}
+
+.askly-btn--danger:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 12px 32px rgba(239, 68, 68, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Large action buttons (ex.: aprovar/recusar a solução) */
+.askly-btn--lg {
+  height: 56px;
+  font-size: var(--ask-text-lg);
+}
+
 /* ── Notifications / Flash Messages ────────────────────────── */
 .askly-notification {
   padding: var(--ask-space-4) var(--ask-space-5);

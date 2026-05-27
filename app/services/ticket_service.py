@@ -205,21 +205,37 @@ def can_approve(user, ticket):
     )
 
 
-def approve_resolution(user, ticket_id):
-    """Quem abriu o chamado aprova a solução, fechando-o automaticamente."""
+def _require_pending_approval(user, ticket_id):
     ticket = get_ticket(user, ticket_id)
     if ticket.requester_id != user.id:
         raise PermissionDenied(
-            "Apenas quem abriu o chamado pode aprovar a solução."
+            "Apenas quem abriu o chamado pode avaliar a solução."
         )
     if ticket.status != StatusEnum.AGUARDANDO_APROVACAO:
         raise ValidationError("Este chamado não está aguardando aprovação.")
+    return ticket
 
+
+def approve_resolution(user, ticket_id, motivo=None):
+    """Quem abriu o chamado aprova a solução, fechando-o automaticamente."""
+    ticket = _require_pending_approval(user, ticket_id)
     _record_transition(
         user,
         ticket,
         StatusEnum.FECHADO,
-        motivo="Solução aprovada por quem abriu o chamado.",
+        motivo=motivo or "Solução aprovada por quem abriu o chamado.",
+    )
+    return ticket
+
+
+def reject_resolution(user, ticket_id, motivo=None):
+    """Quem abriu recusa a solução: o chamado reabre para o responsável retomar."""
+    ticket = _require_pending_approval(user, ticket_id)
+    _record_transition(
+        user,
+        ticket,
+        StatusEnum.ABERTO,
+        motivo=motivo or "Solução recusada por quem abriu o chamado.",
     )
     return ticket
 
