@@ -1,6 +1,27 @@
 {% extends "layouts/app.html" %}
 {% block title %}Usuários | Admin | Askly{% endblock %}
 {% block page_title %}Administração · Usuários{% endblock %}
+{% block page_actions %}
+  <span class="askly-kbd" style="padding: var(--ask-space-2) var(--ask-space-3);">{{ usuarios|length }} usuário(s)</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .adm-user { display: flex; align-items: center; gap: var(--ask-space-3); }
+  .adm-user-meta { display: flex; flex-direction: column; min-width: 0; }
+  .adm-user-name { font-weight: 600; color: var(--ask-gray-900); }
+  .adm-user-email { font-size: var(--ask-text-xs); color: var(--ask-gray-500); }
+  .adm-edit {
+    display: flex;
+    gap: var(--ask-space-2);
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .adm-edit .askly-input { height: 40px; max-width: 160px; }
+  .adm-edit .askly-btn { height: 40px; padding: 0 var(--ask-space-5); }
+</style>
+{% endblock %}
 
 {% block content %}
   <div class="askly-card askly-stagger">
@@ -8,37 +29,51 @@
       <table class="askly-table">
         <thead>
           <tr>
-            <th>Nome</th>
-            <th>Email</th>
+            <th>Usuário</th>
             <th>Cargo</th>
             <th>Área</th>
-            <th>Ativo</th>
-            <th>Ações</th>
+            <th>Status</th>
+            <th style="text-align: right;">Editar cargo &amp; área</th>
           </tr>
         </thead>
         <tbody>
           {% for u in usuarios %}
             <tr>
-              <td>{{ u.name }}</td>
-              <td>{{ u.email }}</td>
-              <td>{{ u.cargo.name if u.cargo else '-' }}</td>
-              <td>{{ u.area.name if u.area else '-' }}</td>
-              <td>{{ 'Sim' if u.is_active else 'Não' }}</td>
               <td>
-                <form method="post" action="{{ url_for('web_admin.alterar_perfil', id=u.id) }}" style="display: flex; gap: var(--ask-space-2); align-items: center;">
+                <div class="adm-user">
+                  <span class="askly-user-avatar" style="width: 36px; height: 36px; flex: none;">{{ u.name[:1].upper() }}</span>
+                  <span class="adm-user-meta">
+                    <span class="adm-user-name">{{ u.name }}</span>
+                    <span class="adm-user-email">{{ u.email }}</span>
+                  </span>
+                </div>
+              </td>
+              <td>
+                <span class="askly-badge askly-badge--{{ 'info' if u.cargo and u.cargo.name == 'Admin' else 'neutral' }}">
+                  {{ u.cargo.name if u.cargo else '—' }}
+                </span>
+              </td>
+              <td>{{ u.area.name if u.area else '—' }}</td>
+              <td>
+                <span class="askly-badge askly-badge--{{ 'success' if u.is_active else 'neutral' }}">
+                  {{ 'Ativo' if u.is_active else 'Inativo' }}
+                </span>
+              </td>
+              <td>
+                <form method="post" action="{{ url_for('web_admin.alterar_perfil', id=u.id) }}" class="adm-edit">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                  <select class="askly-input" name="role_id" style="max-width: 150px;">
+                  <select class="askly-input askly-input--no-icon" name="role_id" aria-label="Cargo de {{ u.name }}">
                     {% for cargo in cargos %}
                       <option value="{{ cargo.id }}" {% if u.role_id == cargo.id %}selected{% endif %}>{{ cargo.name }}</option>
                     {% endfor %}
                   </select>
-                  <select class="askly-input" name="area_id" style="max-width: 150px;">
-                    <option value="">— Área —</option>
+                  <select class="askly-input askly-input--no-icon" name="area_id" aria-label="Área de {{ u.name }}">
+                    <option value="">— Sem área —</option>
                     {% for area in areas %}
                       <option value="{{ area.id }}" {% if u.area_id == area.id %}selected{% endif %}>{{ area.name }}</option>
                     {% endfor %}
                   </select>
-                  <button class="askly-btn askly-btn--secondary" type="submit">Salvar</button>
+                  <button class="askly-btn askly-btn--primary" type="submit" style="width: auto;">Salvar</button>
                 </form>
               </td>
             </tr>

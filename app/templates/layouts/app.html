@@ -21,6 +21,15 @@
           </svg>
           Dashboard
         </a>
+        <a href="{{ url_for('web_dashboard.sla') }}" class="askly-nav-item {{ 'is-active' if request.endpoint == 'web_dashboard.sla' else '' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="13" r="8"></circle>
+            <path d="M12 9v4l2 2"></path>
+            <path d="M5 3 2 6"></path>
+            <path d="m22 6-3-3"></path>
+          </svg>
+          SLA &amp; Métricas
+        </a>
 
         <div class="askly-nav-divider">Meus Chamados</div>
         <a href="{{ url_for('web_tickets.listar', tipo='meus') }}" class="askly-nav-item {{ 'is-active' if request.endpoint == 'web_tickets.listar' and request.args.get('tipo') == 'meus' else '' }}">
@@ -45,16 +54,22 @@
           Todos os chamados
         </a>
 
+        {# Admin enxerga todas as áreas; demais usuários, apenas a própria. #}
+        {% set is_admin = current_user.is_authenticated and current_user.cargo.name == 'Admin' %}
+        {% set sidebar_areas = get_categorias() if is_admin else ([current_user.area] if (current_user.is_authenticated and current_user.area) else []) %}
+
+        {% if sidebar_areas %}
         <div class="askly-nav-divider">Áreas</div>
-        {% for cat in get_categorias() %}
+        {% for cat in sidebar_areas %}
           <a href="{{ url_for('web_tickets.listar', categoria=cat.id) }}" class="askly-nav-item {{ 'is-active' if request.endpoint == 'web_tickets.listar' and request.args.get('categoria') == cat.id|string else '' }}">
             <span class="askly-nav-hash" aria-hidden="true">#</span>
             {{ cat.name }}
           </a>
         {% endfor %}
-        
+        {% endif %}
+
         <!-- Only for Admin users -->
-        {% if current_user.is_authenticated and current_user.cargo.name == 'Admin' %}
+        {% if is_admin %}
         <div class="askly-nav-divider">Administração</div>
         <a href="{{ url_for('web_admin.categorias') }}" class="askly-nav-item {{ 'is-active' if request.endpoint == 'web_admin.categorias' else '' }}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

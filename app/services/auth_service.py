@@ -5,9 +5,20 @@ from app.models.category import Categoria
 from app.models.role import Cargo
 from app.models.user import Usuario
 
+from . import ROLE_ATENDENTE
 from .exceptions import AuthError, ConflictError, ValidationError
 
 PASSWORD_MIN_LENGTH = 8
+
+
+def _default_role_id():
+    """Cargo atribuído a quem se cadastra pelo formulário público (Atendente)."""
+    cargo = Cargo.query.filter_by(name=ROLE_ATENDENTE).first()
+    if cargo is None:
+        raise ValidationError(
+            "Cargo padrão indisponível. Rode o seed para popular os cargos."
+        )
+    return cargo.id
 
 
 def _validate_registration(name, email, password):
@@ -32,11 +43,13 @@ def authenticate(email, password):
     return user
 
 
-def register(name, email, password, role_id, area_id=None):
+def register(name, email, password, role_id=None, area_id=None):
     _validate_registration(name, email, password)
     if Usuario.query.filter_by(email=email).first():
         raise ConflictError("Este e-mail já está cadastrado no sistema.")
-    if db.session.get(Cargo, role_id) is None:
+    if role_id is None:
+        role_id = _default_role_id()
+    elif db.session.get(Cargo, role_id) is None:
         raise ValidationError("Cargo informado não existe.")
     if area_id is not None and db.session.get(Categoria, area_id) is None:
         raise ValidationError("Área informada não existe.")

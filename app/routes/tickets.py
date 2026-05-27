@@ -46,7 +46,7 @@ def novo():
         except ServiceError as exc:
             flash(exc.message, "danger")
         else:
-            flash("Chamado aberto com sucesso.", "success")
+            flash(f"Chamado #{ticket.id} aberto com sucesso.", "success")
             return redirect(url_for("web_tickets.detalhe", id=ticket.id))
 
     return render_template(
@@ -69,10 +69,13 @@ def detalhe(id):
     return render_template(
         "tickets/detalhe.html",
         chamado=chamado,
+        staff=staff,
         comentarios=ticket_service.list_comments(current_user, id),
         historico=ticket_service.list_history(current_user, id),
         status_options=ticket_service.allowed_transitions(chamado.status) if staff else [],
-        atendentes=user_service.list_staff() if staff else [],
+        # Atribuição restrita à área do chamado.
+        atendentes=user_service.list_staff_for_area(chamado.category_id) if staff else [],
+        pode_aprovar=ticket_service.can_approve(current_user, chamado),
         sla_deadline=ticket_service.sla_deadline(chamado),
         sla_overdue=ticket_service.is_overdue(chamado),
     )
@@ -100,6 +103,17 @@ def alterar_status(id):
             motivo=request.form.get("motivo"),
         )
         flash("Status atualizado.", "success")
+    except ServiceError as exc:
+        flash(exc.message, "danger")
+    return redirect(url_for("web_tickets.detalhe", id=id))
+
+
+@web_tickets_bp.route("/<int:id>/aprovar", methods=["POST"])
+@login_required
+def aprovar(id):
+    try:
+        ticket_service.approve_resolution(current_user, id)
+        flash("Solução aprovada. Chamado fechado.", "success")
     except ServiceError as exc:
         flash(exc.message, "danger")
     return redirect(url_for("web_tickets.detalhe", id=id))

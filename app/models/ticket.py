@@ -20,7 +20,8 @@ class StatusEnum(enum.Enum):
     AGUARDANDO_TECNICO = 'Aguardando Técnico'
     AGUARDANDO_PECA = 'Aguardando Peça'
     ATENDIMENTO_AGENDADO = 'Atendimento Agendado'
-    RESOLVIDO = 'Resolvido'
+    # Antigo "Resolvido": o técnico concluiu e aguarda a aprovação de quem abriu.
+    AGUARDANDO_APROVACAO = 'Aguardando Aprovação'
     FECHADO = 'Fechado'
     CANCELADO = 'Cancelado'
 

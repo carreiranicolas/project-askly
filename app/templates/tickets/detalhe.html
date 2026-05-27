@@ -3,7 +3,8 @@
 
 {% block page_title %}{{ chamado.title }}{% endblock %}
 {% block page_actions %}
-  <span class="askly-badge askly-badge--{{ 'info' if chamado.status.name == 'ABERTO' else ('success' if chamado.status.name in ['RESOLVIDO', 'FECHADO'] else ('neutral' if chamado.status.name == 'CANCELADO' else 'warning')) }}" style="font-size: var(--ask-text-sm); padding: var(--ask-space-2) var(--ask-space-4);">
+  <span class="askly-kbd" style="font-size: var(--ask-text-sm); padding: var(--ask-space-2) var(--ask-space-3);">Chamado #{{ chamado.id }}</span>
+  <span class="askly-badge askly-badge--{{ 'info' if chamado.status.name == 'ABERTO' else ('success' if chamado.status.name in ['AGUARDANDO_APROVACAO', 'FECHADO'] else ('neutral' if chamado.status.name == 'CANCELADO' else 'warning')) }}" style="font-size: var(--ask-text-sm); padding: var(--ask-space-2) var(--ask-space-4);">
     {{ chamado.status.value }}
   </span>
   <a class="askly-btn askly-btn--secondary" href="{{ url_for('web_tickets.listar') }}">
@@ -13,10 +14,10 @@
 
 {% block content %}
   <div style="display: grid; grid-template-columns: 1fr 320px; gap: var(--ask-space-8); align-items: start;" class="askly-stagger">
-    
+
     <!-- ─── Esquerda: Conteúdo Principal ──────────────────────── -->
     <div style="display: flex; flex-direction: column; gap: var(--ask-space-8);">
-      
+
       <!-- Descrição -->
       <div class="askly-card" style="padding: var(--ask-space-8);">
         <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-4); font-weight: 600;">Descrição do Chamado</h3>
@@ -26,15 +27,15 @@
       <!-- Comentários -->
       <div class="askly-card" style="padding: var(--ask-space-8);">
         <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-6); font-weight: 600;">Comentários</h3>
-        
+
         <form method="post" action="{{ url_for('web_tickets.adicionar_comentario', id=chamado.id) }}" style="margin-bottom: var(--ask-space-8);">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <div class="askly-field">
             <div class="askly-input-wrap">
-              <textarea class="askly-input" name="content" rows="3" placeholder="Adicionar um comentário..." required style="background: var(--ask-gray-50);"></textarea>
+              <textarea class="askly-input askly-input--no-icon" name="content" rows="3" placeholder="Adicionar um comentário..." required style="height: auto; min-height: 88px; padding-top: var(--ask-space-3); padding-bottom: var(--ask-space-3); line-height: var(--ask-leading-normal); resize: vertical;"></textarea>
             </div>
           </div>
-          <button class="askly-btn askly-btn--primary" type="submit">Enviar Comentário</button>
+          <button class="askly-btn askly-btn--primary" type="submit" style="width: auto;">Enviar Comentário</button>
         </form>
 
         <div style="display: flex; flex-direction: column; gap: var(--ask-space-6);">
@@ -43,7 +44,7 @@
               <div class="askly-user-avatar" style="width: 40px; height: 40px; flex-shrink: 0;">
                 {{ c.author.name[:1].upper() if c.author else 'U' }}
               </div>
-              <div style="background: var(--ask-gray-50); border: 1px solid var(--ask-gray-200); border-radius: var(--ask-radius-lg); padding: var(--ask-space-4); flex: 1;">
+              <div style="background: var(--ask-surface-sunken); border: 1px solid var(--ask-border); border-radius: var(--ask-radius-lg); padding: var(--ask-space-4); flex: 1;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: var(--ask-space-2);">
                   <strong style="font-size: var(--ask-text-sm); color: var(--ask-gray-900);">{{ c.author.name if c.author else 'Usuário' }}</strong>
                   <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500);">{{ c.created_at.strftime('%d/%m/%Y às %H:%M') }}</span>
@@ -87,14 +88,113 @@
       </div>
     </div>
 
-    <!-- ─── Direita: Sidebar do Chamado ─────────────────────── -->
+    <!-- ─── Direita: Ações do Chamado ───────────────────────── -->
     <div style="display: flex; flex-direction: column; gap: var(--ask-space-6);">
-      
-      <!-- Metadados -->
+
+      <!-- Ação: Aprovar solução (somente quem abriu o chamado) -->
+      {% if pode_aprovar %}
+        <div class="askly-card" style="padding: var(--ask-space-6); border-color: rgba(16, 185, 129, 0.4);">
+          <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-3); font-weight: 600;">Aprovação da solução</h3>
+          <p style="font-size: var(--ask-text-sm); color: var(--ask-gray-600); margin-bottom: var(--ask-space-4); line-height: var(--ask-leading-normal);">
+            O responsável marcou este chamado como resolvido. Se a solução atende, aprove para fechar o chamado.
+          </p>
+          <form method="post" action="{{ url_for('web_tickets.aprovar', id=chamado.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button class="askly-btn askly-btn--primary" type="submit" style="width: 100%; justify-content: center;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Aprovar e fechar chamado
+            </button>
+          </form>
+        </div>
+      {% endif %}
+
+      <!-- Passo 1 — Atribuição (somente staff; restrito à área do chamado) -->
+      {% if staff %}
+        <div class="askly-card" style="padding: var(--ask-space-6);{{ ' border-color: var(--ask-teal-500);' if not chamado.assignee }}">
+          <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-4); font-weight: 600;">
+            {{ '1. ' if not chamado.assignee }}Responsável
+          </h3>
+          {% if atendentes %}
+            <p style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); margin-bottom: var(--ask-space-4);">
+              Somente usuários da área <strong>{{ chamado.category.name if chamado.category else '—' }}</strong> podem assumir este chamado.
+            </p>
+            <form method="post" action="{{ url_for('web_tickets.atribuir', id=chamado.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <div class="askly-field">
+                <div class="askly-input-wrap">
+                  <select class="askly-input askly-input--no-icon" name="atendente_id" required>
+                    <option value="" disabled {{ 'selected' if not chamado.assignee }}>Selecionar responsável...</option>
+                    {% for a in atendentes %}
+                      <option value="{{ a.id }}" {{ 'selected' if chamado.assignee_id == a.id }}>{{ a.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <button class="askly-btn askly-btn--{{ 'primary' if not chamado.assignee else 'secondary' }}" type="submit" style="width: 100%; justify-content: center;">
+                {{ 'Atribuir responsável' if not chamado.assignee else 'Reatribuir' }}
+              </button>
+            </form>
+          {% else %}
+            <p style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); line-height: var(--ask-leading-normal);">
+              Nenhum usuário cadastrado na área <strong>{{ chamado.category.name if chamado.category else '—' }}</strong> para assumir este chamado.
+            </p>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <!-- Passo 2 — Alterar Status (bloqueado enquanto não há responsável) -->
+      {% if status_options %}
+        <div class="askly-card" style="padding: var(--ask-space-6);">
+          <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-4); font-weight: 600;">
+            {{ '2. ' if not chamado.assignee }}Alterar Status
+          </h3>
+
+          {% if not chamado.assignee %}
+            <div class="askly-notification askly-notification--info" style="margin-bottom: var(--ask-space-4);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              Atribua um responsável (passo 1) para liberar a mudança de status.
+            </div>
+          {% endif %}
+
+          <form method="post" action="{{ url_for('web_tickets.alterar_status', id=chamado.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+            <div class="askly-field">
+              <div class="askly-input-wrap">
+                <select class="askly-input askly-input--no-icon" name="status" required {{ 'disabled' if not chamado.assignee }}>
+                  <option value="" disabled selected>Selecionar status...</option>
+                  {% for s in status_options %}
+                    <option value="{{ s.name }}">{{ s.value }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="askly-field">
+              <div class="askly-input-wrap">
+                <input class="askly-input askly-input--no-icon" type="text" name="motivo" placeholder="Motivo (opcional)" maxlength="255" {{ 'disabled' if not chamado.assignee }} />
+              </div>
+            </div>
+
+            <button class="askly-btn askly-btn--primary" type="submit" style="width: 100%; justify-content: center;" {{ 'disabled' if not chamado.assignee }}>Atualizar Status</button>
+          </form>
+        </div>
+      {% endif %}
+
+      <!-- Metadados / Detalhes -->
       <div class="askly-card" style="padding: var(--ask-space-6);">
         <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-4); font-weight: 600;">Detalhes</h3>
-        
+
         <div style="display: flex; flex-direction: column; gap: var(--ask-space-4);">
+          <div>
+            <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); display: block; margin-bottom: var(--ask-space-1);">Nº do chamado</span>
+            <span class="askly-kbd">#{{ chamado.id }}</span>
+          </div>
+
           <div>
             <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); display: block; margin-bottom: var(--ask-space-1);">Criado por</span>
             <div style="display: flex; align-items: center; gap: var(--ask-space-2);">
@@ -102,7 +202,7 @@
               <strong style="font-size: var(--ask-text-sm); color: var(--ask-gray-900);">{{ chamado.requester.name if chamado.requester else '?' }}</strong>
             </div>
           </div>
-          
+
           <div>
             <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); display: block; margin-bottom: var(--ask-space-1);">Responsável</span>
             {% if chamado.assignee %}
@@ -114,7 +214,7 @@
               <span style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); font-style: italic;">Não atribuído</span>
             {% endif %}
           </div>
-          
+
           <div>
             <span style="font-size: var(--ask-text-xs); color: var(--ask-gray-500); display: block; margin-bottom: var(--ask-space-1);">Prioridade</span>
             <span class="askly-badge askly-badge--{{ 'danger' if chamado.priority.name in ['Alta', 'Crítica'] else ('warning' if chamado.priority.name == 'Média' else 'neutral') }}">{{ chamado.priority.name }}</span>
@@ -138,57 +238,6 @@
         </div>
       </div>
 
-      <!-- Ações: Alterar Status -->
-      {% if status_options %}
-        <div class="askly-card" style="padding: var(--ask-space-6);">
-          <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-4); font-weight: 600;">Alterar Status</h3>
-          <form method="post" action="{{ url_for('web_tickets.alterar_status', id=chamado.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-
-            <div class="askly-field">
-              <div class="askly-input-wrap">
-                <select class="askly-input" name="status" required>
-                  <option value="" disabled selected>Selecionar status...</option>
-                  {% for s in status_options %}
-                    <option value="{{ s.name }}">{{ s.value }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-            </div>
-
-            <div class="askly-field">
-              <div class="askly-input-wrap">
-                <input class="askly-input" type="text" name="motivo" placeholder="Motivo (opcional)" maxlength="255" />
-              </div>
-            </div>
-
-            <button class="askly-btn askly-btn--primary" type="submit" style="width: 100%; justify-content: center;">Atualizar Status</button>
-          </form>
-        </div>
-      {% endif %}
-
-      <!-- Ações: Atribuir -->
-      {% if atendentes %}
-        <div class="askly-card" style="padding: var(--ask-space-6);">
-          <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-4); font-weight: 600;">Atribuição</h3>
-          <form method="post" action="{{ url_for('web_tickets.atribuir', id=chamado.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <div class="askly-field">
-              <div class="askly-input-wrap">
-                <select class="askly-input" name="atendente_id" required>
-                  <option value="" disabled selected>Selecionar atendente...</option>
-                  {% for a in atendentes %}
-                    <option value="{{ a.id }}">{{ a.name }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-            </div>
-            <button class="askly-btn askly-btn--secondary" type="submit" style="width: 100%; justify-content: center;">Atribuir Responsável</button>
-          </form>
-        </div>
-      {% endif %}
-
     </div>
   </div>
 {% endblock %}
-

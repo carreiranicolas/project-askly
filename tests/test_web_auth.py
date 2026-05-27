@@ -1,4 +1,5 @@
-def test_cadastro_auto_login(client, cargo_ids, areas):
+def test_cadastro_auto_login(client, areas):
+    # O cadastro público não escolhe cargo: o novo usuário entra como Atendente.
     resp = client.post(
         "/cadastro",
         data={
@@ -6,7 +7,6 @@ def test_cadastro_auto_login(client, cargo_ids, areas):
             "email": "joao@test.com",
             "password": "senha123",
             "confirm_password": "senha123",
-            "role": str(cargo_ids["Solicitante"]),
             "area": str(areas["RH"]),
         },
         follow_redirects=False,
@@ -17,6 +17,26 @@ def test_cadastro_auto_login(client, cargo_ids, areas):
     home = client.get("/")
     assert home.status_code == 302
     assert "/chamados" in home.headers["Location"]
+
+
+def test_cadastro_default_role_is_atendente(client, areas):
+    from app.models.user import Usuario
+
+    client.post(
+        "/cadastro",
+        data={
+            "name": "Tecnica RH",
+            "email": "tecnica@test.com",
+            "password": "senha123",
+            "confirm_password": "senha123",
+            "area": str(areas["RH"]),
+        },
+        follow_redirects=False,
+    )
+    user = Usuario.query.filter_by(email="tecnica@test.com").first()
+    assert user is not None
+    assert user.cargo.name == "Atendente"
+    assert user.area_id == areas["RH"]
 
 
 def test_login_logout_flow(client, make_user):

@@ -20,6 +20,18 @@ def list_staff():
     )
 
 
+def list_staff_for_area(area_id):
+    """Staff (atendentes/admins) de uma área — alvos válidos de atribuição."""
+    if area_id is None:
+        return []
+    return (
+        Usuario.query.join(Cargo)
+        .filter(Cargo.name.in_(STAFF_ROLES), Usuario.area_id == area_id)
+        .order_by(Usuario.name)
+        .all()
+    )
+
+
 def get_user(user_id):
     user = db.session.get(Usuario, user_id)
     if user is None:

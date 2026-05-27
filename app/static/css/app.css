@@ -500,9 +500,55 @@ button, input, select, textarea {
   color: var(--ask-teal-500);
 }
 
+.askly-input:disabled {
+  background: var(--ask-surface-sunken);
+  color: var(--ask-gray-400);
+  cursor: not-allowed;
+}
+
+.askly-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.askly-btn:disabled:hover {
+  transform: none;
+  filter: none;
+}
+
 /* Input without icon */
 .askly-input--no-icon {
   padding-left: var(--ask-space-4);
+}
+
+/* Selects: remove a aparência nativa e usa uma seta (chevron) custom,
+   coerente com os demais campos em tema claro e escuro. */
+select.askly-input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: var(--ask-space-10);
+  cursor: pointer;
+  text-overflow: ellipsis;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--ask-space-4) center;
+  background-size: 16px 16px;
+}
+
+select.askly-input::-ms-expand {
+  display: none;
+}
+
+:root[data-theme="dark"] select.askly-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a9bb5' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+}
+
+/* Opções legíveis nos dois temas (alguns SOs herdam cor do fundo da página). */
+select.askly-input option {
+  color: var(--ask-text-dark);
+  background: var(--ask-input-bg);
 }
 
 /* Toggle password visibility */

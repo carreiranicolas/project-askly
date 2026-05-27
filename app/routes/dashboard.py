@@ -13,3 +13,12 @@ def index():
         "dashboard/index.html",
         metrics=ticket_service.dashboard_metrics(current_user),
     )
+
+
+@web_dashboard_bp.route("/sla")
+@login_required
+def sla():
+    return render_template(
+        "dashboard/sla.html",
+        report=ticket_service.sla_report(current_user),
+    )

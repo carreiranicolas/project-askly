@@ -161,6 +161,17 @@ class ChamadoStatus(Resource):
         )
 
 
+@ns.route("/<int:ticket_id>/aprovar")
+class ChamadoAprovar(Resource):
+    @ns.doc(security="Bearer")
+    @ns.response(403, "Sem permissão", err)
+    @ns.marshal_with(chamado_model)
+    @token_required
+    def post(self, ticket_id):
+        """Quem abriu o chamado aprova a solução; o chamado é fechado."""
+        return ticket_service.approve_resolution(current_user(), ticket_id)
+
+
 @ns.route("/<int:ticket_id>/atribuir")
 class ChamadoAssign(Resource):
     @ns.doc(security="Bearer")

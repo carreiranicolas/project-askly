@@ -74,7 +74,6 @@ def cadastro():
                 name=form.name.data,
                 email=form.email.data,
                 password=form.password.data,
-                role_id=form.role.data.id,
                 area_id=form.area.data.id,
             )
         except ServiceError as exc:
