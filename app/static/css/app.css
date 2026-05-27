@@ -576,25 +576,99 @@ select.askly-input option {
 
 /* ── Checkbox ──────────────────────────────────────────────── */
 .askly-checkbox-wrap {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--ask-space-2);
+  gap: var(--ask-space-3);
   margin-bottom: var(--ask-space-6);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .askly-checkbox {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--ask-teal-500);
-  border-radius: 4px;
-  cursor: pointer;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.askly-checkbox-box {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--ask-input-border);
+  border-radius: 6px;
+  background: var(--ask-input-bg);
+  display: grid;
+  place-items: center;
+  transition:
+    border-color var(--ask-duration-fast) var(--ask-ease-out),
+    background-color var(--ask-duration-fast) var(--ask-ease-out),
+    box-shadow var(--ask-duration-normal) var(--ask-ease-out),
+    transform var(--ask-duration-fast) var(--ask-ease-out);
+}
+
+.askly-checkbox-box::after {
+  content: "";
+  width: 5px;
+  height: 9px;
+  margin-top: -2px;
+  border: solid var(--ask-white);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
+  opacity: 0;
+  transition:
+    transform var(--ask-duration-fast) var(--ask-ease-spring),
+    opacity var(--ask-duration-fast);
+}
+
+.askly-checkbox-wrap:hover .askly-checkbox-box {
+  border-color: var(--ask-gray-300);
+}
+
+.askly-checkbox:checked + .askly-checkbox-box {
+  background: var(--ask-teal-500);
+  border-color: var(--ask-teal-500);
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.28);
+}
+
+.askly-checkbox:checked + .askly-checkbox-box::after {
+  transform: rotate(45deg) scale(1);
+  opacity: 1;
+}
+
+.askly-checkbox:focus-visible + .askly-checkbox-box {
+  outline: none;
+  border-color: var(--ask-teal-500);
+  box-shadow:
+    0 0 0 4px rgba(13, 148, 136, 0.12),
+    var(--ask-shadow-inner-glow);
+}
+
+.askly-checkbox:checked:focus-visible + .askly-checkbox-box {
+  box-shadow:
+    0 0 0 4px rgba(13, 148, 136, 0.12),
+    0 2px 8px rgba(13, 148, 136, 0.28);
+}
+
+.askly-checkbox:active + .askly-checkbox-box {
+  transform: scale(0.92);
 }
 
 .askly-checkbox-label {
   font-size: var(--ask-text-sm);
+  font-weight: 500;
   color: var(--ask-gray-600);
-  cursor: pointer;
-  user-select: none;
+  line-height: 1.25;
+}
+
+.askly-checkbox-wrap:hover .askly-checkbox-label {
+  color: var(--ask-gray-700);
 }
 
 /* ── Buttons ───────────────────────────────────────────────── */
@@ -623,17 +697,28 @@ select.askly-input option {
   transform: scale(0.98);
 }
 
+/* Links as buttons: do not inherit global anchor colors/underline */
+a.askly-btn,
+a.askly-btn:hover,
+a.askly-btn:focus,
+a.askly-btn:focus-visible,
+a.askly-btn:active {
+  text-decoration: none;
+}
+
 /* Primary action button */
 .askly-btn--primary {
   width: 100%;
   background: var(--ask-gradient-brand);
-  color: var(--ask-white);
+  color: #ffffff;
   box-shadow: 0 8px 24px rgba(13, 148, 136, 0.25);
   letter-spacing: 0.02em;
 }
 
-.askly-btn--primary:hover {
+.askly-btn--primary:hover,
+a.askly-btn--primary:hover {
   background: var(--ask-gradient-brand-hover);
+  color: #ffffff;
   box-shadow: 0 12px 32px rgba(13, 148, 136, 0.35);
   transform: translateY(-1px);
 }
@@ -644,12 +729,13 @@ select.askly-input option {
     0 8px 24px rgba(13, 148, 136, 0.25);
 }
 
-/* Shimmer effect on button */
+/* Shimmer effect on button (behind label/icon, not over text) */
 .askly-btn--primary::after {
   content: '';
   position: absolute;
   top: 0;
   left: -100%;
+  z-index: 0;
   width: 100%;
   height: 100%;
   background: linear-gradient(
@@ -659,6 +745,12 @@ select.askly-input option {
     transparent
   );
   transition: left 0.5s var(--ask-ease-out);
+  pointer-events: none;
+}
+
+.askly-btn--primary svg {
+  position: relative;
+  z-index: 1;
 }
 
 .askly-btn--primary:hover::after {
@@ -672,9 +764,11 @@ select.askly-input option {
   border: 1.5px solid var(--ask-gray-200);
 }
 
-.askly-btn--ghost:hover {
+.askly-btn--ghost:hover,
+a.askly-btn--ghost:hover {
   border-color: var(--ask-teal-500);
   background: rgba(13, 148, 136, 0.05);
+  color: var(--ask-teal-500);
 }
 
 /* Secondary (neutral) button */
@@ -684,9 +778,11 @@ select.askly-input option {
   border: 1.5px solid var(--ask-border);
 }
 
-.askly-btn--secondary:hover {
+.askly-btn--secondary:hover,
+a.askly-btn--secondary:hover {
   border-color: var(--ask-gray-300);
   background: var(--ask-surface-sunken);
+  color: var(--ask-gray-700);
 }
 
 /* Danger / decline button */
@@ -696,8 +792,10 @@ select.askly-input option {
   box-shadow: 0 8px 24px rgba(239, 68, 68, 0.25);
 }
 
-.askly-btn--danger:hover {
+.askly-btn--danger:hover,
+a.askly-btn--danger:hover {
   filter: brightness(1.05);
+  color: #ffffff;
   box-shadow: 0 12px 32px rgba(239, 68, 68, 0.35);
   transform: translateY(-1px);
 }
@@ -1062,6 +1160,10 @@ select.askly-input option {
   display: flex;
   align-items: center;
   gap: var(--ask-space-3);
+}
+
+.askly-app-actions .askly-btn--primary {
+  width: auto;
 }
 
 /* ── Header User Menu (top-right dropdown) ─────────────────── */
@@ -1462,4 +1564,21 @@ select.askly-input option {
   box-shadow:
     0 0 0 4px rgba(20, 184, 166, 0.18),
     var(--ask-shadow-inner-glow);
+}
+
+:root[data-theme="dark"] .askly-checkbox-wrap:hover .askly-checkbox-box {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+:root[data-theme="dark"] .askly-checkbox:checked + .askly-checkbox-box {
+  background: var(--ask-teal-400);
+  border-color: var(--ask-teal-400);
+}
+
+:root[data-theme="dark"] .askly-checkbox-label {
+  color: var(--ask-gray-400);
+}
+
+:root[data-theme="dark"] .askly-checkbox-wrap:hover .askly-checkbox-label {
+  color: var(--ask-gray-300);
 }
