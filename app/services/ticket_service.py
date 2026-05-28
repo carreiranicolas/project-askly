@@ -76,6 +76,28 @@ def is_overdue(ticket):
     return _now_like(deadline) > deadline
 
 
+def sla_remaining_label(ticket):
+    """Retorna texto legível do tempo restante/atrasado do SLA."""
+    deadline = sla_deadline(ticket)
+    if deadline is None:
+        return None
+    if ticket.status in _SLA_STOPPED:
+        return "SLA pausado"
+    delta_h = (deadline - _now_like(deadline)).total_seconds() / 3600
+    hours = abs(delta_h)
+    if hours < 1:
+        time_str = f"{int(round(hours * 60))}min"
+    elif hours < 24:
+        time_str = f"{int(round(hours))}h"
+    else:
+        days = int(hours // 24)
+        rest = int(round(hours % 24))
+        time_str = f"{days}d {rest}h" if rest else f"{days}d"
+    if delta_h < 0:
+        return f"Atrasado há {time_str}"
+    return f"Faltam {time_str}"
+
+
 # ----------------------------- Consultas -----------------------------
 def _can_view(user, ticket):
     role = role_of(user)

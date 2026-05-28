@@ -102,6 +102,8 @@ def detalhe(id):
         pode_cancelar=pode_cancelar,
         sla_deadline=ticket_service.sla_deadline(chamado),
         sla_overdue=ticket_service.is_overdue(chamado),
+        sla_remaining=ticket_service.sla_remaining_label(chamado),
+        is_overdue=ticket_service.is_overdue,
     )
 
 
