@@ -5,15 +5,21 @@ from app.models.category import Categoria
 from app.models.role import Cargo
 from app.models.user import Usuario
 
-from . import ROLE_ATENDENTE
+from . import ROLE_SOLICITANTE
 from .exceptions import AuthError, ConflictError, ValidationError
 
 PASSWORD_MIN_LENGTH = 8
 
 
 def _default_role_id():
-    """Cargo atribuído a quem se cadastra pelo formulário público (Atendente)."""
-    cargo = Cargo.query.filter_by(name=ROLE_ATENDENTE).first()
+    """Cargo do cadastro público: Solicitante.
+
+    Quem se cadastra abre e acompanha os próprios chamados. A promoção a
+    Atendente (técnico de uma área) ou Admin é feita por um administrador
+    no painel `/admin/usuarios` — manter Atendente como default expandiria
+    indevidamente a visibilidade do recém-cadastrado para toda a área.
+    """
+    cargo = Cargo.query.filter_by(name=ROLE_SOLICITANTE).first()
     if cargo is None:
         raise ValidationError(
             "Cargo padrão indisponível. Rode o seed para popular os cargos."

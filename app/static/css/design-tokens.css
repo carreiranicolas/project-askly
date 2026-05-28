@@ -45,6 +45,10 @@
   --ask-warning: #f59e0b;
   --ask-danger: #ef4444;
 
+  /* Text/icons on brand gradients and saturated buttons.
+     Never use --ask-white here — it remaps to a dark panel in dark mode. */
+  --ask-on-brand: #ffffff;
+
   /* ── Color Aliases (Theme) ───────────────────────────────── */
   --ask-bg-deep: var(--ask-navy-800);
   --ask-bg-page: var(--ask-navy-900);

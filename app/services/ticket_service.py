@@ -93,26 +93,42 @@ def tickets_query(user, tipo=None, categoria_id=None, q=None):
     role = role_of(user)
     query = Chamado.query
 
-    if role == ROLE_ADMIN:
+    if tipo == "meus":
+        # Chamados que abri: sempre pelo solicitante, em qualquer área.
+        # Atendentes/admins também podem abrir chamado para outra área e
+        # precisam acompanhar em "Chamados que abri" sem o filtro de área.
+        query = query.filter(Chamado.requester_id == user.id)
+    elif tipo == "atribuidos":
+        query = query.filter(Chamado.assignee_id == user.id)
+        if role == ROLE_ATENDENTE:
+            if user.area_id is None:
+                return query.filter(false())
+            query = query.filter(Chamado.category_id == user.area_id)
+        # Admin: todos os atribuídos; Solicitante: raro, mas assignee_id basta.
+    elif role == ROLE_ADMIN:
         pass  # admin vê todos
     elif role == ROLE_ATENDENTE:
         if user.area_id is None:
             return query.filter(false())  # sem área => nada
         query = query.filter(Chamado.category_id == user.area_id)
     else:
+        # Solicitante: lista padrão = só os próprios chamados (qualquer área).
         query = query.filter(Chamado.requester_id == user.id)
 
-    if tipo == "atribuidos":
-        query = query.filter(Chamado.assignee_id == user.id)
-    elif tipo == "meus":
-        query = query.filter(Chamado.requester_id == user.id)
     if categoria_id:
         query = query.filter(Chamado.category_id == categoria_id)
     if q and q.strip():
-        like = f"%{q.strip()}%"
-        query = query.filter(
-            or_(Chamado.title.ilike(like), Chamado.description.ilike(like))
-        )
+        term = q.strip()
+        # Permite buscar por ID (com ou sem #) ou por texto no título/descrição.
+        if term.startswith("#"):
+            term = term[1:]
+        if term.isdigit():
+            query = query.filter(Chamado.id == int(term))
+        else:
+            like = f"%{term}%"
+            query = query.filter(
+                or_(Chamado.title.ilike(like), Chamado.description.ilike(like))
+            )
     return query.order_by(Chamado.created_at.desc())
 
 
@@ -129,15 +145,40 @@ def get_ticket(user, ticket_id):
     return ticket
 
 
+TITLE_MIN_LENGTH = 2
+TITLE_MAX_LENGTH = 150
+
+
 def create_ticket(user, title, description, category_id, priority_id):
-    if not title or not title.strip():
-        raise ValidationError("O título é obrigatório.")
-    if not description or not description.strip():
+    title = (title or "").strip()
+    description = (description or "").strip()
+
+    if len(title) < TITLE_MIN_LENGTH:
+        raise ValidationError(
+            f"O título precisa ter ao menos {TITLE_MIN_LENGTH} caracteres."
+        )
+    if len(title) > TITLE_MAX_LENGTH:
+        raise ValidationError(
+            f"O título pode ter no máximo {TITLE_MAX_LENGTH} caracteres."
+        )
+    if not description:
         raise ValidationError("A descrição é obrigatória.")
-    if db.session.get(Categoria, category_id) is None:
+
+    categoria = db.session.get(Categoria, category_id) if category_id else None
+    if categoria is None:
         raise ValidationError("Área informada não existe.")
-    if db.session.get(Prioridade, priority_id) is None:
+    if not categoria.is_active:
+        raise ValidationError(
+            "Esta área está inativa e não pode receber novos chamados."
+        )
+
+    prioridade = db.session.get(Prioridade, priority_id) if priority_id else None
+    if prioridade is None:
         raise ValidationError("Prioridade informada não existe.")
+    if not prioridade.is_active:
+        raise ValidationError(
+            "Esta prioridade está inativa e não pode ser usada em novos chamados."
+        )
 
     ticket = Chamado(
         title=title,
@@ -251,6 +292,10 @@ def assign_ticket(actor, ticket_id, assignee_id):
     assignee = db.session.get(Usuario, assignee_id)
     if assignee is None:
         raise ValidationError("Usuário atribuído não existe.")
+    if not assignee.is_active:
+        raise ValidationError(
+            "Não é possível atribuir o chamado a um usuário inativo."
+        )
     if not is_staff(assignee):
         raise ValidationError("Só é possível atribuir a atendentes ou administradores.")
     # Atribuição restrita à área do chamado: o responsável precisa ser da
@@ -298,6 +343,12 @@ def dashboard_metrics(user):
     tickets = tickets_query(user).all()
     by_status = {}
     by_area = {}
+
+    # Admin vê todas as áreas cadastradas (mesmo sem chamados).
+    if role_of(user) == ROLE_ADMIN:
+        for cat in Categoria.query.filter_by(is_active=True).all():
+            by_area[cat.name] = 0
+
     overdue = 0
     em_aberto = 0
     for t in tickets:
@@ -387,7 +438,13 @@ def sla_report(user):
     closed = [t for t in tickets if t.status == StatusEnum.FECHADO]
     closed_at = _close_timestamps([t.id for t in closed])
 
+    # Admin vê todas as áreas cadastradas; demais usuários só as que aparecem
+    # nos chamados que podem visualizar.
     buckets = {}
+    if role_of(user) == ROLE_ADMIN:
+        for cat in Categoria.query.filter_by(is_active=True).all():
+            buckets[cat.name] = {"count": 0, "hours": 0.0, "within": 0}
+
     for t in closed:
         area = t.category.name if t.category else "—"
         b = buckets.setdefault(area, {"count": 0, "hours": 0.0, "within": 0})

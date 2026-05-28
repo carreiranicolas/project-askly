@@ -52,7 +52,11 @@ def test_dashboard_em_aberto_counts_active_states(app, make_user, areas):
         pid = Prioridade.query.first().id
 
         t = ticket_service.create_ticket(
-            sol, title="t", description="x", category_id=areas["RH"], priority_id=pid
+            sol,
+            title="Chamado teste",
+            description="Descrição do chamado.",
+            category_id=areas["RH"],
+            priority_id=pid,
         )
         ticket_service.assign_ticket(adm, t.id, rh.id)
         ticket_service.change_status(rh, t.id, "EM_ATENDIMENTO")

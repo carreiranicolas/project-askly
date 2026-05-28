@@ -79,9 +79,18 @@ class PrioridadeItem(Resource):
         )
 
     @ns.doc(security="Bearer")
-    @ns.response(204, "Removida")
+    @ns.response(
+        204,
+        "Desativada (soft delete) — chamados antigos preservam a referência, "
+        "mas a prioridade deixa de aparecer nas telas operacionais.",
+    )
     @roles_required(ROLE_ADMIN)
     def delete(self, prioridade_id):
-        """Remove uma prioridade (Admin)."""
+        """Desativa uma prioridade (Admin).
+
+        Hard delete não é permitido porque a prioridade tem FK em chamados
+        (com cálculo de SLA atrelado). O endpoint marca a prioridade como
+        inativa; reative com ``PUT`` (``is_active: true``).
+        """
         catalog_service.delete_prioridade(prioridade_id)
         return "", 204

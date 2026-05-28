@@ -1,6 +1,7 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
+from app.models.ticket import StatusEnum
 from app.services import catalog_service, is_staff, ticket_service, user_service
 from app.services.exceptions import ServiceError
 
@@ -9,15 +10,27 @@ web_tickets_bp = Blueprint("web_tickets", __name__, url_prefix="/chamados")
 PER_PAGE = 10
 
 
+def _list_filters():
+    """Filtros da listagem normalizados (usados na query, paginação e busca).
+
+    Aceita ``categoria_id`` (preferido, alinhado com a API) e ``categoria``
+    (legado, mantido para não quebrar bookmarks existentes da sidebar).
+    """
+    return {
+        "tipo": request.args.get("tipo") or None,
+        "categoria_id": (
+            request.args.get("categoria_id", type=int)
+            or request.args.get("categoria", type=int)
+        ),
+        "q": (request.args.get("q") or "").strip() or None,
+    }
+
+
 @web_tickets_bp.route("/")
 @login_required
 def listar():
-    query = ticket_service.tickets_query(
-        current_user,
-        tipo=request.args.get("tipo"),
-        categoria_id=request.args.get("categoria", type=int),
-        q=request.args.get("q"),
-    )
+    filters = _list_filters()
+    query = ticket_service.tickets_query(current_user, **filters)
     pagination = query.paginate(
         page=request.args.get("page", 1, type=int),
         per_page=PER_PAGE,
@@ -26,7 +39,8 @@ def listar():
     return render_template(
         "tickets/listar.html",
         chamados=pagination,
-        q=request.args.get("q", ""),
+        q=filters["q"] or "",
+        filters=filters,
         is_overdue=ticket_service.is_overdue,
     )
 
@@ -49,10 +63,12 @@ def novo():
             flash(f"Chamado #{ticket.id} aberto com sucesso.", "success")
             return redirect(url_for("web_tickets.detalhe", id=ticket.id))
 
+    # Apenas catálogo ativo: o solicitante não deve ver áreas/prioridades
+    # desativadas pelo admin.
     return render_template(
         "tickets/novo.html",
-        categorias=catalog_service.list_categorias(),
-        prioridades=catalog_service.list_prioridades(),
+        categorias=catalog_service.list_categorias(only_active=True),
+        prioridades=catalog_service.list_prioridades(only_active=True),
     )
 
 
@@ -66,6 +82,13 @@ def detalhe(id):
         return redirect(url_for("web_tickets.listar"))
 
     staff = is_staff(current_user)
+    # Solicitante (não staff) só pode cancelar o próprio chamado enquanto
+    # ele ainda estiver ativo (não fechado/cancelado/aguardando aprovação).
+    pode_cancelar = (
+        not staff
+        and chamado.requester_id == current_user.id
+        and StatusEnum.CANCELADO in ticket_service.allowed_transitions(chamado.status)
+    )
     return render_template(
         "tickets/detalhe.html",
         chamado=chamado,
@@ -76,6 +99,7 @@ def detalhe(id):
         # Atribuição restrita à área do chamado.
         atendentes=user_service.list_staff_for_area(chamado.category_id) if staff else [],
         pode_aprovar=ticket_service.can_approve(current_user, chamado),
+        pode_cancelar=pode_cancelar,
         sla_deadline=ticket_service.sla_deadline(chamado),
         sla_overdue=ticket_service.is_overdue(chamado),
     )

@@ -1,5 +1,5 @@
 def test_cadastro_auto_login(client, areas):
-    # O cadastro público não escolhe cargo: o novo usuário entra como Atendente.
+    # O cadastro público não escolhe cargo: o novo usuário entra como Solicitante.
     resp = client.post(
         "/cadastro",
         data={
@@ -19,23 +19,29 @@ def test_cadastro_auto_login(client, areas):
     assert "/chamados" in home.headers["Location"]
 
 
-def test_cadastro_default_role_is_atendente(client, areas):
+def test_cadastro_default_role_is_solicitante(client, areas):
+    """Quem se cadastra pelo formulário público entra como Solicitante.
+
+    Promover a Atendente/Admin é uma ação do administrador no painel
+    `/admin/usuarios` — manter Atendente como default expandiria
+    indevidamente a visibilidade do recém-cadastrado para toda a área.
+    """
     from app.models.user import Usuario
 
     client.post(
         "/cadastro",
         data={
-            "name": "Tecnica RH",
-            "email": "tecnica@test.com",
+            "name": "Pessoa RH",
+            "email": "pessoa@test.com",
             "password": "senha123",
             "confirm_password": "senha123",
             "area": str(areas["RH"]),
         },
         follow_redirects=False,
     )
-    user = Usuario.query.filter_by(email="tecnica@test.com").first()
+    user = Usuario.query.filter_by(email="pessoa@test.com").first()
     assert user is not None
-    assert user.cargo.name == "Atendente"
+    assert user.cargo.name == "Solicitante"
     assert user.area_id == areas["RH"]
 
 

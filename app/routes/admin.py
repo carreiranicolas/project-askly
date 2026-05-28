@@ -62,7 +62,7 @@ def criar_categoria():
             request.form.get("name", "").strip(),
             request.form.get("description", "").strip(),
         )
-        flash("Categoria criada.", "success")
+        flash("Área criada.", "success")
     except ServiceError as exc:
         flash(exc.message, "danger")
     return redirect(url_for("web_admin.categorias"))
@@ -73,8 +73,12 @@ def criar_categoria():
 def toggle_categoria(id):
     try:
         categoria = catalog_service.get_categoria(id)
-        catalog_service.update_categoria(id, is_active=not categoria.is_active)
-        flash("Categoria atualizada.", "success")
+        was_active = categoria.is_active
+        catalog_service.update_categoria(id, is_active=not was_active)
+        flash(
+            "Área desativada." if was_active else "Área ativada.",
+            "success",
+        )
     except ServiceError as exc:
         flash(exc.message, "danger")
     return redirect(url_for("web_admin.categorias"))

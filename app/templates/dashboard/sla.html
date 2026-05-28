@@ -113,6 +113,7 @@
             <th>Nº</th>
             <th>Título</th>
             <th>Área</th>
+            <th>Responsável</th>
             <th>Prioridade</th>
             <th>Prazo do SLA</th>
             <th>Situação</th>
@@ -125,6 +126,13 @@
               <td><a href="{{ url_for('web_tickets.detalhe', id=r.ticket.id) }}">{{ r.ticket.title }}</a></td>
               <td>{{ r.ticket.category.name if r.ticket.category else '—' }}</td>
               <td>
+                {% if r.ticket.assignee %}
+                  {{ r.ticket.assignee.name }}
+                {% else %}
+                  <span style="color: var(--ask-gray-400); font-style: italic;">Não atribuído</span>
+                {% endif %}
+              </td>
+              <td>
                 <span class="askly-badge askly-badge--{{ 'danger' if r.ticket.priority.name in ['Alta', 'Crítica'] else ('warning' if r.ticket.priority.name == 'Média' else 'neutral') }}">
                   {{ r.ticket.priority.name }}
                 </span>
@@ -136,7 +144,7 @@
             </tr>
           {% else %}
             <tr>
-              <td colspan="6" class="sla-empty">Nenhum chamado em aberto no momento.</td>
+              <td colspan="7" class="sla-empty">Nenhum chamado em aberto no momento.</td>
             </tr>
           {% endfor %}
         </tbody>

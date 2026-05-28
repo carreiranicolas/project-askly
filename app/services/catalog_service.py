@@ -46,8 +46,14 @@ def delete_cargo(cargo_id):
 
 
 # --------------------------- Categorias ---------------------------
-def list_categorias():
-    return Categoria.query.order_by(Categoria.name).all()
+def list_categorias(only_active=False):
+    """Lista áreas. Use ``only_active=True`` para uso operacional (abrir
+    chamado, atribuir responsável); o admin precisa enxergar todas para
+    poder reativar inativas."""
+    query = Categoria.query
+    if only_active:
+        query = query.filter_by(is_active=True)
+    return query.order_by(Categoria.name).all()
 
 
 def get_categoria(categoria_id):
@@ -79,14 +85,27 @@ def update_categoria(categoria_id, name=None, description=None, is_active=None):
 
 
 def delete_categoria(categoria_id):
+    """Desativa a categoria (soft delete).
+
+    Categorias têm FK em chamados e usuários, então o hard delete quebraria
+    histórico. A desativação garante que ela some das telas operacionais
+    (abrir chamado, atribuir responsável) sem perder o rastro nos registros
+    antigos.
+    """
     obj = get_categoria(categoria_id)
-    db.session.delete(obj)
-    db.session.commit()
+    if obj.is_active:
+        obj.is_active = False
+        db.session.commit()
+    return obj
 
 
 # --------------------------- Prioridades --------------------------
-def list_prioridades():
-    return Prioridade.query.order_by(Prioridade.sla_hours).all()
+def list_prioridades(only_active=False):
+    """Lista prioridades. Use ``only_active=True`` para uso operacional."""
+    query = Prioridade.query
+    if only_active:
+        query = query.filter_by(is_active=True)
+    return query.order_by(Prioridade.sla_hours).all()
 
 
 def get_prioridade(prioridade_id):
@@ -124,6 +143,13 @@ def update_prioridade(
 
 
 def delete_prioridade(prioridade_id):
+    """Desativa a prioridade (soft delete).
+
+    Análogo a ``delete_categoria``: prioridades têm FK em chamados e o hard
+    delete quebraria histórico/SLA.
+    """
     obj = get_prioridade(prioridade_id)
-    db.session.delete(obj)
-    db.session.commit()
+    if obj.is_active:
+        obj.is_active = False
+        db.session.commit()
+    return obj

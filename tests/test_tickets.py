@@ -253,6 +253,65 @@ def test_rejection_reopens_ticket(app, client, make_user, api_login, areas):
     assert resp.get_json()["status"] == "Aberto"
 
 
+def test_meus_lists_opened_tickets_in_any_area(client, make_user, api_login, areas):
+    """Chamados que abri (tipo=meus) inclui chamados direcionados a outra área."""
+    sol_email, _ = make_user(role="Solicitante", email="sol-outra@test.com", area="RH")
+    tec_email, _ = make_user(
+        role="Atendente", email="tec-outra@test.com", area="RH"
+    )
+    sol_headers = api_login(sol_email)
+    tec_headers = api_login(tec_email)
+    pid = client.get("/api/v1/prioridades", headers=sol_headers).get_json()[0]["id"]
+
+    # Solicitante abre chamado na área Infraestrutura (área do cadastro é RH).
+    client.post(
+        "/api/v1/chamados",
+        json={
+            "title": "VPN corporativa",
+            "description": "Preciso de acesso",
+            "category_id": areas["Infraestrutura"],
+            "priority_id": pid,
+        },
+        headers=sol_headers,
+    )
+    meus_sol = client.get(
+        "/api/v1/chamados", headers=sol_headers, query_string={"tipo": "meus"}
+    ).get_json()
+    assert len(meus_sol) == 1
+    assert meus_sol[0]["category_id"] == areas["Infraestrutura"]
+
+    # Atendente de RH abre chamado em RH — aparece em meus.
+    client.post(
+        "/api/v1/chamados",
+        json={
+            "title": "Folha de pagamento",
+            "description": "Dúvida",
+            "category_id": areas["RH"],
+            "priority_id": pid,
+        },
+        headers=tec_headers,
+    )
+    meus_tec = client.get(
+        "/api/v1/chamados", headers=tec_headers, query_string={"tipo": "meus"}
+    ).get_json()
+    assert len(meus_tec) == 1
+
+    # Na fila da área (sem tipo), o atendente de RH não vê o próprio chamado
+    # aberto em Infraestrutura — só o que está na área dele.
+    client.post(
+        "/api/v1/chamados",
+        json={
+            "title": "Servidor fora",
+            "description": "Queda",
+            "category_id": areas["Infraestrutura"],
+            "priority_id": pid,
+        },
+        headers=tec_headers,
+    )
+    fila_rh = client.get("/api/v1/chamados", headers=tec_headers).get_json()
+    assert all(c["category_id"] == areas["RH"] for c in fila_rh)
+
+
 def test_solicitante_sees_only_own_tickets(client, make_user, api_login, catalog):
     a_email, _ = make_user(role="Solicitante", email="a@test.com")
     b_email, _ = make_user(role="Solicitante", email="b@test.com")

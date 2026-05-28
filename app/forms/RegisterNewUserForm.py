@@ -9,7 +9,8 @@ def get_areas():
 
 class RegistrarUsuario(FlaskForm):
     # O cargo não é escolhido no cadastro público: todo novo usuário entra como
-    # Atendente (técnico da sua área). A promoção a Admin é feita pelo painel admin.
+    # Solicitante (abre e acompanha os próprios chamados). A promoção a
+    # Atendente ou Admin é feita pelo painel admin (`/admin/usuarios`).
     name = StringField('Nome Completo', validators=[DataRequired(), Length(min=2, max=100)])
     email = StringField('Email', validators=[DataRequired(), Email(), Length(max=120)])
     password = PasswordField('Senha', validators=[DataRequired(), Length(min=8)])
@@ -20,7 +21,7 @@ class RegistrarUsuario(FlaskForm):
         query_factory=get_areas,
         allow_blank=False,
         get_label='name',
-        validators=[DataRequired()]
+        validators=[DataRequired()],
     )
 
     submit = SubmitField('Registrar Novo Usuário')

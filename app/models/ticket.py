@@ -10,12 +10,12 @@ if TYPE_CHECKING:
     from app.models.priority import Prioridade
 
 class StatusEnum(enum.Enum):
+    # Estados representam o ciclo de vida do chamado.
+    # Ações operacionais (atribuir responsável, mudar área/prioridade) NÃO são
+    # estados — elas têm endpoints próprios e ficam registradas no histórico.
     ABERTO = 'Aberto'
     EM_ANALISE = 'Em Análise'
     EM_ATENDIMENTO = 'Em Atendimento'
-    ATRIBUIR_TECNICO = 'Atribuir Técnico'
-    MUDAR_CATEGORIA = 'Mudar Categoria'
-    MUDAR_PRIORIDADE = 'Mudar Prioridade'
     AGUARDANDO_CLIENTE = 'Aguardando Cliente'
     AGUARDANDO_TECNICO = 'Aguardando Técnico'
     AGUARDANDO_PECA = 'Aguardando Peça'

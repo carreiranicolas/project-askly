@@ -21,12 +21,18 @@ def list_staff():
 
 
 def list_staff_for_area(area_id):
-    """Staff (atendentes/admins) de uma área — alvos válidos de atribuição."""
+    """Staff ativo (atendentes/admins) de uma área — alvos válidos de
+    atribuição. Usuários inativos são filtrados para não aparecerem no
+    seletor de responsável."""
     if area_id is None:
         return []
     return (
         Usuario.query.join(Cargo)
-        .filter(Cargo.name.in_(STAFF_ROLES), Usuario.area_id == area_id)
+        .filter(
+            Cargo.name.in_(STAFF_ROLES),
+            Usuario.area_id == area_id,
+            Usuario.is_active.is_(True),
+        )
         .order_by(Usuario.name)
         .all()
     )

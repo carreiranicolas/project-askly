@@ -108,18 +108,20 @@ class ChamadoList(Resource):
     @ns.doc(
         security="Bearer",
         params={
-            "tipo": "Filtro (staff): meus | atribuidos",
-            "categoria_id": "Filtra por categoria",
+            "tipo": "Filtro: meus | atribuidos",
+            "categoria_id": "Filtra por área (categoria) do chamado.",
+            "q": "Busca textual em título e descrição (case-insensitive).",
         },
     )
     @ns.marshal_list_with(chamado_model)
     @token_required
     def get(self):
         """Lista chamados conforme o perfil (Solicitante vê apenas os próprios)."""
-        tipo = request.args.get("tipo")
-        categoria_id = request.args.get("categoria_id", type=int)
         return ticket_service.list_tickets(
-            current_user(), tipo=tipo, categoria_id=categoria_id
+            current_user(),
+            tipo=request.args.get("tipo"),
+            categoria_id=request.args.get("categoria_id", type=int),
+            q=request.args.get("q"),
         )
 
     @ns.doc(security="Bearer")

@@ -13,8 +13,17 @@
 {% endblock %}
 
 {% block content %}
-  <form method="get" action="{{ url_for('web_tickets.listar') }}" class="askly-card askly-stagger" style="padding: var(--ask-space-4); margin-bottom: var(--ask-space-5); display: flex; gap: var(--ask-space-3);">
-    <input class="askly-input" type="search" name="q" value="{{ q }}" placeholder="Buscar por título ou descrição..." />
+  <form method="get" action="{{ url_for('web_tickets.listar') }}" class="askly-card askly-search-form askly-stagger">
+    {# Preserva os filtros ativos (tipo, área) ao submeter uma nova busca. #}
+    {% if filters.tipo %}<input type="hidden" name="tipo" value="{{ filters.tipo }}" />{% endif %}
+    {% if filters.categoria_id %}<input type="hidden" name="categoria_id" value="{{ filters.categoria_id }}" />{% endif %}
+    <div class="askly-input-wrap">
+      <svg class="askly-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="askly-input" type="search" name="q" value="{{ q }}" placeholder="Buscar por nº, título ou descrição..." />
+    </div>
     <button class="askly-btn askly-btn--secondary" type="submit">Buscar</button>
   </form>
 
@@ -77,16 +86,21 @@
   </div>
 
   {% if chamados.pages > 1 %}
+    {# Paginação preserva tipo, categoria e busca para não "perder" o contexto. #}
+    {% set page_args = {} %}
+    {% if filters.tipo %}{% set _ = page_args.update({'tipo': filters.tipo}) %}{% endif %}
+    {% if filters.categoria_id %}{% set _ = page_args.update({'categoria_id': filters.categoria_id}) %}{% endif %}
+    {% if q %}{% set _ = page_args.update({'q': q}) %}{% endif %}
     <div style="display: flex; align-items: center; justify-content: space-between; margin-top: var(--ask-space-5);">
       <span style="color: var(--ask-gray-500); font-size: var(--ask-text-sm);">
         {{ chamados.total }} chamado(s) · página {{ chamados.page }} de {{ chamados.pages }}
       </span>
       <div style="display: flex; gap: var(--ask-space-2);">
         {% if chamados.has_prev %}
-          <a class="askly-btn askly-btn--secondary" href="{{ url_for('web_tickets.listar', page=chamados.prev_num, q=q) }}">Anterior</a>
+          <a class="askly-btn askly-btn--secondary" href="{{ url_for('web_tickets.listar', page=chamados.prev_num, **page_args) }}">Anterior</a>
         {% endif %}
         {% if chamados.has_next %}
-          <a class="askly-btn askly-btn--secondary" href="{{ url_for('web_tickets.listar', page=chamados.next_num, q=q) }}">Próxima</a>
+          <a class="askly-btn askly-btn--secondary" href="{{ url_for('web_tickets.listar', page=chamados.next_num, **page_args) }}">Próxima</a>
         {% endif %}
       </div>
     </div>

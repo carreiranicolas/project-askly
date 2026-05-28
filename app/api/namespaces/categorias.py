@@ -73,9 +73,18 @@ class CategoriaItem(Resource):
         )
 
     @ns.doc(security="Bearer")
-    @ns.response(204, "Removida")
+    @ns.response(
+        204,
+        "Desativada (soft delete) — chamados e usuários antigos preservam a "
+        "referência, mas a área deixa de aparecer nas telas operacionais.",
+    )
     @roles_required(ROLE_ADMIN)
     def delete(self, categoria_id):
-        """Remove uma categoria (Admin)."""
+        """Desativa uma área (Admin).
+
+        Hard delete não é permitido porque a área tem FK em chamados e em
+        usuários — apagá-la quebraria o histórico. O endpoint marca a área
+        como inativa; reative com ``PUT`` (``is_active: true``).
+        """
         catalog_service.delete_categoria(categoria_id)
         return "", 204

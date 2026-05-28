@@ -2,8 +2,11 @@
 
 {% block body %}
   <div class="askly-app-layout askly-has-sidebar-toggle">
+    <!-- Overlay para mobile -->
+    <div class="askly-sidebar-overlay" id="sidebar-overlay"></div>
+
     <!-- Sidebar -->
-    <aside class="askly-sidebar">
+    <aside class="askly-sidebar" id="sidebar">
       <div class="askly-sidebar-header">
         <a href="{{ url_for('web_tickets.listar') }}" class="askly-sidebar-brand">
           <img src="{{ url_for('static', filename='img/askly-icon.png') }}" alt="Askly Logo" class="askly-sidebar-logo" />
@@ -44,7 +47,10 @@
           </svg>
           Atribuídos a mim
         </a>
-        <a href="{{ url_for('web_tickets.listar') }}" class="askly-nav-item {{ 'is-active' if request.endpoint == 'web_tickets.listar' and not request.args.get('tipo') and not request.args.get('categoria') else '' }}">
+        {# `categoria_id` é o nome canônico (alinhado com a API). Aceitamos
+           `categoria` também por compatibilidade com bookmarks antigos. #}
+        {% set _cat_arg = request.args.get('categoria_id') or request.args.get('categoria') %}
+        <a href="{{ url_for('web_tickets.listar') }}" class="askly-nav-item {{ 'is-active' if request.endpoint == 'web_tickets.listar' and not request.args.get('tipo') and not _cat_arg else '' }}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="7" height="7"></rect>
             <rect x="14" y="3" width="7" height="7"></rect>
@@ -61,7 +67,7 @@
         {% if sidebar_areas %}
         <div class="askly-nav-divider">Áreas</div>
         {% for cat in sidebar_areas %}
-          <a href="{{ url_for('web_tickets.listar', categoria=cat.id) }}" class="askly-nav-item {{ 'is-active' if request.endpoint == 'web_tickets.listar' and request.args.get('categoria') == cat.id|string else '' }}">
+          <a href="{{ url_for('web_tickets.listar', categoria_id=cat.id) }}" class="askly-nav-item {{ 'is-active' if request.endpoint == 'web_tickets.listar' and _cat_arg == cat.id|string else '' }}">
             <span class="askly-nav-hash" aria-hidden="true">#</span>
             {{ cat.name }}
           </a>
@@ -112,6 +118,13 @@
         </div>
         
         <header class="askly-app-header">
+          <button type="button" class="askly-menu-toggle" id="menu-toggle" aria-label="Abrir menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
           <h1 class="askly-app-title">{% block page_title %}{% endblock %}</h1>
           <div class="askly-app-header-right">
             <div class="askly-app-actions">
@@ -191,4 +204,35 @@
       </div>
     </main>
   </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  var toggle = document.getElementById('menu-toggle');
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebar-overlay');
+
+  function openMenu() {
+    sidebar.classList.add('is-open');
+    overlay.classList.add('is-visible');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMenu() {
+    sidebar.classList.remove('is-open');
+    overlay.classList.remove('is-visible');
+    document.body.style.overflow = '';
+  }
+
+  if (toggle && sidebar && overlay) {
+    toggle.addEventListener('click', openMenu);
+    overlay.addEventListener('click', closeMenu);
+
+    sidebar.querySelectorAll('a').forEach(function(link) {
+      link.addEventListener('click', closeMenu);
+    });
+  }
+})();
+</script>
 {% endblock %}
