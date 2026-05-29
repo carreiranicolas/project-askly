@@ -19,8 +19,7 @@ def _list_filters():
     return {
         "tipo": request.args.get("tipo") or None,
         "categoria_id": (
-            request.args.get("categoria_id", type=int)
-            or request.args.get("categoria", type=int)
+            request.args.get("categoria_id", type=int) or request.args.get("categoria", type=int)
         ),
         "q": (request.args.get("q") or "").strip() or None,
     }
@@ -138,9 +137,7 @@ def alterar_status(id):
 @login_required
 def aprovar(id):
     try:
-        ticket_service.approve_resolution(
-            current_user, id, motivo=request.form.get("motivo")
-        )
+        ticket_service.approve_resolution(current_user, id, motivo=request.form.get("motivo"))
         flash("Solução aprovada. Chamado fechado.", "success")
     except ServiceError as exc:
         flash(exc.message, "danger")
@@ -151,9 +148,7 @@ def aprovar(id):
 @login_required
 def recusar(id):
     try:
-        ticket_service.reject_resolution(
-            current_user, id, motivo=request.form.get("motivo")
-        )
+        ticket_service.reject_resolution(current_user, id, motivo=request.form.get("motivo"))
         flash("Solução recusada. O chamado foi reaberto para o responsável.", "info")
     except ServiceError as exc:
         flash(exc.message, "danger")
@@ -164,9 +159,7 @@ def recusar(id):
 @login_required
 def atribuir(id):
     try:
-        ticket_service.assign_ticket(
-            current_user, id, request.form.get("atendente_id", type=int)
-        )
+        ticket_service.assign_ticket(current_user, id, request.form.get("atendente_id", type=int))
         flash("Chamado atribuído.", "success")
     except ServiceError as exc:
         flash(exc.message, "danger")

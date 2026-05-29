@@ -49,9 +49,7 @@ def alterar_perfil(id):
 @web_admin_bp.route("/categorias")
 @admin_required
 def categorias():
-    return render_template(
-        "admin/categorias.html", categorias=catalog_service.list_categorias()
-    )
+    return render_template("admin/categorias.html", categorias=catalog_service.list_categorias())
 
 
 @web_admin_bp.route("/categorias/criar", methods=["POST"])

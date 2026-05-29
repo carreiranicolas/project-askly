@@ -13,10 +13,7 @@ def list_users():
 
 def list_staff():
     return (
-        Usuario.query.join(Cargo)
-        .filter(Cargo.name.in_(STAFF_ROLES))
-        .order_by(Usuario.name)
-        .all()
+        Usuario.query.join(Cargo).filter(Cargo.name.in_(STAFF_ROLES)).order_by(Usuario.name).all()
     )
 
 

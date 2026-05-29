@@ -11,9 +11,7 @@ cargo_model = ns.model(
     {
         "id": fields.Integer(readonly=True, example=1),
         "name": fields.String(example="Solicitante"),
-        "description": fields.String(
-            example="Abre e acompanha os próprios chamados."
-        ),
+        "description": fields.String(example="Abre e acompanha os próprios chamados."),
         "is_active": fields.Boolean(example=True),
     },
 )
@@ -22,9 +20,7 @@ cargo_input = ns.model(
     "CargoInput",
     {
         "name": fields.String(required=True, example="Supervisor"),
-        "description": fields.String(
-            required=True, example="Acompanha indicadores da equipe."
-        ),
+        "description": fields.String(required=True, example="Acompanha indicadores da equipe."),
         "is_active": fields.Boolean(example=True),
     },
 )
@@ -49,9 +45,7 @@ class CargoList(Resource):
     def post(self):
         """Cria um cargo (Admin)."""
         d = ns.payload
-        obj = catalog_service.create_cargo(
-            d["name"], d["description"], d.get("is_active", True)
-        )
+        obj = catalog_service.create_cargo(d["name"], d["description"], d.get("is_active", True))
         return obj, 201
 
 

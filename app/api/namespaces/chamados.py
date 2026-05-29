@@ -69,9 +69,7 @@ comentario_model = ns.model(
     "Comentario",
     {
         "id": fields.Integer(readonly=True, example=1),
-        "content": fields.String(
-            example="Já estamos verificando com a equipe de infraestrutura."
-        ),
+        "content": fields.String(example="Já estamos verificando com a equipe de infraestrutura."),
         "ticket_id": fields.Integer(example=1),
         "author_id": fields.Integer(example=8),
         "created_at": fields.DateTime(example="2026-05-26T15:00:00"),

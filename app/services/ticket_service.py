@@ -148,9 +148,7 @@ def tickets_query(user, tipo=None, categoria_id=None, q=None):
             query = query.filter(Chamado.id == int(term))
         else:
             like = f"%{term}%"
-            query = query.filter(
-                or_(Chamado.title.ilike(like), Chamado.description.ilike(like))
-            )
+            query = query.filter(or_(Chamado.title.ilike(like), Chamado.description.ilike(like)))
     return query.order_by(Chamado.created_at.desc())
 
 
@@ -176,13 +174,9 @@ def create_ticket(user, title, description, category_id, priority_id):
     description = (description or "").strip()
 
     if len(title) < TITLE_MIN_LENGTH:
-        raise ValidationError(
-            f"O título precisa ter ao menos {TITLE_MIN_LENGTH} caracteres."
-        )
+        raise ValidationError(f"O título precisa ter ao menos {TITLE_MIN_LENGTH} caracteres.")
     if len(title) > TITLE_MAX_LENGTH:
-        raise ValidationError(
-            f"O título pode ter no máximo {TITLE_MAX_LENGTH} caracteres."
-        )
+        raise ValidationError(f"O título pode ter no máximo {TITLE_MAX_LENGTH} caracteres.")
     if not description:
         raise ValidationError("A descrição é obrigatória.")
 
@@ -190,9 +184,7 @@ def create_ticket(user, title, description, category_id, priority_id):
     if categoria is None:
         raise ValidationError("Área informada não existe.")
     if not categoria.is_active:
-        raise ValidationError(
-            "Esta área está inativa e não pode receber novos chamados."
-        )
+        raise ValidationError("Esta área está inativa e não pode receber novos chamados.")
 
     prioridade = db.session.get(Prioridade, priority_id) if priority_id else None
     if prioridade is None:
@@ -252,9 +244,7 @@ def change_status(user, ticket_id, new_status, motivo=None):
     # Atribuição obrigatória: não se movimenta um chamado sem responsável.
     # O cancelamento é exceção (pode encerrar um chamado ainda não atribuído).
     if ticket.assignee_id is None and target != StatusEnum.CANCELADO:
-        raise ValidationError(
-            "Atribua um responsável ao chamado antes de alterar o status."
-        )
+        raise ValidationError("Atribua um responsável ao chamado antes de alterar o status.")
 
     _record_transition(user, ticket, target, motivo)
     return ticket
@@ -262,18 +252,13 @@ def change_status(user, ticket_id, new_status, motivo=None):
 
 def can_approve(user, ticket):
     """Quem abriu o chamado pode aprovar a solução quando aguarda aprovação."""
-    return (
-        ticket.status == StatusEnum.AGUARDANDO_APROVACAO
-        and ticket.requester_id == user.id
-    )
+    return ticket.status == StatusEnum.AGUARDANDO_APROVACAO and ticket.requester_id == user.id
 
 
 def _require_pending_approval(user, ticket_id):
     ticket = get_ticket(user, ticket_id)
     if ticket.requester_id != user.id:
-        raise PermissionDenied(
-            "Apenas quem abriu o chamado pode avaliar a solução."
-        )
+        raise PermissionDenied("Apenas quem abriu o chamado pode avaliar a solução.")
     if ticket.status != StatusEnum.AGUARDANDO_APROVACAO:
         raise ValidationError("Este chamado não está aguardando aprovação.")
     return ticket
@@ -305,9 +290,7 @@ def reject_resolution(user, ticket_id, motivo=None):
 
 def assign_ticket(actor, ticket_id, assignee_id):
     if not is_staff(actor):
-        raise PermissionDenied(
-            "Apenas atendentes ou administradores podem atribuir chamados."
-        )
+        raise PermissionDenied("Apenas atendentes ou administradores podem atribuir chamados.")
     # get_ticket aplica o RBAC de área (atendente só atua na própria área).
     ticket = get_ticket(actor, ticket_id)
 
@@ -315,17 +298,13 @@ def assign_ticket(actor, ticket_id, assignee_id):
     if assignee is None:
         raise ValidationError("Usuário atribuído não existe.")
     if not assignee.is_active:
-        raise ValidationError(
-            "Não é possível atribuir o chamado a um usuário inativo."
-        )
+        raise ValidationError("Não é possível atribuir o chamado a um usuário inativo.")
     if not is_staff(assignee):
         raise ValidationError("Só é possível atribuir a atendentes ou administradores.")
     # Atribuição restrita à área do chamado: o responsável precisa ser da
     # mesma área em que o chamado foi aberto.
     if assignee.area_id != ticket.category_id:
-        raise ValidationError(
-            "Só é possível atribuir a usuários da área do chamado."
-        )
+        raise ValidationError("Só é possível atribuir a usuários da área do chamado.")
 
     ticket.assignee_id = assignee_id
     db.session.commit()
@@ -343,11 +322,7 @@ def list_history(user, ticket_id):
 
 def list_comments(user, ticket_id):
     ticket = get_ticket(user, ticket_id)
-    return (
-        Comentario.query.filter_by(ticket_id=ticket.id)
-        .order_by(Comentario.created_at)
-        .all()
-    )
+    return Comentario.query.filter_by(ticket_id=ticket.id).order_by(Comentario.created_at).all()
 
 
 def add_comment(user, ticket_id, content):

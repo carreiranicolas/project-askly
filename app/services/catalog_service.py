@@ -118,17 +118,13 @@ def get_prioridade(prioridade_id):
 def create_prioridade(name, description, sla_hours, is_active=True):
     if Prioridade.query.filter_by(name=name).first():
         raise ConflictError("Já existe uma prioridade com esse nome.")
-    obj = Prioridade(
-        name=name, description=description, sla_hours=sla_hours, is_active=is_active
-    )
+    obj = Prioridade(name=name, description=description, sla_hours=sla_hours, is_active=is_active)
     db.session.add(obj)
     db.session.commit()
     return obj
 
 
-def update_prioridade(
-    prioridade_id, name=None, description=None, sla_hours=None, is_active=None
-):
+def update_prioridade(prioridade_id, name=None, description=None, sla_hours=None, is_active=None):
     obj = get_prioridade(prioridade_id)
     if name is not None:
         obj.name = name

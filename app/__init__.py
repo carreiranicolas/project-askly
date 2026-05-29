@@ -168,9 +168,7 @@ def create_app():
 def _configure_logging(app):
     level = os.environ.get("LOG_LEVEL", "INFO").upper()
     handler = logging.StreamHandler()
-    handler.setFormatter(
-        logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
-    )
+    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
     app.logger.handlers = [handler]
     app.logger.setLevel(level)
 
@@ -195,11 +193,7 @@ def _register_context_processors(app):
     def inject_globals():
         def get_categorias():
             try:
-                return (
-                    Categoria.query.filter_by(is_active=True)
-                    .order_by(Categoria.name)
-                    .all()
-                )
+                return Categoria.query.filter_by(is_active=True).order_by(Categoria.name).all()
             except Exception:
                 return []
 

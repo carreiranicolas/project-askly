@@ -25,9 +25,7 @@ def generate_token(user):
 
 
 def _decode(token):
-    return jwt.decode(
-        token, current_app.config["SECRET_KEY"], algorithms=[JWT_ALGORITHM]
-    )
+    return jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=[JWT_ALGORITHM])
 
 
 def _extract_token():

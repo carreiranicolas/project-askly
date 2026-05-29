@@ -21,9 +21,7 @@ def _default_role_id():
     """
     cargo = Cargo.query.filter_by(name=ROLE_SOLICITANTE).first()
     if cargo is None:
-        raise ValidationError(
-            "Cargo padrão indisponível. Rode o seed para popular os cargos."
-        )
+        raise ValidationError("Cargo padrão indisponível. Rode o seed para popular os cargos.")
     return cargo.id
 
 
@@ -35,9 +33,7 @@ def _validate_registration(name, email, password):
     except EmailNotValidError:
         raise ValidationError("E-mail inválido.")
     if not password or len(password) < PASSWORD_MIN_LENGTH:
-        raise ValidationError(
-            f"A senha deve ter ao menos {PASSWORD_MIN_LENGTH} caracteres."
-        )
+        raise ValidationError(f"A senha deve ter ao menos {PASSWORD_MIN_LENGTH} caracteres.")
 
 
 def authenticate(email, password):
@@ -71,9 +67,7 @@ def change_password(user, current_password, new_password):
     if not user.check_password(current_password):
         raise AuthError("Senha atual incorreta.")
     if not new_password or len(new_password) < PASSWORD_MIN_LENGTH:
-        raise ValidationError(
-            f"A nova senha deve ter ao menos {PASSWORD_MIN_LENGTH} caracteres."
-        )
+        raise ValidationError(f"A nova senha deve ter ao menos {PASSWORD_MIN_LENGTH} caracteres.")
     user.set_password(new_password)
     db.session.commit()
     return user

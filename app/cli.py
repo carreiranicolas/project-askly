@@ -42,9 +42,7 @@ def register_commands(app):
 
         for name, description in AREAS:
             if not Categoria.query.filter_by(name=name).first():
-                db.session.add(
-                    Categoria(name=name, description=description, is_active=True)
-                )
+                db.session.add(Categoria(name=name, description=description, is_active=True))
                 created += 1
 
         for name, description, sla_hours in PRIORIDADES:

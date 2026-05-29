@@ -38,9 +38,7 @@ register_input = ns.model(
 token_output = ns.model(
     "Token",
     {
-        "access_token": fields.String(
-            example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        ),
+        "access_token": fields.String(example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."),
         "token_type": fields.String(example="Bearer"),
         "expires_in": fields.Integer(description="Validade em segundos.", example=28800),
         "user": fields.Nested(usuario_model),
