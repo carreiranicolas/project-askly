@@ -41,19 +41,20 @@ def test_admin_change_status_records_history(app, client, make_user, api_login, 
     sol_email, _ = make_user(role="Solicitante", email="sol@test.com")
     adm_email, _ = make_user(role="Admin", email="adm@test.com")
     # catalog["categoria"] é "Infraestrutura" (1ª em ordem alfabética no seed).
-    tec_email, _ = make_user(
-        role="Atendente", email="tec@test.com", area="Infraestrutura"
-    )
+    tec_email, _ = make_user(role="Atendente", email="tec@test.com", area="Infraestrutura")
     adm_headers = api_login(adm_email)
 
     tid = _create_ticket(client, api_login(sol_email), catalog).get_json()["id"]
 
     # Sem responsável atribuído, a mudança de status é bloqueada.
-    assert client.post(
-        f"/api/v1/chamados/{tid}/status",
-        json={"status": "EM_ATENDIMENTO"},
-        headers=adm_headers,
-    ).status_code == 400
+    assert (
+        client.post(
+            f"/api/v1/chamados/{tid}/status",
+            json={"status": "EM_ATENDIMENTO"},
+            headers=adm_headers,
+        ).status_code
+        == 400
+    )
 
     client.post(
         f"/api/v1/chamados/{tid}/atribuir",
@@ -69,9 +70,7 @@ def test_admin_change_status_records_history(app, client, make_user, api_login, 
     assert resp.status_code == 200
     assert resp.get_json()["status"] == "Em Atendimento"
 
-    history = client.get(
-        f"/api/v1/chamados/{tid}/historico", headers=adm_headers
-    ).get_json()
+    history = client.get(f"/api/v1/chamados/{tid}/historico", headers=adm_headers).get_json()
     assert len(history) == 1
     assert history[0]["previous_status"] == "Aberto"
     assert history[0]["new_status"] == "Em Atendimento"
@@ -80,14 +79,10 @@ def test_admin_change_status_records_history(app, client, make_user, api_login, 
 def test_atendente_sees_only_own_area(client, make_user, api_login, areas):
     sol_email, _ = make_user(role="Solicitante", email="sol@test.com", area="RH")
     rh_email, _ = make_user(role="Atendente", email="rh@test.com", area="RH")
-    infra_email, _ = make_user(
-        role="Atendente", email="infra@test.com", area="Infraestrutura"
-    )
+    infra_email, _ = make_user(role="Atendente", email="infra@test.com", area="Infraestrutura")
 
     # Solicitante abre um chamado na área RH.
-    pid = client.get("/api/v1/prioridades", headers=api_login(rh_email)).get_json()[0][
-        "id"
-    ]
+    pid = client.get("/api/v1/prioridades", headers=api_login(rh_email)).get_json()[0]["id"]
     client.post(
         "/api/v1/chamados",
         json={
@@ -107,9 +102,7 @@ def test_atendente_sees_only_own_area(client, make_user, api_login, areas):
 def test_status_change_records_motivo(app, client, make_user, api_login, catalog):
     sol_email, _ = make_user(role="Solicitante", email="sol@test.com")
     adm_email, _ = make_user(role="Admin", email="adm@test.com")
-    tec_email, _ = make_user(
-        role="Atendente", email="tec@test.com", area="Infraestrutura"
-    )
+    tec_email, _ = make_user(role="Atendente", email="tec@test.com", area="Infraestrutura")
     adm_headers = api_login(adm_email)
     tid = _create_ticket(client, api_login(sol_email), catalog).get_json()["id"]
     client.post(
@@ -124,9 +117,7 @@ def test_status_change_records_motivo(app, client, make_user, api_login, catalog
         headers=adm_headers,
     )
     assert resp.status_code == 200
-    hist = client.get(
-        f"/api/v1/chamados/{tid}/historico", headers=adm_headers
-    ).get_json()
+    hist = client.get(f"/api/v1/chamados/{tid}/historico", headers=adm_headers).get_json()
     assert hist[0]["motivo"] == "Iniciando atendimento"
 
 
@@ -137,17 +128,23 @@ def test_invalid_transition_rejected(client, make_user, api_login, catalog):
     tid = _create_ticket(client, api_login(sol_email), catalog).get_json()["id"]
 
     # ABERTO -> CANCELADO é válido
-    assert client.post(
-        f"/api/v1/chamados/{tid}/status",
-        json={"status": "CANCELADO"},
-        headers=adm_headers,
-    ).status_code == 200
+    assert (
+        client.post(
+            f"/api/v1/chamados/{tid}/status",
+            json={"status": "CANCELADO"},
+            headers=adm_headers,
+        ).status_code
+        == 200
+    )
     # CANCELADO é terminal: qualquer transição é inválida
-    assert client.post(
-        f"/api/v1/chamados/{tid}/status",
-        json={"status": "EM_ATENDIMENTO"},
-        headers=adm_headers,
-    ).status_code == 400
+    assert (
+        client.post(
+            f"/api/v1/chamados/{tid}/status",
+            json={"status": "EM_ATENDIMENTO"},
+            headers=adm_headers,
+        ).status_code
+        == 400
+    )
 
 
 def _open_ticket_in(client, headers, area_id, priority_id):
@@ -167,26 +164,30 @@ def test_assign_only_to_same_area(app, client, make_user, api_login, areas):
     sol_email, _ = make_user(role="Solicitante", email="sol@test.com", area="RH")
     adm_email, _ = make_user(role="Admin", email="adm@test.com")
     rh_email, _ = make_user(role="Atendente", email="rh@test.com", area="RH")
-    infra_email, _ = make_user(
-        role="Atendente", email="infra@test.com", area="Infraestrutura"
-    )
+    infra_email, _ = make_user(role="Atendente", email="infra@test.com", area="Infraestrutura")
     adm_headers = api_login(adm_email)
 
     pid = client.get("/api/v1/prioridades", headers=adm_headers).get_json()[0]["id"]
     tid = _open_ticket_in(client, api_login(sol_email), areas["RH"], pid)
 
     # Atendente de outra área não pode ser responsável.
-    assert client.post(
-        f"/api/v1/chamados/{tid}/atribuir",
-        json={"assignee_id": _user_id(app, infra_email)},
-        headers=adm_headers,
-    ).status_code == 400
+    assert (
+        client.post(
+            f"/api/v1/chamados/{tid}/atribuir",
+            json={"assignee_id": _user_id(app, infra_email)},
+            headers=adm_headers,
+        ).status_code
+        == 400
+    )
     # Atendente da área do chamado pode.
-    assert client.post(
-        f"/api/v1/chamados/{tid}/atribuir",
-        json={"assignee_id": _user_id(app, rh_email)},
-        headers=adm_headers,
-    ).status_code == 200
+    assert (
+        client.post(
+            f"/api/v1/chamados/{tid}/atribuir",
+            json={"assignee_id": _user_id(app, rh_email)},
+            headers=adm_headers,
+        ).status_code
+        == 200
+    )
 
 
 def test_approval_closes_ticket(app, client, make_user, api_login, areas):
@@ -214,9 +215,7 @@ def test_approval_closes_ticket(app, client, make_user, api_login, areas):
     assert resp.get_json()["status"] == "Aguardando Aprovação"
 
     # Quem não abriu o chamado não pode aprovar.
-    assert client.post(
-        f"/api/v1/chamados/{tid}/aprovar", headers=adm_headers
-    ).status_code == 403
+    assert client.post(f"/api/v1/chamados/{tid}/aprovar", headers=adm_headers).status_code == 403
     # Quem abriu aprova: o chamado fecha automaticamente.
     resp = client.post(f"/api/v1/chamados/{tid}/aprovar", headers=sol_headers)
     assert resp.status_code == 200
@@ -244,9 +243,7 @@ def test_rejection_reopens_ticket(app, client, make_user, api_login, areas):
     )
 
     # Quem não abriu não pode recusar.
-    assert client.post(
-        f"/api/v1/chamados/{tid}/recusar", headers=adm_headers
-    ).status_code == 403
+    assert client.post(f"/api/v1/chamados/{tid}/recusar", headers=adm_headers).status_code == 403
     # Quem abriu recusa: o chamado reabre (volta para "Aberto").
     resp = client.post(f"/api/v1/chamados/{tid}/recusar", headers=sol_headers)
     assert resp.status_code == 200
@@ -256,9 +253,7 @@ def test_rejection_reopens_ticket(app, client, make_user, api_login, areas):
 def test_meus_lists_opened_tickets_in_any_area(client, make_user, api_login, areas):
     """Chamados que abri (tipo=meus) inclui chamados direcionados a outra área."""
     sol_email, _ = make_user(role="Solicitante", email="sol-outra@test.com", area="RH")
-    tec_email, _ = make_user(
-        role="Atendente", email="tec-outra@test.com", area="RH"
-    )
+    tec_email, _ = make_user(role="Atendente", email="tec-outra@test.com", area="RH")
     sol_headers = api_login(sol_email)
     tec_headers = api_login(tec_email)
     pid = client.get("/api/v1/prioridades", headers=sol_headers).get_json()[0]["id"]

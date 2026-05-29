@@ -44,12 +44,14 @@ def test_register_invalid_email(client, cargo_ids):
 
 def test_login_ok_and_bad(client, make_user):
     email, password = make_user(role="Solicitante", email="login@test.com")
-    assert client.post(
-        "/api/v1/auth/login", json={"email": email, "password": password}
-    ).status_code == 200
-    assert client.post(
-        "/api/v1/auth/login", json={"email": email, "password": "errada"}
-    ).status_code == 401
+    assert (
+        client.post("/api/v1/auth/login", json={"email": email, "password": password}).status_code
+        == 200
+    )
+    assert (
+        client.post("/api/v1/auth/login", json={"email": email, "password": "errada"}).status_code
+        == 401
+    )
 
 
 def test_me_requires_token(client, make_user, api_login):

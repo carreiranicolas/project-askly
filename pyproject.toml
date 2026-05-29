@@ -30,7 +30,6 @@ dependencies = [
     "WTForms>=3.1",
     "wtforms-sqlalchemy",
     "email-validator>=2.0",
-    "pydantic>=2.5",
     "Flask-Talisman>=1.1",
     "Flask-Limiter>=3.5",
     "bcrypt>=4.1",
@@ -87,7 +86,28 @@ exclude = ["migrations", ".venv"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v"
+# -v: saída verbosa (um teste por linha).
+# --cov=app: mede cobertura do pacote da aplicação.
+# --cov-report=term-missing: mostra, por arquivo, as linhas NÃO cobertas.
+# --cov-fail-under=80: trava a suíte (exit code != 0) se a cobertura cair
+#   abaixo de 80%. Hoje estamos em ~84%, então há margem; o gate impede
+#   regressões silenciosas de cobertura no CI.
+addopts = "-v --cov=app --cov-report=term-missing --cov-fail-under=80"
+
+[tool.coverage.run]
+# Mede só o código da aplicação; migrations são geradas/versionadas pelo
+# Alembic e não fazem parte do alvo de testes.
+source = ["app"]
+omit = ["*/migrations/*"]
+
+[tool.coverage.report]
+# Linhas que não precisam contar como "descobertas" (guardas defensivas e
+# blocos só de tipagem estática, que não rodam em runtime).
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
 
 [tool.setuptools]
 include-package-data = true
