@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from datetime import timedelta
 
 from dotenv import load_dotenv
 from flask import Flask, render_template
@@ -78,6 +79,9 @@ def create_app():
     app.config["REMEMBER_COOKIE_HTTPONLY"] = True
     app.config["REMEMBER_COOKIE_SAMESITE"] = "Lax"
     app.config["REMEMBER_COOKIE_SECURE"] = secure_cookies
+
+    # Expiração de sessão: sessões web expiram após 8h de inatividade.
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=8)
 
     csrf.init_app(app)
     db.init_app(app)

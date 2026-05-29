@@ -1,11 +1,11 @@
 def test_register_returns_token_and_user(client, cargo_ids):
+    """Registro público sempre cria usuário como Solicitante (role_id não aceito)."""
     resp = client.post(
         "/api/v1/auth/register",
         json={
             "name": "Maria",
             "email": "maria@test.com",
             "password": "senha123",
-            "role_id": cargo_ids["Solicitante"],
         },
     )
     assert resp.status_code == 201
@@ -23,7 +23,6 @@ def test_register_duplicate_email_conflict(client, make_user, cargo_ids):
             "name": "Outro",
             "email": "dup@test.com",
             "password": "senha123",
-            "role_id": cargo_ids["Solicitante"],
         },
     )
     assert resp.status_code == 409
@@ -36,7 +35,6 @@ def test_register_invalid_email(client, cargo_ids):
             "name": "X",
             "email": "naoeumemail",
             "password": "senha123",
-            "role_id": cargo_ids["Solicitante"],
         },
     )
     assert resp.status_code == 400

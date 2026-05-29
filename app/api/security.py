@@ -9,6 +9,8 @@ from app.models.user import Usuario
 from app.services.exceptions import AuthError, PermissionDenied
 
 JWT_ALGORITHM = "HS256"
+JWT_ISSUER = "askly"
+JWT_AUDIENCE = "askly-api"
 TOKEN_TTL_HOURS = 8
 
 
@@ -18,6 +20,8 @@ def generate_token(user):
         "sub": str(user.id),
         "name": user.name,
         "role": user.cargo.name if user.cargo else None,
+        "iss": JWT_ISSUER,
+        "aud": JWT_AUDIENCE,
         "iat": now,
         "exp": now + datetime.timedelta(hours=TOKEN_TTL_HOURS),
     }
@@ -25,7 +29,13 @@ def generate_token(user):
 
 
 def _decode(token):
-    return jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=[JWT_ALGORITHM])
+    return jwt.decode(
+        token,
+        current_app.config["SECRET_KEY"],
+        algorithms=[JWT_ALGORITHM],
+        issuer=JWT_ISSUER,
+        audience=JWT_AUDIENCE,
+    )
 
 
 def _extract_token():

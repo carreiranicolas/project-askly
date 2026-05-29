@@ -1,3 +1,5 @@
+import logging
+
 from email_validator import EmailNotValidError, validate_email
 
 from app.extensions import db
@@ -7,6 +9,8 @@ from app.models.user import Usuario
 
 from . import ROLE_SOLICITANTE
 from .exceptions import AuthError, ConflictError, ValidationError
+
+logger = logging.getLogger(__name__)
 
 PASSWORD_MIN_LENGTH = 8
 
@@ -39,9 +43,12 @@ def _validate_registration(name, email, password):
 def authenticate(email, password):
     user = Usuario.query.filter_by(email=email).first()
     if not user or not user.check_password(password):
+        logger.warning("Tentativa de login falha para email: %s", email)
         raise AuthError("E-mail ou senha incorretos.")
     if not user.is_active:
+        logger.warning("Tentativa de login em conta desativada: %s (user_id=%s)", email, user.id)
         raise AuthError("Sua conta está desativada. Procure um administrador.")
+    logger.info("Login bem-sucedido: %s (user_id=%s)", email, user.id)
     return user
 
 

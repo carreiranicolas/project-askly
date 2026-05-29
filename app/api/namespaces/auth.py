@@ -8,6 +8,7 @@ from app.api.security import (
     generate_token,
     token_required,
 )
+from app.extensions import limiter
 from app.services import auth_service
 
 ns = Namespace("Autenticação", description="Autenticação e registro via JWT.")
@@ -26,9 +27,6 @@ register_input = ns.model(
         "name": fields.String(required=True, example="Maria Silva"),
         "email": fields.String(required=True, example="maria.silva@empresa.com"),
         "password": fields.String(required=True, example="senha123"),
-        "role_id": fields.Integer(
-            required=True, example=1, description="ID do cargo (ver GET /cargos)."
-        ),
         "area_id": fields.Integer(
             example=7, description="ID da área do usuário (ver GET /categorias)."
         ),
@@ -59,8 +57,11 @@ def _token_payload(user):
 
 @ns.route("/login")
 class Login(Resource):
+    decorators = [limiter.limit("10 per minute")]
+
     @ns.expect(login_input, validate=True)
     @ns.response(401, "Credenciais inválidas", err)
+    @ns.response(429, "Muitas tentativas. Aguarde antes de tentar novamente.", err)
     @ns.marshal_with(token_output)
     def post(self):
         """Autentica o usuário e devolve um token JWT."""
@@ -71,17 +72,24 @@ class Login(Resource):
 
 @ns.route("/register")
 class Register(Resource):
+    decorators = [limiter.limit("10 per minute")]
+
     @ns.expect(register_input, validate=True)
     @ns.response(409, "E-mail já cadastrado", err)
+    @ns.response(429, "Muitas tentativas. Aguarde antes de tentar novamente.", err)
     @ns.marshal_with(token_output, code=201)
     def post(self):
-        """Cria uma conta e já devolve o token (entra autenticado)."""
+        """Cria uma conta e já devolve o token (entra autenticado).
+
+        O registro público sempre cria usuários com cargo Solicitante.
+        Promoção a Atendente ou Admin é feita por um administrador.
+        """
         data = ns.payload
         user = auth_service.register(
             data["name"],
             data["email"],
             data["password"],
-            data["role_id"],
+            role_id=None,
             area_id=data.get("area_id"),
         )
         return _token_payload(user), 201
