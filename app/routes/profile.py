@@ -1,7 +1,7 @@
 from flask import Blueprint, flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
-from app.forms.ChangePasswordForm import ChangePasswordForm
+from app.forms.change_password_form import ChangePasswordForm
 from app.services import auth_service
 from app.services.exceptions import ServiceError
 

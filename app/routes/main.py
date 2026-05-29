@@ -12,8 +12,8 @@ from flask import (
 from flask_login import current_user, login_required, login_user, logout_user
 
 from app.extensions import db, limiter
-from app.forms.LoginForm import LoginForm
-from app.forms.RegisterNewUserForm import RegistrarUsuario
+from app.forms.login_form import LoginForm
+from app.forms.register_form import RegisterForm
 from app.services import auth_service
 from app.services.exceptions import ServiceError
 
@@ -66,7 +66,7 @@ def cadastro():
     if current_user.is_authenticated:
         return redirect(url_for("main.home"))
 
-    form = RegistrarUsuario()
+    form = RegisterForm()
 
     if form.validate_on_submit():
         try:

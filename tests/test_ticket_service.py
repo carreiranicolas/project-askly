@@ -25,7 +25,7 @@ def _novo_chamado(categoria_id, prioridade_id, email="dono@test.com"):
     Usado pelos testes que precisam de um chamado real no banco para exercitar
     SLA e métricas. Roda assumindo um app_context já ativo.
     """
-    user = auth_service.register("Dono", email, "senha123")
+    user = auth_service.register("Dono", email, "Senha123")
     ticket = ticket_service.create_ticket(
         user,
         title="Chamado de teste",

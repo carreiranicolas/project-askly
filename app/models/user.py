@@ -14,14 +14,16 @@ if TYPE_CHECKING:
 
 class Usuario(UserMixin, db.Model):
     __tablename__ = "usuarios"
+    __table_args__ = (
+        db.Index("ix_usuarios_role_area", "role_id", "area_id"),
+        db.Index("ix_usuarios_is_active", "is_active"),
+    )
 
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     name: Mapped[str] = mapped_column(db.String(100), nullable=False)
-    email: Mapped[str] = mapped_column(db.String(120), unique=True, nullable=False)
-    # Esse campo vai guardar o HASH da senha gerado pelo werkzeug
+    email: Mapped[str] = mapped_column(db.String(120), unique=True, nullable=False, index=True)
     password: Mapped[str] = mapped_column(db.String(255), nullable=False)
     role_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("cargos.id"), nullable=False)
-    # Área do usuário (reaproveita a entidade Categoria como "Área"/departamento).
     area_id: Mapped[Optional[int]] = mapped_column(
         db.Integer, db.ForeignKey("categorias.id"), nullable=True
     )

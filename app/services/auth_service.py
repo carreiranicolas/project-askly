@@ -1,4 +1,5 @@
 import logging
+import re
 
 from email_validator import EmailNotValidError, validate_email
 
@@ -13,6 +14,18 @@ from .exceptions import AuthError, ConflictError, ValidationError
 logger = logging.getLogger(__name__)
 
 PASSWORD_MIN_LENGTH = 8
+PASSWORD_PATTERN = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$")
+
+
+def _validate_password(password):
+    """Valida força da senha: mínimo 8 caracteres, maiúscula, minúscula e número."""
+    if not password or len(password) < PASSWORD_MIN_LENGTH:
+        raise ValidationError(f"A senha deve ter ao menos {PASSWORD_MIN_LENGTH} caracteres.")
+    if not PASSWORD_PATTERN.match(password):
+        raise ValidationError(
+            "A senha deve conter pelo menos uma letra maiúscula, "
+            "uma letra minúscula e um número."
+        )
 
 
 def _default_role_id():
@@ -36,8 +49,7 @@ def _validate_registration(name, email, password):
         validate_email(email, check_deliverability=False)
     except EmailNotValidError:
         raise ValidationError("E-mail inválido.")
-    if not password or len(password) < PASSWORD_MIN_LENGTH:
-        raise ValidationError(f"A senha deve ter ao menos {PASSWORD_MIN_LENGTH} caracteres.")
+    _validate_password(password)
 
 
 def authenticate(email, password):
@@ -73,8 +85,7 @@ def register(name, email, password, role_id=None, area_id=None):
 def change_password(user, current_password, new_password):
     if not user.check_password(current_password):
         raise AuthError("Senha atual incorreta.")
-    if not new_password or len(new_password) < PASSWORD_MIN_LENGTH:
-        raise ValidationError(f"A nova senha deve ter ao menos {PASSWORD_MIN_LENGTH} caracteres.")
+    _validate_password(new_password)
     user.set_password(new_password)
     db.session.commit()
     return user

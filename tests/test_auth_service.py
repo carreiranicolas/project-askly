@@ -17,30 +17,44 @@ from app.services.exceptions import AuthError, ConflictError, ValidationError
 def test_register_default_role_e_solicitante(app):
     """Cadastro sem cargo explícito entra como Solicitante (política pública)."""
     with app.app_context():
-        user = auth_service.register("Fulano", "fulano@test.com", "senha123")
+        user = auth_service.register("Fulano", "fulano@test.com", "Senha123")
         assert user.cargo.name == ROLE_SOLICITANTE
 
 
 def test_register_email_duplicado_gera_conflito(app):
     """Não pode haver dois usuários com o mesmo e-mail."""
     with app.app_context():
-        auth_service.register("Ana", "dup@test.com", "senha123")
+        auth_service.register("Ana", "dup@test.com", "Senha123")
         with pytest.raises(ConflictError):
-            auth_service.register("Bia", "dup@test.com", "senha123")
+            auth_service.register("Bia", "dup@test.com", "Senha123")
 
 
 def test_register_email_invalido_gera_validacao(app):
     """E-mail malformado deve ser rejeitado na validação."""
     with app.app_context():
         with pytest.raises(ValidationError):
-            auth_service.register("Fulano", "nao-e-email", "senha123")
+            auth_service.register("Fulano", "nao-e-email", "Senha123")
 
 
 def test_register_senha_curta_gera_validacao(app):
     """Senha abaixo do mínimo (8 caracteres) deve ser rejeitada."""
     with app.app_context():
         with pytest.raises(ValidationError):
-            auth_service.register("Fulano", "curta@test.com", "123")
+            auth_service.register("Fulano", "curta@test.com", "Abc1234")
+
+
+def test_register_senha_fraca_sem_maiuscula_gera_validacao(app):
+    """Senha sem letra maiúscula deve ser rejeitada."""
+    with app.app_context():
+        with pytest.raises(ValidationError):
+            auth_service.register("Fulano", "fraca@test.com", "senha123")
+
+
+def test_register_senha_fraca_sem_numero_gera_validacao(app):
+    """Senha sem número deve ser rejeitada."""
+    with app.app_context():
+        with pytest.raises(ValidationError):
+            auth_service.register("Fulano", "fraca2@test.com", "SenhaForte")
 
 
 def test_authenticate_sucesso(app, make_user):

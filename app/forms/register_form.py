@@ -10,10 +10,14 @@ def get_areas():
     return Categoria.query.filter_by(is_active=True).order_by(Categoria.name).all()
 
 
-class RegistrarUsuario(FlaskForm):
-    # O cargo não é escolhido no cadastro público: todo novo usuário entra como
-    # Solicitante (abre e acompanha os próprios chamados). A promoção a
-    # Atendente ou Admin é feita pelo painel admin (`/admin/usuarios`).
+class RegisterForm(FlaskForm):
+    """Formulário de cadastro público.
+
+    O cargo não é escolhido no cadastro público: todo novo usuário entra como
+    Solicitante (abre e acompanha os próprios chamados). A promoção a
+    Atendente ou Admin é feita pelo painel admin (`/admin/usuarios`).
+    """
+
     name = StringField("Nome Completo", validators=[DataRequired(), Length(min=2, max=100)])
     email = StringField("Email", validators=[DataRequired(), Email(), Length(max=120)])
     password = PasswordField("Senha", validators=[DataRequired(), Length(min=8)])
@@ -29,4 +33,4 @@ class RegistrarUsuario(FlaskForm):
         validators=[DataRequired()],
     )
 
-    submit = SubmitField("Registrar Novo Usuário")
+    submit = SubmitField("Criar conta")

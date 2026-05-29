@@ -169,7 +169,7 @@ def make_user(app, cargo_ids):
     já prontos para autenticar via `api_login`/`web_login`.
     """
 
-    def _make(role="Solicitante", email=None, password="senha123", name="Teste", area=None):
+    def _make(role="Solicitante", email=None, password="Senha123", name="Teste", area=None):
         email = email or f"{role.lower()}@test.com"
         with app.app_context():
             # Converte o nome da área no id correspondente (ou None se não passou).
@@ -189,7 +189,7 @@ def api_login(client):
     <token>` pronto para ser passado nas próximas chamadas de API.
     """
 
-    def _login(email, password="senha123"):
+    def _login(email, password="Senha123"):
         resp = client.post("/api/v1/auth/login", json={"email": email, "password": password})
         token = resp.get_json()["access_token"]
         return {"Authorization": f"Bearer {token}"}
@@ -207,7 +207,7 @@ def web_login(client):
     Retorna a própria resposta do login para quem quiser inspecionar o status.
     """
 
-    def _login(email, password="senha123"):
+    def _login(email, password="Senha123"):
         return client.post(
             "/login",
             data={"email": email, "password": password},

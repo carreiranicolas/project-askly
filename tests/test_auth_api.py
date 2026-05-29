@@ -5,7 +5,7 @@ def test_register_returns_token_and_user(client, cargo_ids):
         json={
             "name": "Maria",
             "email": "maria@test.com",
-            "password": "senha123",
+            "password": "Senha123",
         },
     )
     assert resp.status_code == 201
@@ -22,7 +22,7 @@ def test_register_duplicate_email_conflict(client, make_user, cargo_ids):
         json={
             "name": "Outro",
             "email": "dup@test.com",
-            "password": "senha123",
+            "password": "Senha123",
         },
     )
     assert resp.status_code == 409
@@ -34,7 +34,7 @@ def test_register_invalid_email(client, cargo_ids):
         json={
             "name": "X",
             "email": "naoeumemail",
-            "password": "senha123",
+            "password": "Senha123",
         },
     )
     assert resp.status_code == 400

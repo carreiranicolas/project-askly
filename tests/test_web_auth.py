@@ -5,8 +5,8 @@ def test_cadastro_auto_login(client, areas):
         data={
             "name": "Joao Web",
             "email": "joao@test.com",
-            "password": "senha123",
-            "confirm_password": "senha123",
+            "password": "Senha123",
+            "confirm_password": "Senha123",
             "area": str(areas["RH"]),
         },
         follow_redirects=False,
@@ -33,8 +33,8 @@ def test_cadastro_default_role_is_solicitante(client, areas):
         data={
             "name": "Pessoa RH",
             "email": "pessoa@test.com",
-            "password": "senha123",
-            "confirm_password": "senha123",
+            "password": "Senha123",
+            "confirm_password": "Senha123",
             "area": str(areas["RH"]),
         },
         follow_redirects=False,

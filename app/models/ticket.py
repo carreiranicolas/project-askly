@@ -31,6 +31,13 @@ class StatusEnum(enum.Enum):
 
 class Chamado(db.Model):
     __tablename__ = "chamados"
+    __table_args__ = (
+        db.Index("ix_chamados_status", "status"),
+        db.Index("ix_chamados_category_status", "category_id", "status"),
+        db.Index("ix_chamados_requester", "requester_id"),
+        db.Index("ix_chamados_assignee", "assignee_id"),
+        db.Index("ix_chamados_created_at", "created_at"),
+    )
 
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     title: Mapped[str] = mapped_column(db.String(150), nullable=False)
