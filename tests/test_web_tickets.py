@@ -60,10 +60,21 @@ def test_listar_mostra_chamado_aberto(client, make_user, web_login, catalog):
     email, _ = make_user(role="Solicitante", email="sol@test.com")
     web_login(email)
     _abrir_chamado_web(client, catalog, titulo="Impressora travada")
-    # follow_redirects=True para chegar na página final já renderizada.
     page = client.get("/chamados/", follow_redirects=True)
     assert page.status_code == 200
     assert b"Impressora travada" in page.data
+
+
+def test_listar_filtro_por_status(client, make_user, web_login, catalog):
+    """Filtro de status na listagem web restringe os resultados."""
+    email, _ = make_user(role="Solicitante", email="sol@test.com", area="Infraestrutura")
+    web_login(email)
+    _abrir_chamado_web(client, catalog, titulo="Em atendimento agora")
+    page = client.get("/chamados/?status=FECHADO", follow_redirects=True)
+    assert page.status_code == 200
+    assert b"Em atendimento agora" not in page.data
+    page_ativo = client.get("/chamados/?status=EM_ATENDIMENTO", follow_redirects=True)
+    assert b"Em atendimento agora" in page_ativo.data
 
 
 def test_adicionar_comentario_web(client, make_user, web_login, catalog):
@@ -73,6 +84,31 @@ def test_adicionar_comentario_web(client, make_user, web_login, catalog):
     loc = _abrir_chamado_web(client, catalog).headers["Location"]
     resp = client.post(f"{loc}/comentario", data={"content": "Algum detalhe"})
     assert resp.status_code == 302
+
+
+def test_listar_filtro_sla_atrasado(client, make_user, web_login, catalog, app):
+    """Filtro SLA na listagem web não deve gerar erro e deve listar atrasados."""
+    from datetime import datetime, timedelta, timezone
+
+    from app.extensions import db
+    from app.models.ticket import Chamado
+
+    email, _ = make_user(role="Solicitante", email="sol@test.com", area="Infraestrutura")
+    web_login(email)
+    _abrir_chamado_web(client, catalog, titulo="Chamado atrasado SLA")
+
+    with app.app_context():
+        ticket = Chamado.query.filter_by(title="Chamado atrasado SLA").first()
+        ticket.created_at = datetime.now(timezone.utc) - timedelta(hours=10)
+        db.session.commit()
+
+    page = client.get("/chamados/?sla=atrasado", follow_redirects=True)
+    assert page.status_code == 200
+    assert b"Chamado atrasado SLA" in page.data
+
+    page_ok = client.get("/chamados/?sla=no_prazo", follow_redirects=True)
+    assert page_ok.status_code == 200
+    assert b"Chamado atrasado SLA" not in page_ok.data
 
 
 def test_fluxo_atribuir_e_mudar_status_web(app, client, make_user, web_login, catalog):
@@ -99,6 +135,6 @@ def test_fluxo_atribuir_e_mudar_status_web(app, client, make_user, web_login, ca
 
     status = client.post(
         f"/chamados/{ticket_id}/status",
-        data={"status": StatusEnum.EM_ATENDIMENTO.name, "motivo": "Iniciando"},
+        data={"status": StatusEnum.EM_ESPERA.name, "motivo": "Aguardando cliente"},
     )
     assert status.status_code == 302

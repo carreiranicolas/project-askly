@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy import false, or_
+from sqlalchemy import func, or_
 
 from app.extensions import db
 from app.models.category import Categoria
@@ -10,21 +10,21 @@ from app.models.priority import Prioridade
 from app.models.ticket import Chamado, StatusEnum
 from app.models.user import Usuario
 
-from . import ROLE_ADMIN, ROLE_ATENDENTE, is_staff, role_of
+from . import ROLE_ADMIN, can_manage_ticket, is_admin, role_of
 from .exceptions import NotFoundError, PermissionDenied, ValidationError
 
-# Estados que param a contagem de SLA (trabalho concluído ou chamado encerrado).
-# "Em aberto" no dashboard = qualquer status fora deste conjunto.
-_SLA_STOPPED = (
+# Estados em que o SLA não corre (pausado ou encerrado).
+_SLA_PAUSED = (
+    StatusEnum.EM_ESPERA,
     StatusEnum.AGUARDANDO_APROVACAO,
     StatusEnum.FECHADO,
-    StatusEnum.CANCELADO,
 )
-_ACTIVE = [s for s in StatusEnum if s not in _SLA_STOPPED]
+_SLA_RUNNING = (StatusEnum.EM_ATENDIMENTO,)
+_OPEN = (StatusEnum.EM_ATENDIMENTO, StatusEnum.EM_ESPERA)
 
 
 def parse_status(value):
-    """Aceita o nome do enum (EM_ATENDIMENTO) ou o rótulo (Em Atendimento)."""
+    """Aceita o nome do enum (EM_ATENDIMENTO) ou o rótulo (Em atendimento)."""
     if isinstance(value, StatusEnum):
         return value
     if value is None:
@@ -40,19 +40,15 @@ def parse_status(value):
 
 def allowed_transitions(current):
     """Transições válidas a partir do status atual (máquina de estados)."""
-    if current == StatusEnum.CANCELADO:
-        return []
     if current == StatusEnum.FECHADO:
-        return [StatusEnum.ABERTO]  # reabertura
+        return [StatusEnum.EM_ATENDIMENTO]
     if current == StatusEnum.AGUARDANDO_APROVACAO:
-        # Transições só via aprovar/recusar (quem abriu o chamado).
         return []
-    # Estados ativos: podem ir para outro estado ativo, enviar para aprovação
-    # ou cancelar.
-    return [s for s in _ACTIVE if s != current] + [
-        StatusEnum.AGUARDANDO_APROVACAO,
-        StatusEnum.CANCELADO,
-    ]
+    if current == StatusEnum.EM_ATENDIMENTO:
+        return [StatusEnum.EM_ESPERA, StatusEnum.AGUARDANDO_APROVACAO]
+    if current == StatusEnum.EM_ESPERA:
+        return [StatusEnum.EM_ATENDIMENTO, StatusEnum.AGUARDANDO_APROVACAO]
+    return []
 
 
 # ------------------------------- SLA -------------------------------
@@ -71,7 +67,7 @@ def _now_like(dt):
 
 def is_overdue(ticket):
     deadline = sla_deadline(ticket)
-    if deadline is None or ticket.status in _SLA_STOPPED:
+    if deadline is None or ticket.status in _SLA_PAUSED:
         return False
     return _now_like(deadline) > deadline
 
@@ -81,7 +77,7 @@ def sla_remaining_label(ticket):
     deadline = sla_deadline(ticket)
     if deadline is None:
         return None
-    if ticket.status in _SLA_STOPPED:
+    if ticket.status in _SLA_PAUSED:
         return "SLA pausado"
     delta_h = (deadline - _now_like(deadline)).total_seconds() / 3600
     hours = abs(delta_h)
@@ -100,48 +96,59 @@ def sla_remaining_label(ticket):
 
 # ----------------------------- Consultas -----------------------------
 def _can_view(user, ticket):
-    role = role_of(user)
-    if role == ROLE_ADMIN:
+    if is_admin(user):
         return True
     if ticket.requester_id == user.id:
         return True
-    if role == ROLE_ATENDENTE:
-        return ticket.category_id == user.area_id or ticket.assignee_id == user.id
+    if ticket.assignee_id == user.id:
+        return True
+    if user.area_id is not None and ticket.category_id == user.area_id:
+        return True
     return False
 
 
-def tickets_query(user, tipo=None, categoria_id=None, q=None):
-    """Query de chamados já com RBAC + filtros (para listar/paginar/contar)."""
-    role = role_of(user)
+def tickets_query(user, tipo=None, categoria_id=None, q=None, status=None, priority_id=None, sla=None):
+    """Query de chamados já com RBAC + filtros (para listar/paginar/contar).
+
+    Regra principal: quem tem área vê a fila dela + chamados que abriu;
+    admin vê tudo; sem área vê só os próprios chamados.
+    """
     query = Chamado.query
 
     if tipo == "meus":
-        # Chamados que abri: sempre pelo solicitante, em qualquer área.
-        # Atendentes/admins também podem abrir chamado para outra área e
-        # precisam acompanhar em "Chamados que abri" sem o filtro de área.
         query = query.filter(Chamado.requester_id == user.id)
     elif tipo == "atribuidos":
         query = query.filter(Chamado.assignee_id == user.id)
-        if role == ROLE_ATENDENTE:
-            if user.area_id is None:
-                return query.filter(false())
-            query = query.filter(Chamado.category_id == user.area_id)
-        # Admin: todos os atribuídos; Solicitante: raro, mas assignee_id basta.
-    elif role == ROLE_ADMIN:
-        pass  # admin vê todos
-    elif role == ROLE_ATENDENTE:
-        if user.area_id is None:
-            return query.filter(false())  # sem área => nada
-        query = query.filter(Chamado.category_id == user.area_id)
+    elif is_admin(user):
+        pass
+    elif user.area_id is not None:
+        query = query.filter(
+            or_(
+                Chamado.category_id == user.area_id,
+                Chamado.requester_id == user.id,
+            )
+        )
     else:
-        # Solicitante: lista padrão = só os próprios chamados (qualquer área).
         query = query.filter(Chamado.requester_id == user.id)
 
     if categoria_id:
         query = query.filter(Chamado.category_id == categoria_id)
+    if status:
+        query = query.filter(Chamado.status == parse_status(status))
+    if priority_id:
+        query = query.filter(Chamado.priority_id == priority_id)
+    if sla in ("atrasado", "no_prazo"):
+        query = query.join(Prioridade, Chamado.priority_id == Prioridade.id)
+        # Postgres: make_interval(years, months, weeks, days, hours, …)
+        deadline = Chamado.created_at + func.make_interval(0, 0, 0, 0, Prioridade.sla_hours)
+        now = func.now()
+        active = Chamado.status.in_(_SLA_RUNNING)
+        if sla == "atrasado":
+            query = query.filter(active, Prioridade.sla_hours.isnot(None), deadline < now)
+        else:
+            query = query.filter(or_(~active, Prioridade.sla_hours.is_(None), deadline >= now))
     if q and q.strip():
         term = q.strip()
-        # Permite buscar por ID (com ou sem #) ou por texto no título/descrição.
         if term.startswith("#"):
             term = term[1:]
         if term.isdigit():
@@ -152,8 +159,16 @@ def tickets_query(user, tipo=None, categoria_id=None, q=None):
     return query.order_by(Chamado.created_at.desc())
 
 
-def list_tickets(user, tipo=None, categoria_id=None, q=None):
-    return tickets_query(user, tipo=tipo, categoria_id=categoria_id, q=q).all()
+def list_tickets(user, tipo=None, categoria_id=None, q=None, status=None, priority_id=None, sla=None):
+    return tickets_query(
+        user,
+        tipo=tipo,
+        categoria_id=categoria_id,
+        q=q,
+        status=status,
+        priority_id=priority_id,
+        sla=sla,
+    ).all()
 
 
 def get_ticket(user, ticket_id):
@@ -200,7 +215,7 @@ def create_ticket(user, title, description, category_id, priority_id):
         category_id=category_id,
         priority_id=priority_id,
         requester_id=user.id,
-        status=StatusEnum.ABERTO,
+        status=StatusEnum.EM_ATENDIMENTO,
     )
     db.session.add(ticket)
     db.session.commit()
@@ -243,18 +258,14 @@ def change_status(user, ticket_id, new_status, motivo=None):
             "Este chamado aguarda aprovação de quem abriu. Use Aprovar ou Recusar."
         )
 
-    if ticket.status == StatusEnum.FECHADO and target == StatusEnum.ABERTO:
+    if ticket.status == StatusEnum.FECHADO and target == StatusEnum.EM_ATENDIMENTO:
         if role != ROLE_ADMIN:
             raise PermissionDenied("Apenas administradores podem reabrir chamados fechados.")
 
-    if role not in (ROLE_ATENDENTE, ROLE_ADMIN):
-        # Solicitante só pode cancelar o próprio chamado.
-        if not (ticket.requester_id == user.id and target == StatusEnum.CANCELADO):
-            raise PermissionDenied("Você não pode alterar o status deste chamado.")
+    if not can_manage_ticket(user, ticket):
+        raise PermissionDenied("Você não pode alterar o status deste chamado.")
 
-    # Atribuição obrigatória: não se movimenta um chamado sem responsável.
-    # O cancelamento é exceção (pode encerrar um chamado ainda não atribuído).
-    if ticket.assignee_id is None and target != StatusEnum.CANCELADO:
+    if ticket.assignee_id is None:
         raise ValidationError("Atribua um responsável ao chamado antes de alterar o status.")
 
     _record_transition(user, ticket, target, motivo)
@@ -294,7 +305,7 @@ def reject_resolution(user, ticket_id, motivo=None):
     _record_transition(
         user,
         ticket,
-        StatusEnum.ABERTO,
+        StatusEnum.EM_ATENDIMENTO,
         motivo=motivo or "Solução recusada por quem abriu o chamado.",
         skip_validation=True,
     )
@@ -302,20 +313,15 @@ def reject_resolution(user, ticket_id, motivo=None):
 
 
 def assign_ticket(actor, ticket_id, assignee_id):
-    if not is_staff(actor):
-        raise PermissionDenied("Apenas atendentes ou administradores podem atribuir chamados.")
-    # get_ticket aplica o RBAC de área (atendente só atua na própria área).
     ticket = get_ticket(actor, ticket_id)
+    if not can_manage_ticket(actor, ticket):
+        raise PermissionDenied("Apenas membros da área do chamado podem atribuir responsáveis.")
 
     assignee = db.session.get(Usuario, assignee_id)
     if assignee is None:
         raise ValidationError("Usuário atribuído não existe.")
     if not assignee.is_active:
         raise ValidationError("Não é possível atribuir o chamado a um usuário inativo.")
-    if not is_staff(assignee):
-        raise ValidationError("Só é possível atribuir a atendentes ou administradores.")
-    # Atribuição restrita à área do chamado: o responsável precisa ser da
-    # mesma área em que o chamado foi aberto.
     if assignee.area_id != ticket.category_id:
         raise ValidationError("Só é possível atribuir a usuários da área do chamado.")
 
@@ -365,9 +371,7 @@ def dashboard_metrics(user):
         by_status[t.status.value] = by_status.get(t.status.value, 0) + 1
         area = t.category.name if t.category else "—"
         by_area[area] = by_area.get(area, 0) + 1
-        # "Em aberto" = qualquer status que ainda demanda trabalho (todos menos
-        # aguardando aprovação, fechado e cancelado).
-        if t.status in _ACTIVE:
+        if t.status in _OPEN:
             em_aberto += 1
         if is_overdue(t):
             overdue += 1
@@ -422,7 +426,7 @@ def sla_report(user):
 
     ativos = []
     for t in tickets:
-        if t.status not in _ACTIVE:
+        if t.status not in _SLA_RUNNING:
             continue
         deadline = sla_deadline(t)
         overdue = is_overdue(t)
@@ -443,7 +447,23 @@ def sla_report(user):
                 "remaining_label": label,
             }
         )
-    ativos.sort(key=lambda r: (r["deadline"] is None, r["deadline"] or datetime.max))
+    ativos.sort(key=lambda r: (not r["overdue"], r["deadline"] is None, r["deadline"] or datetime.max))
+
+    atrasados = sum(1 for r in ativos if r["overdue"])
+    vence_24h = 0
+    for r in ativos:
+        if r["overdue"] or r["deadline"] is None:
+            continue
+        delta_h = (r["deadline"] - _now_like(r["deadline"])).total_seconds() / 3600
+        if 0 < delta_h <= 24:
+            vence_24h += 1
+
+    resumo = {
+        "correndo": len(ativos),
+        "atrasados": atrasados,
+        "vence_24h": vence_24h,
+        "sem_responsavel": sum(1 for r in ativos if r["ticket"].assignee_id is None),
+    }
 
     closed = [t for t in tickets if t.status == StatusEnum.FECHADO]
     closed_at = _close_timestamps([t.id for t in closed])
@@ -468,15 +488,16 @@ def sla_report(user):
 
     por_area = []
     for area, b in sorted(buckets.items(), key=lambda kv: kv[0]):
-        avg = b["hours"] / b["count"] if b["count"] else 0
+        count = b["count"]
+        avg = b["hours"] / count if count else 0
         por_area.append(
             {
                 "area": area,
-                "fechados": b["count"],
+                "fechados": count,
                 "avg_hours": avg,
-                "avg_label": _humanize_hours(avg) if b["count"] else "—",
-                "sla_compliance": round(b["within"] / b["count"] * 100) if b["count"] else 0,
+                "avg_label": _humanize_hours(avg) if count else None,
+                "sla_compliance": round(b["within"] / count * 100) if count else None,
             }
         )
 
-    return {"ativos": ativos, "por_area": por_area}
+    return {"ativos": ativos, "por_area": por_area, "resumo": resumo}

@@ -2,27 +2,40 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app.models.ticket import StatusEnum
-from app.services import catalog_service, is_staff, ticket_service, user_service
+from app.services import can_manage_ticket, catalog_service, is_admin, ticket_service, user_service
 from app.services.exceptions import ServiceError
 
 web_tickets_bp = Blueprint("web_tickets", __name__, url_prefix="/chamados")
 
-PER_PAGE = 10
+PER_PAGE = 5
 
 
 def _list_filters():
-    """Filtros da listagem normalizados (usados na query, paginação e busca).
-
-    Aceita ``categoria_id`` (preferido, alinhado com a API) e ``categoria``
-    (legado, mantido para não quebrar bookmarks existentes da sidebar).
-    """
+    """Filtros da listagem normalizados (usados na query, paginação e busca."""
+    status = (request.args.get("status") or "").strip() or None
+    sla = (request.args.get("sla") or "").strip() or None
+    if sla not in (None, "atrasado", "no_prazo"):
+        sla = None
     return {
         "tipo": request.args.get("tipo") or None,
         "categoria_id": (
             request.args.get("categoria_id", type=int) or request.args.get("categoria", type=int)
         ),
+        "status": status if status in StatusEnum.__members__ else None,
+        "priority_id": request.args.get("priority_id", type=int) or None,
+        "sla": sla,
         "q": (request.args.get("q") or "").strip() or None,
     }
+
+
+def _filter_page_args(filters):
+    """Query string preservada na paginação."""
+    args = {}
+    for key in ("tipo", "categoria_id", "status", "priority_id", "sla", "q"):
+        value = filters.get(key)
+        if value:
+            args[key] = value
+    return args
 
 
 @web_tickets_bp.route("/")
@@ -35,12 +48,18 @@ def listar():
         per_page=PER_PAGE,
         error_out=False,
     )
+    user_is_admin = is_admin(current_user)
     return render_template(
         "tickets/listar.html",
         chamados=pagination,
         q=filters["q"] or "",
         filters=filters,
+        filter_page_args=_filter_page_args(filters),
+        categorias=catalog_service.list_categorias(only_active=True) if user_is_admin else [],
+        prioridades=catalog_service.list_prioridades(only_active=True),
+        status_options=list(StatusEnum),
         is_overdue=ticket_service.is_overdue,
+        is_admin=user_is_admin,
     )
 
 
@@ -80,25 +99,16 @@ def detalhe(id):
         flash(exc.message, "danger")
         return redirect(url_for("web_tickets.listar"))
 
-    staff = is_staff(current_user)
-    # Solicitante (não staff) só pode cancelar o próprio chamado enquanto
-    # ele ainda estiver ativo (não fechado/cancelado/aguardando aprovação).
-    pode_cancelar = (
-        not staff
-        and chamado.requester_id == current_user.id
-        and StatusEnum.CANCELADO in ticket_service.allowed_transitions(chamado.status)
-    )
+    pode_gerir = can_manage_ticket(current_user, chamado)
     return render_template(
         "tickets/detalhe.html",
         chamado=chamado,
-        staff=staff,
+        pode_gerir=pode_gerir,
         comentarios=ticket_service.list_comments(current_user, id),
         historico=ticket_service.list_history(current_user, id),
-        status_options=ticket_service.allowed_transitions(chamado.status) if staff else [],
-        # Atribuição restrita à área do chamado.
-        atendentes=user_service.list_staff_for_area(chamado.category_id) if staff else [],
+        status_options=ticket_service.allowed_transitions(chamado.status) if pode_gerir else [],
+        colegas_area=user_service.list_staff_for_area(chamado.category_id) if pode_gerir else [],
         pode_aprovar=ticket_service.can_approve(current_user, chamado),
-        pode_cancelar=pode_cancelar,
         sla_deadline=ticket_service.sla_deadline(chamado),
         sla_overdue=ticket_service.is_overdue(chamado),
         sla_remaining=ticket_service.sla_remaining_label(chamado),

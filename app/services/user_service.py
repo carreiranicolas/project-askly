@@ -6,7 +6,6 @@ from app.models.user import Usuario
 from . import STAFF_ROLES
 from .exceptions import NotFoundError, ValidationError
 
-
 def list_users():
     return Usuario.query.order_by(Usuario.name).all()
 
@@ -18,15 +17,11 @@ def list_staff():
 
 
 def list_staff_for_area(area_id):
-    """Staff ativo (atendentes/admins) de uma área — alvos válidos de
-    atribuição. Usuários inativos são filtrados para não aparecerem no
-    seletor de responsável."""
+    """Usuários ativos da área — alvos válidos de atribuição de chamados."""
     if area_id is None:
         return []
     return (
-        Usuario.query.join(Cargo)
-        .filter(
-            Cargo.name.in_(STAFF_ROLES),
+        Usuario.query.filter(
             Usuario.area_id == area_id,
             Usuario.is_active.is_(True),
         )

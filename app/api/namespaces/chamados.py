@@ -2,9 +2,9 @@ from flask import request
 from flask_restx import Namespace, Resource, fields
 
 from app.api.common import error_model
-from app.api.security import current_user, roles_required, token_required
+from app.api.security import current_user, token_required
 from app.models.ticket import StatusEnum
-from app.services import ROLE_ADMIN, ROLE_ATENDENTE, ticket_service
+from app.services import ticket_service
 
 ns = Namespace("Chamados", description="Chamados, comentários e histórico de status.")
 
@@ -18,7 +18,7 @@ chamado_model = ns.model(
         "description": fields.String(
             example="Recebo erro 500 ao logar no Sankhya desde hoje de manhã."
         ),
-        "status": fields.String(attribute="status.value", example="Aberto"),
+        "status": fields.String(attribute="status.value", example="Em atendimento"),
         "category_id": fields.Integer(example=2),
         "priority_id": fields.Integer(example=3),
         "requester_id": fields.Integer(example=5),
@@ -90,8 +90,8 @@ historico_model = ns.model(
     "HistoricoStatus",
     {
         "id": fields.Integer(readonly=True, example=1),
-        "previous_status": fields.String(example="Aberto"),
-        "new_status": fields.String(example="Em Atendimento"),
+        "previous_status": fields.String(example="Em atendimento"),
+        "new_status": fields.String(example="Em espera"),
         "motivo": fields.String(example="Aguardando retorno do fornecedor."),
         "changed_by_id": fields.Integer(example=8),
         "created_at": fields.DateTime(example="2026-05-26T15:10:00"),
@@ -191,9 +191,9 @@ class ChamadoAssign(Resource):
     @ns.expect(assign_input, validate=True)
     @ns.response(403, "Sem permissão", err)
     @ns.marshal_with(chamado_model)
-    @roles_required(ROLE_ATENDENTE, ROLE_ADMIN)
+    @token_required
     def post(self, ticket_id):
-        """Atribui o chamado a um atendente/admin (staff)."""
+        """Atribui o chamado a um colega da mesma área."""
         d = ns.payload
         return ticket_service.assign_ticket(current_user(), ticket_id, d["assignee_id"])
 

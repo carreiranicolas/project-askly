@@ -9,25 +9,25 @@
       <div class="askly-field" style="margin-bottom: 0;">
         <label class="askly-label">Nome</label>
         <div class="askly-input-wrap">
-          <input class="askly-input" type="text" value="{{ usuario.name }}" readonly />
+          <input class="askly-input askly-input--no-icon" type="text" value="{{ usuario.name }}" readonly />
         </div>
       </div>
       <div class="askly-field" style="margin-bottom: 0;">
         <label class="askly-label">E-mail</label>
         <div class="askly-input-wrap">
-          <input class="askly-input" type="email" value="{{ usuario.email }}" readonly />
+          <input class="askly-input askly-input--no-icon" type="email" value="{{ usuario.email }}" readonly />
         </div>
       </div>
       <div class="askly-field" style="margin-bottom: 0;">
         <label class="askly-label">Cargo</label>
         <div class="askly-input-wrap">
-          <input class="askly-input" type="text" value="{{ usuario.cargo.name if usuario.cargo else '—' }}" readonly />
+          <input class="askly-input askly-input--no-icon" type="text" value="{{ usuario.cargo.name if usuario.cargo else '—' }}" readonly />
         </div>
       </div>
       <div class="askly-field" style="margin-bottom: 0;">
         <label class="askly-label">Área</label>
         <div class="askly-input-wrap">
-          <input class="askly-input" type="text" value="{{ usuario.area.name if usuario.area else '—' }}" readonly />
+          <input class="askly-input askly-input--no-icon" type="text" value="{{ usuario.area.name if usuario.area else '—' }}" readonly />
         </div>
       </div>
     </div>
@@ -40,19 +40,19 @@
       <div class="askly-field">
         <label class="askly-label" for="current_password">Senha atual</label>
         <div class="askly-input-wrap">
-          <input class="askly-input" id="current_password" type="password" name="current_password" required />
+          <input class="askly-input askly-input--no-icon" id="current_password" type="password" name="current_password" required />
         </div>
       </div>
       <div class="askly-field">
         <label class="askly-label" for="new_password">Nova senha</label>
         <div class="askly-input-wrap">
-          <input class="askly-input" id="new_password" type="password" name="new_password" minlength="6" required />
+          <input class="askly-input askly-input--no-icon" id="new_password" type="password" name="new_password" minlength="6" required />
         </div>
       </div>
       <div class="askly-field">
         <label class="askly-label" for="confirm_new_password">Confirmar nova senha</label>
         <div class="askly-input-wrap">
-          <input class="askly-input" id="confirm_new_password" type="password" name="confirm_new_password" minlength="6" required />
+          <input class="askly-input askly-input--no-icon" id="confirm_new_password" type="password" name="confirm_new_password" minlength="6" required />
         </div>
       </div>
       <button class="askly-btn askly-btn--primary" type="submit">Alterar senha</button>

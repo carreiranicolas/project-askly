@@ -4,7 +4,7 @@
 {% block page_title %}{{ chamado.title }}{% endblock %}
 {% block page_actions %}
   <span class="askly-kbd" style="font-size: var(--ask-text-sm); padding: var(--ask-space-2) var(--ask-space-3);">Chamado #{{ chamado.id }}</span>
-  <span class="askly-badge askly-badge--{{ 'info' if chamado.status.name == 'ABERTO' else ('success' if chamado.status.name in ['AGUARDANDO_APROVACAO', 'FECHADO'] else ('neutral' if chamado.status.name == 'CANCELADO' else 'warning')) }}" style="font-size: var(--ask-text-sm); padding: var(--ask-space-2) var(--ask-space-4);">
+  <span class="askly-badge askly-badge--{{ 'info' if chamado.status.name == 'EM_ATENDIMENTO' else ('warning' if chamado.status.name == 'EM_ESPERA' else ('success' if chamado.status.name == 'AGUARDANDO_APROVACAO' else 'neutral')) }}" style="font-size: var(--ask-text-sm); padding: var(--ask-space-2) var(--ask-space-4);">
     {{ chamado.status.value }}
   </span>
   <a class="askly-btn askly-btn--secondary" href="{{ url_for('web_tickets.listar') }}">
@@ -289,8 +289,8 @@
 {% endblock %}
 
 {% block content %}
-  {# Determina se o autor do comentário é staff (atendente/admin) #}
-  {% set staff_roles = ['Atendente', 'Admin'] %}
+  {# Colega da área do chamado (não quem abriu) aparece como equipe #}
+  {% set ticket_area_id = chamado.category_id %}
 
   <!-- ─── Barra de Informações Rápidas ──────────────────────── -->
   <div class="ticket-header-bar askly-stagger">
@@ -365,16 +365,16 @@
 
         <div style="display: flex; flex-direction: column; gap: var(--ask-space-4);">
           {% for c in comentarios %}
-            {% set is_staff = c.author and c.author.cargo and c.author.cargo.name in staff_roles %}
-            <div class="comment {{ 'comment--staff' if is_staff }}">
-              <div class="comment-avatar {{ 'comment-avatar--staff' if is_staff else 'comment-avatar--requester' }}">
+            {% set is_area_peer = c.author and c.author.area_id == ticket_area_id and c.author_id != chamado.requester_id %}
+            <div class="comment {{ 'comment--staff' if is_area_peer }}">
+              <div class="comment-avatar {{ 'comment-avatar--staff' if is_area_peer else 'comment-avatar--requester' }}">
                 {{ c.author.name[:1].upper() if c.author else 'U' }}
               </div>
               <div class="comment-body">
                 <div class="comment-header">
                   <div style="display: flex; align-items: center; gap: var(--ask-space-2);">
                     <span class="comment-author">{{ c.author.name if c.author else 'Usuário' }}</span>
-                    {% if is_staff %}
+                    {% if is_area_peer %}
                       <span class="comment-badge">Equipe</span>
                     {% endif %}
                   </div>
@@ -451,13 +451,13 @@
         </div>
       {% endif %}
 
-      <!-- Passo 1 — Atribuição (somente staff) -->
-      {% if staff %}
+      <!-- Passo 1 — Atribuição (membros da área do chamado) -->
+      {% if pode_gerir %}
         <div class="askly-card" style="padding: var(--ask-space-5);{{ ' border-color: var(--ask-teal-500); border-width: 2px;' if not chamado.assignee }}">
           <h3 class="ticket-section-title">Responsável</h3>
-          {% if atendentes %}
+          {% if colegas_area %}
             <!-- Botão rápido: Assumir para mim -->
-            {% set user_in_list = current_user.id in (atendentes | map(attribute='id') | list) %}
+            {% set user_in_list = current_user.id in (colegas_area | map(attribute='id') | list) %}
             {% if user_in_list and (not chamado.assignee or chamado.assignee_id != current_user.id) %}
               <form method="post" action="{{ url_for('web_tickets.atribuir', id=chamado.id) }}" style="margin-bottom: var(--ask-space-4);">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -477,7 +477,7 @@
               <div class="askly-field">
                 <select class="askly-input askly-input--no-icon" name="atendente_id" required style="font-size: var(--ask-text-sm);">
                   <option value="" disabled {{ 'selected' if not chamado.assignee }}>Selecionar...</option>
-                  {% for a in atendentes %}
+                  {% for a in colegas_area %}
                     <option value="{{ a.id }}" {{ 'selected' if chamado.assignee_id == a.id }}>{{ a.name }}</option>
                   {% endfor %}
                 </select>
@@ -491,31 +491,6 @@
               Nenhum usuário na área <strong>{{ chamado.category.name if chamado.category else '—' }}</strong>.
             </p>
           {% endif %}
-        </div>
-      {% endif %}
-
-      <!-- Solicitante: cancelar o próprio chamado -->
-      {% if pode_cancelar %}
-        <div class="askly-card" style="padding: var(--ask-space-5);">
-          <h3 class="ticket-section-title">Cancelar chamado</h3>
-          <p style="font-size: var(--ask-text-sm); color: var(--ask-gray-600); margin-bottom: var(--ask-space-4); line-height: var(--ask-leading-normal);">
-            Encerre o chamado se não precisar mais de atendimento.
-          </p>
-          <form method="post" action="{{ url_for('web_tickets.alterar_status', id=chamado.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <input type="hidden" name="status" value="CANCELADO" />
-            <div class="askly-field">
-              <input class="askly-input askly-input--no-icon" type="text" name="motivo" placeholder="Motivo (opcional)" maxlength="255" style="font-size: var(--ask-text-sm);" />
-            </div>
-            <button class="askly-btn askly-btn--danger" type="submit"
-                    style="width: 100%; justify-content: center; font-size: var(--ask-text-sm);"
-                    onclick="return confirm('Tem certeza? Esta ação é definitiva.');">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
-              </svg>
-              Cancelar chamado
-            </button>
-          </form>
         </div>
       {% endif %}
 

@@ -41,22 +41,22 @@ def test_list_staff_so_traz_atendentes_e_admins(app, make_user):
 
 
 def test_list_staff_for_area_filtra_area_e_inativos(app, make_user, areas):
-    """O seletor de responsável só pode oferecer staff ATIVO da área do chamado."""
+    """O seletor de responsável oferece todos os usuários ATIVOS da área."""
+    make_user(role="Solicitante", email="rh_sol@test.com", area="RH")
     make_user(role="Atendente", email="rh@test.com", area="RH")
     make_user(role="Atendente", email="infra@test.com", area="Infraestrutura")
     make_user(role="Atendente", email="rh_inativo@test.com", area="RH")
 
     with app.app_context():
-        # Desativa um atendente de RH — ele deve sumir da lista de atribuíveis.
         inativo = Usuario.query.filter_by(email="rh_inativo@test.com").first()
         inativo.is_active = False
         from app.extensions import db
 
         db.session.commit()
 
-        rh_staff = user_service.list_staff_for_area(areas["RH"])
-        emails = {u.email for u in rh_staff}
-        assert emails == {"rh@test.com"}  # só o ativo da área RH
+        rh_users = user_service.list_staff_for_area(areas["RH"])
+        emails = {u.email for u in rh_users}
+        assert emails == {"rh_sol@test.com", "rh@test.com"}
 
 
 def test_list_staff_for_area_sem_area_retorna_vazio(app):

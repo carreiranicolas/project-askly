@@ -13,20 +13,10 @@ if TYPE_CHECKING:
 
 
 class StatusEnum(enum.Enum):
-    # Estados representam o ciclo de vida do chamado.
-    # Ações operacionais (atribuir responsável, mudar área/prioridade) NÃO são
-    # estados — elas têm endpoints próprios e ficam registradas no histórico.
-    ABERTO = "Aberto"
-    EM_ANALISE = "Em Análise"
-    EM_ATENDIMENTO = "Em Atendimento"
-    AGUARDANDO_CLIENTE = "Aguardando Cliente"
-    AGUARDANDO_TECNICO = "Aguardando Técnico"
-    AGUARDANDO_PECA = "Aguardando Peça"
-    ATENDIMENTO_AGENDADO = "Atendimento Agendado"
-    # Antigo "Resolvido": o técnico concluiu e aguarda a aprovação de quem abriu.
-    AGUARDANDO_APROVACAO = "Aguardando Aprovação"
+    EM_ATENDIMENTO = "Em atendimento"
+    EM_ESPERA = "Em espera"
+    AGUARDANDO_APROVACAO = "Aguardando aprovação"
     FECHADO = "Fechado"
-    CANCELADO = "Cancelado"
 
 
 class Chamado(db.Model):
@@ -45,7 +35,9 @@ class Chamado(db.Model):
     priority_id: Mapped[int] = mapped_column(
         db.Integer, db.ForeignKey("prioridades.id"), nullable=False
     )
-    status: Mapped[StatusEnum] = mapped_column(db.Enum(StatusEnum), default=StatusEnum.ABERTO)
+    status: Mapped[StatusEnum] = mapped_column(
+        db.Enum(StatusEnum), default=StatusEnum.EM_ATENDIMENTO
+    )
     requester_id: Mapped[int] = mapped_column(
         db.Integer, db.ForeignKey("usuarios.id"), nullable=False
     )

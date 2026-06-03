@@ -36,7 +36,7 @@ def test_dashboard_metrics_scoped_by_area(app, make_user, areas):
 
 
 def test_dashboard_em_aberto_counts_active_states(app, make_user, areas):
-    """'Em aberto' = qualquer status ativo (não só ABERTO)."""
+    """'Em aberto' = Em atendimento ou Em espera."""
     from app.models.priority import Prioridade
     from app.models.user import Usuario
     from app.services import ticket_service
@@ -59,10 +59,13 @@ def test_dashboard_em_aberto_counts_active_states(app, make_user, areas):
             priority_id=pid,
         )
         ticket_service.assign_ticket(adm, t.id, rh.id)
-        ticket_service.change_status(rh, t.id, "EM_ATENDIMENTO")
 
         m = ticket_service.dashboard_metrics(adm)
-        assert m["abertos"] == 1  # "Em Atendimento" conta como em aberto
+        assert m["abertos"] == 1
+
+        ticket_service.change_status(rh, t.id, "EM_ESPERA")
+        m = ticket_service.dashboard_metrics(adm)
+        assert m["abertos"] == 1
 
         ticket_service.change_status(rh, t.id, "AGUARDANDO_APROVACAO")
         m = ticket_service.dashboard_metrics(adm)
@@ -111,6 +114,62 @@ def test_sla_report_has_expected_shape(app, make_user):
         report = ticket_service.sla_report(adm)
         assert "ativos" in report
         assert "por_area" in report
+        assert "resumo" in report
+        assert set(report["resumo"]) == {"correndo", "atrasados", "vence_24h", "sem_responsavel"}
+
+
+def test_sla_report_resumo_e_areas_sem_fechamento(app, make_user, areas):
+    """Resumo conta SLA correndo; áreas sem fechamento não exibem compliance 0%."""
+    from datetime import datetime, timedelta, timezone
+
+    from app.extensions import db
+    from app.models.priority import Prioridade
+    from app.models.user import Usuario
+    from app.services import ticket_service
+
+    sol_email, _ = make_user(role="Solicitante", email="sol-sla-r@test.com", area="RH")
+    rh_email, _ = make_user(role="Atendente", email="rh-sla-r@test.com", area="RH")
+    adm_email, _ = make_user(role="Admin", email="adm-sla-r@test.com")
+
+    with app.app_context():
+        sol = Usuario.query.filter_by(email=sol_email).first()
+        rh = Usuario.query.filter_by(email=rh_email).first()
+        adm = Usuario.query.filter_by(email=adm_email).first()
+        pid = Prioridade.query.first().id
+
+        t1 = ticket_service.create_ticket(
+            sol, title="Atrasado", description="x", category_id=areas["RH"], priority_id=pid
+        )
+        t1.created_at = datetime.now(timezone.utc) - timedelta(hours=10)
+        db.session.commit()
+
+        t2 = ticket_service.create_ticket(
+            sol, title="Sem dono", description="x", category_id=areas["RH"], priority_id=pid
+        )
+
+        t3 = ticket_service.create_ticket(
+            sol, title="Fechado ok", description="x", category_id=areas["RH"], priority_id=pid
+        )
+        ticket_service.assign_ticket(adm, t3.id, rh.id)
+        ticket_service.change_status(rh, t3.id, "AGUARDANDO_APROVACAO")
+        ticket_service.approve_resolution(sol, t3.id)
+
+        report = ticket_service.sla_report(adm)
+        assert report["resumo"]["correndo"] == 2
+        assert report["resumo"]["atrasados"] == 1
+        assert report["resumo"]["sem_responsavel"] == 2
+
+        rh_area = next(a for a in report["por_area"] if a["area"] == "RH")
+        assert rh_area["fechados"] == 1
+        assert rh_area["sla_compliance"] == 100
+
+        infra = next(a for a in report["por_area"] if a["area"] == "Infraestrutura")
+        assert infra["fechados"] == 0
+        assert infra["sla_compliance"] is None
+
+        com_dados = [a for a in report["por_area"] if a["fechados"]]
+        assert len(com_dados) == 1
+        assert com_dados[0]["area"] == "RH"
 
 
 def test_dashboard_ok_for_logged_user(client, make_user):
@@ -129,6 +188,7 @@ def test_sla_page_requires_admin(client, make_user):
     client.post("/login", data={"email": sol_email, "password": sol_pass})
     assert client.get("/dashboard/sla").status_code == 403
 
+    client.post("/logout")
     client.post("/login", data={"email": adm_email, "password": adm_pass})
     assert client.get("/dashboard/sla").status_code == 200
 
