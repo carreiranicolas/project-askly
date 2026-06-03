@@ -349,8 +349,7 @@ def test_meus_lists_opened_tickets_in_any_area(client, make_user, api_login, are
     ).get_json()
     assert len(meus_tec) == 1
 
-    # Na fila da área (sem tipo), o atendente de RH não vê o próprio chamado
-    # aberto em Infraestrutura — só o que está na área dele.
+    # Na listagem padrão: fila da área + chamados que ele mesmo abriu (mesmo em outra área).
     client.post(
         "/api/v1/chamados",
         json={
@@ -361,8 +360,11 @@ def test_meus_lists_opened_tickets_in_any_area(client, make_user, api_login, are
         },
         headers=tec_headers,
     )
-    fila_rh = client.get("/api/v1/chamados", headers=tec_headers).get_json()
-    assert all(c["category_id"] == areas["RH"] for c in fila_rh)
+    fila_tec = client.get("/api/v1/chamados", headers=tec_headers).get_json()
+    titulos = {c["title"] for c in fila_tec}
+    assert titulos == {"Folha de pagamento", "Servidor fora"}
+    # Chamado de Infra aberto por outro usuário não entra na fila dele.
+    assert "VPN corporativa" not in titulos
 
 
 def test_membros_da_mesma_area_veem_fila(client, make_user, api_login, areas):
