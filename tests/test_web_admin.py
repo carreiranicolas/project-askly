@@ -76,7 +76,7 @@ def test_admin_nao_pode_desativar_propria_conta(app, client, make_user, web_logi
 
     resp = client.post(f"/admin/usuarios/{adm_id}/toggle", follow_redirects=True)
     assert resp.status_code == 200
-    assert b"não pode desativar a própria conta" in resp.data
+    assert "não pode desativar a própria conta".encode() in resp.data
     with app.app_context():
         assert Usuario.query.filter_by(email=adm_email).first().is_active is True
 
