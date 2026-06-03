@@ -42,8 +42,11 @@ def update_user(user_id, name=None, role_id=None, area_id=None, is_active=None):
     if name is not None:
         user.name = name
     if role_id is not None:
-        if db.session.get(Cargo, role_id) is None:
+        cargo = db.session.get(Cargo, role_id)
+        if cargo is None:
             raise ValidationError("Cargo informado não existe.")
+        if cargo.name not in STAFF_ROLES:
+            raise ValidationError("Selecione Admin ou Atendente.")
         user.role_id = role_id
     if area_id is not None:
         if db.session.get(Categoria, area_id) is None:
@@ -51,5 +54,15 @@ def update_user(user_id, name=None, role_id=None, area_id=None, is_active=None):
         user.area_id = area_id
     if is_active is not None:
         user.is_active = is_active
+    db.session.commit()
+    return user
+
+
+def toggle_user_active(actor, user_id):
+    """Ativa ou desativa a conta de um usuário (admin não pode desativar a si)."""
+    if actor.id == user_id:
+        raise ValidationError("Você não pode desativar a própria conta.")
+    user = get_user(user_id)
+    user.is_active = not user.is_active
     db.session.commit()
     return user

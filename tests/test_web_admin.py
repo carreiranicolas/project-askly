@@ -52,6 +52,35 @@ def test_admin_altera_cargo_e_area_de_usuario(app, client, make_user, web_login,
         assert atualizado.area_id == areas["Infraestrutura"]
 
 
+def test_admin_toggle_usuario_desativa_e_reativa(app, client, make_user, web_login):
+    """Admin pode desativar outro usuário e reativá-lo depois."""
+    sol_email, _ = make_user(role="Solicitante", email="sol-toggle@test.com")
+    adm_email, _ = make_user(role="Admin", email="adm-toggle@test.com")
+    web_login(adm_email)
+
+    sol_id = _user_id(app, sol_email)
+    resp = client.post(f"/admin/usuarios/{sol_id}/toggle")
+    assert resp.status_code == 302
+    with app.app_context():
+        assert Usuario.query.filter_by(email=sol_email).first().is_active is False
+
+    client.post(f"/admin/usuarios/{sol_id}/toggle")
+    with app.app_context():
+        assert Usuario.query.filter_by(email=sol_email).first().is_active is True
+
+
+def test_admin_nao_pode_desativar_propria_conta(app, client, make_user, web_login):
+    adm_email, _ = make_user(role="Admin", email="adm-self@test.com")
+    web_login(adm_email)
+    adm_id = _user_id(app, adm_email)
+
+    resp = client.post(f"/admin/usuarios/{adm_id}/toggle", follow_redirects=True)
+    assert resp.status_code == 200
+    assert b"não pode desativar a própria conta" in resp.data
+    with app.app_context():
+        assert Usuario.query.filter_by(email=adm_email).first().is_active is True
+
+
 def test_admin_cria_categoria(app, client, make_user, web_login):
     """Admin cria uma nova área pelo painel; ela passa a existir no banco."""
     adm_email, _ = make_user(role="Admin", email="adm@test.com")

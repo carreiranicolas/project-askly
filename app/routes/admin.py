@@ -1,10 +1,15 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask_login import current_user
 
 from app.routes.decorators import admin_required
-from app.services import catalog_service, user_service
+from app.services import STAFF_ROLES, catalog_service, user_service
 from app.services.exceptions import ServiceError
 
 web_admin_bp = Blueprint("web_admin", __name__, url_prefix="/admin")
+
+
+def _staff_cargos():
+    return [c for c in catalog_service.list_cargos() if c.name in STAFF_ROLES]
 
 
 @web_admin_bp.route("/usuarios")
@@ -13,7 +18,7 @@ def usuarios():
     return render_template(
         "admin/usuarios.html",
         usuarios=user_service.list_users(),
-        cargos=catalog_service.list_cargos(),
+        cargos=_staff_cargos(),
         areas=catalog_service.list_categorias(),
     )
 
@@ -21,13 +26,31 @@ def usuarios():
 @web_admin_bp.route("/usuarios/<int:id>/cargo", methods=["POST"])
 @admin_required
 def alterar_perfil(id):
+    role_id = request.form.get("role_id", type=int)
+    if not role_id:
+        flash("Selecione Admin ou Atendente.", "danger")
+        return redirect(url_for("web_admin.usuarios"))
     try:
         user_service.update_user(
             id,
-            role_id=request.form.get("role_id", type=int),
+            role_id=role_id,
             area_id=request.form.get("area_id", type=int),
         )
         flash("Usuário atualizado.", "success")
+    except ServiceError as exc:
+        flash(exc.message, "danger")
+    return redirect(url_for("web_admin.usuarios"))
+
+
+@web_admin_bp.route("/usuarios/<int:id>/toggle", methods=["POST"])
+@admin_required
+def toggle_usuario(id):
+    try:
+        user = user_service.toggle_user_active(current_user, id)
+        flash(
+            "Usuário desativado." if not user.is_active else "Usuário reativado.",
+            "success",
+        )
     except ServiceError as exc:
         flash(exc.message, "danger")
     return redirect(url_for("web_admin.usuarios"))

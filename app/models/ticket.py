@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 
 class StatusEnum(enum.Enum):
+    EM_ABERTO = "Em aberto"
     EM_ATENDIMENTO = "Em atendimento"
     EM_ESPERA = "Em espera"
     AGUARDANDO_APROVACAO = "Aguardando aprovação"
@@ -36,7 +37,7 @@ class Chamado(db.Model):
         db.Integer, db.ForeignKey("prioridades.id"), nullable=False
     )
     status: Mapped[StatusEnum] = mapped_column(
-        db.Enum(StatusEnum), default=StatusEnum.EM_ATENDIMENTO
+        db.Enum(StatusEnum), default=StatusEnum.EM_ABERTO
     )
     requester_id: Mapped[int] = mapped_column(
         db.Integer, db.ForeignKey("usuarios.id"), nullable=False

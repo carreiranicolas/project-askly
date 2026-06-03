@@ -15,12 +15,13 @@ from .exceptions import NotFoundError, PermissionDenied, ValidationError
 
 # Estados em que o SLA não corre (pausado ou encerrado).
 _SLA_PAUSED = (
+    StatusEnum.EM_ABERTO,
     StatusEnum.EM_ESPERA,
     StatusEnum.AGUARDANDO_APROVACAO,
     StatusEnum.FECHADO,
 )
 _SLA_RUNNING = (StatusEnum.EM_ATENDIMENTO,)
-_OPEN = (StatusEnum.EM_ATENDIMENTO, StatusEnum.EM_ESPERA)
+_OPEN = (StatusEnum.EM_ABERTO, StatusEnum.EM_ATENDIMENTO, StatusEnum.EM_ESPERA)
 
 
 def parse_status(value):
@@ -42,6 +43,8 @@ def allowed_transitions(current):
     """Transições válidas a partir do status atual (máquina de estados)."""
     if current == StatusEnum.FECHADO:
         return [StatusEnum.EM_ATENDIMENTO]
+    if current == StatusEnum.EM_ABERTO:
+        return []
     if current == StatusEnum.AGUARDANDO_APROVACAO:
         return []
     if current == StatusEnum.EM_ATENDIMENTO:
@@ -215,7 +218,7 @@ def create_ticket(user, title, description, category_id, priority_id):
         category_id=category_id,
         priority_id=priority_id,
         requester_id=user.id,
-        status=StatusEnum.EM_ATENDIMENTO,
+        status=StatusEnum.EM_ABERTO,
     )
     db.session.add(ticket)
     db.session.commit()
@@ -258,17 +261,24 @@ def change_status(user, ticket_id, new_status, motivo=None):
             "Este chamado aguarda aprovação de quem abriu. Use Aprovar ou Recusar."
         )
 
+    skip_validation = False
     if ticket.status == StatusEnum.FECHADO and target == StatusEnum.EM_ATENDIMENTO:
         if role != ROLE_ADMIN:
             raise PermissionDenied("Apenas administradores podem reabrir chamados fechados.")
+        if ticket.assignee_id is None:
+            target = StatusEnum.EM_ABERTO
+            skip_validation = True
 
     if not can_manage_ticket(user, ticket):
         raise PermissionDenied("Você não pode alterar o status deste chamado.")
 
+    if ticket.status == StatusEnum.EM_ABERTO:
+        raise ValidationError("Atribua um responsável ao chamado antes de alterar o status.")
+
     if ticket.assignee_id is None:
         raise ValidationError("Atribua um responsável ao chamado antes de alterar o status.")
 
-    _record_transition(user, ticket, target, motivo)
+    _record_transition(user, ticket, target, motivo, skip_validation=skip_validation)
     return ticket
 
 
@@ -326,7 +336,16 @@ def assign_ticket(actor, ticket_id, assignee_id):
         raise ValidationError("Só é possível atribuir a usuários da área do chamado.")
 
     ticket.assignee_id = assignee_id
-    db.session.commit()
+    if ticket.status == StatusEnum.EM_ABERTO:
+        _record_transition(
+            actor,
+            ticket,
+            StatusEnum.EM_ATENDIMENTO,
+            motivo="Responsável atribuído.",
+            skip_validation=True,
+        )
+    else:
+        db.session.commit()
     return ticket
 
 
@@ -426,6 +445,16 @@ def sla_report(user):
 
     ativos = []
     for t in tickets:
+        if t.status == StatusEnum.EM_ABERTO:
+            ativos.append(
+                {
+                    "ticket": t,
+                    "deadline": sla_deadline(t),
+                    "overdue": False,
+                    "remaining_label": "Aguardando atribuição",
+                }
+            )
+            continue
         if t.status not in _SLA_RUNNING:
             continue
         deadline = sla_deadline(t)
@@ -462,7 +491,7 @@ def sla_report(user):
         "correndo": len(ativos),
         "atrasados": atrasados,
         "vence_24h": vence_24h,
-        "sem_responsavel": sum(1 for r in ativos if r["ticket"].assignee_id is None),
+        "sem_responsavel": sum(1 for t in tickets if t.status == StatusEnum.EM_ABERTO),
     }
 
     closed = [t for t in tickets if t.status == StatusEnum.FECHADO]

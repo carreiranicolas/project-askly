@@ -69,6 +69,11 @@ def test_aguardando_aprovacao_nao_permite_transicao_manual(app):
         assert ticket_service.allowed_transitions(StatusEnum.AGUARDANDO_APROVACAO) == []
 
 
+def test_em_aberto_nao_permite_transicao_manual(app):
+    with app.app_context():
+        assert ticket_service.allowed_transitions(StatusEnum.EM_ABERTO) == []
+
+
 def test_em_atendimento_pode_espera_ou_aprovacao(app):
     with app.app_context():
         opcoes = ticket_service.allowed_transitions(StatusEnum.EM_ATENDIMENTO)
@@ -96,7 +101,23 @@ def test_sla_deadline_soma_horas_da_prioridade(app, catalog):
 def test_is_overdue_true_quando_prazo_estourou(app, catalog):
     """Recuando o created_at para 10h atrás (SLA 8h), o chamado fica atrasado."""
     with app.app_context():
-        _, ticket = _novo_chamado(catalog["categoria"], catalog["prioridade"])
+        user, ticket = _novo_chamado(catalog["categoria"], catalog["prioridade"])
+        from app.models.role import Cargo
+
+        tec = auth_service.register(
+            "Tec",
+            "tec-overdue@test.com",
+            "Senha123",
+            Cargo.query.filter_by(name="Atendente").first().id,
+            area_id=catalog["categoria"],
+        )
+        admin = auth_service.register(
+            "Admin",
+            "adm-overdue@test.com",
+            "Senha123",
+            Cargo.query.filter_by(name="Admin").first().id,
+        )
+        ticket_service.assign_ticket(admin, ticket.id, tec.id)
         ticket.created_at = datetime.now(timezone.utc) - timedelta(hours=10)
         db.session.commit()
         assert ticket_service.is_overdue(ticket) is True
@@ -114,6 +135,16 @@ def test_is_overdue_false_em_estado_que_para_o_sla(app, catalog):
         assert ticket_service.sla_remaining_label(ticket) == "SLA pausado"
 
 
+def test_em_aberto_pausa_sla(app, catalog):
+    with app.app_context():
+        _, ticket = _novo_chamado(catalog["categoria"], catalog["prioridade"])
+        ticket.created_at = datetime.now(timezone.utc) - timedelta(hours=10)
+        db.session.commit()
+        assert ticket.status == StatusEnum.EM_ABERTO
+        assert ticket_service.is_overdue(ticket) is False
+        assert ticket_service.sla_remaining_label(ticket) == "SLA pausado"
+
+
 def test_em_espera_pausa_sla(app, catalog):
     with app.app_context():
         _, ticket = _novo_chamado(catalog["categoria"], catalog["prioridade"])
@@ -126,7 +157,7 @@ def test_em_espera_pausa_sla(app, catalog):
 
 # ----------------------------- Dashboard -----------------------------
 def test_dashboard_metrics_conta_abertos(app, catalog):
-    """Um chamado recém-criado (Em atendimento) deve contar como 1 total e 1 em aberto."""
+    """Um chamado recém-criado (Em aberto) deve contar como 1 total e 1 em aberto."""
     with app.app_context():
         user, _ = _novo_chamado(catalog["categoria"], catalog["prioridade"])
         metrics = ticket_service.dashboard_metrics(user)
@@ -139,6 +170,22 @@ def test_filtro_sla_atrasado(app, catalog):
     """Filtro sla=atrasado retorna só chamados em atendimento com prazo estourado."""
     with app.app_context():
         user, ticket = _novo_chamado(catalog["categoria"], catalog["prioridade"])
+        from app.models.role import Cargo
+
+        tec = auth_service.register(
+            "Tec",
+            "tec-filtro@test.com",
+            "Senha123",
+            Cargo.query.filter_by(name="Atendente").first().id,
+            area_id=catalog["categoria"],
+        )
+        admin = auth_service.register(
+            "Admin",
+            "adm-filtro@test.com",
+            "Senha123",
+            Cargo.query.filter_by(name="Admin").first().id,
+        )
+        ticket_service.assign_ticket(admin, ticket.id, tec.id)
         ticket.created_at = datetime.now(timezone.utc) - timedelta(hours=10)
         db.session.commit()
 

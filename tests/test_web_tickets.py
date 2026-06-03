@@ -69,12 +69,14 @@ def test_listar_filtro_por_status(client, make_user, web_login, catalog):
     """Filtro de status na listagem web restringe os resultados."""
     email, _ = make_user(role="Solicitante", email="sol@test.com", area="Infraestrutura")
     web_login(email)
-    _abrir_chamado_web(client, catalog, titulo="Em atendimento agora")
+    _abrir_chamado_web(client, catalog, titulo="Chamado na fila")
     page = client.get("/chamados/?status=FECHADO", follow_redirects=True)
     assert page.status_code == 200
-    assert b"Em atendimento agora" not in page.data
-    page_ativo = client.get("/chamados/?status=EM_ATENDIMENTO", follow_redirects=True)
-    assert b"Em atendimento agora" in page_ativo.data
+    assert b"Chamado na fila" not in page.data
+    page_aberto = client.get("/chamados/?status=EM_ABERTO", follow_redirects=True)
+    assert b"Chamado na fila" in page_aberto.data
+    page_atendimento = client.get("/chamados/?status=EM_ATENDIMENTO", follow_redirects=True)
+    assert b"Chamado na fila" not in page_atendimento.data
 
 
 def test_adicionar_comentario_web(client, make_user, web_login, catalog):
@@ -92,13 +94,19 @@ def test_listar_filtro_sla_atrasado(client, make_user, web_login, catalog, app):
 
     from app.extensions import db
     from app.models.ticket import Chamado
+    from app.services import ticket_service
 
-    email, _ = make_user(role="Solicitante", email="sol@test.com", area="Infraestrutura")
-    web_login(email)
+    sol_email, _ = make_user(role="Solicitante", email="sol@test.com", area="Infraestrutura")
+    tec_email, _ = make_user(role="Atendente", email="tec-sla@test.com", area="Infraestrutura")
+    adm_email, _ = make_user(role="Admin", email="adm-sla@test.com")
+    web_login(sol_email)
     _abrir_chamado_web(client, catalog, titulo="Chamado atrasado SLA")
 
     with app.app_context():
         ticket = Chamado.query.filter_by(title="Chamado atrasado SLA").first()
+        adm = Usuario.query.filter_by(email=adm_email).first()
+        tec = Usuario.query.filter_by(email=tec_email).first()
+        ticket_service.assign_ticket(adm, ticket.id, tec.id)
         ticket.created_at = datetime.now(timezone.utc) - timedelta(hours=10)
         db.session.commit()
 

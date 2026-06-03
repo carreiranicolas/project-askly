@@ -123,7 +123,7 @@
                 <a href="{{ url_for('web_tickets.detalhe', id=c.id) }}">{{ c.title }}</a>
               </td>
               <td>
-                <span class="askly-badge askly-badge--{{ 'info' if c.status.name == 'EM_ATENDIMENTO' else ('warning' if c.status.name == 'EM_ESPERA' else ('success' if c.status.name == 'AGUARDANDO_APROVACAO' else 'neutral')) }}">
+                <span class="askly-badge askly-badge--{{ 'neutral' if c.status.name == 'EM_ABERTO' else ('info' if c.status.name == 'EM_ATENDIMENTO' else ('warning' if c.status.name == 'EM_ESPERA' else ('success' if c.status.name == 'AGUARDANDO_APROVACAO' else 'neutral'))) }}">
                   {{ c.status.value }}
                 </span>
               </td>

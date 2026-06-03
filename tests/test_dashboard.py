@@ -36,7 +36,7 @@ def test_dashboard_metrics_scoped_by_area(app, make_user, areas):
 
 
 def test_dashboard_em_aberto_counts_active_states(app, make_user, areas):
-    """'Em aberto' = Em atendimento ou Em espera."""
+    """'Em aberto' inclui Em aberto, Em atendimento e Em espera."""
     from app.models.priority import Prioridade
     from app.models.user import Usuario
     from app.services import ticket_service
@@ -58,8 +58,11 @@ def test_dashboard_em_aberto_counts_active_states(app, make_user, areas):
             category_id=areas["RH"],
             priority_id=pid,
         )
-        ticket_service.assign_ticket(adm, t.id, rh.id)
 
+        m = ticket_service.dashboard_metrics(adm)
+        assert m["abertos"] == 1
+
+        ticket_service.assign_ticket(adm, t.id, rh.id)
         m = ticket_service.dashboard_metrics(adm)
         assert m["abertos"] == 1
 
@@ -97,10 +100,29 @@ def test_fresh_ticket_is_not_overdue(app, make_user, areas):
         )
         assert ticket_service.is_overdue(db.session.get(Chamado, t.id)) is False
 
-        # Forçar criação bem no passado deve, sim, marcar como atrasado.
+        # SLA só corre após atribuição (Em atendimento).
         old = db.session.get(Chamado, t.id)
         old.created_at = datetime.now(timezone.utc) - timedelta(hours=5)
         db.session.commit()
+        assert ticket_service.is_overdue(db.session.get(Chamado, t.id)) is False
+
+        from app.models.role import Cargo
+        from app.services import auth_service
+
+        rh_adm = auth_service.register(
+            "Admin RH",
+            "adm-sla-rh@test.com",
+            "Senha123",
+            Cargo.query.filter_by(name="Admin").first().id,
+        )
+        rh_tec = auth_service.register(
+            "Tec RH",
+            "tec-sla-rh@test.com",
+            "Senha123",
+            Cargo.query.filter_by(name="Atendente").first().id,
+            area_id=areas["RH"],
+        )
+        ticket_service.assign_ticket(rh_adm, t.id, rh_tec.id)
         assert ticket_service.is_overdue(db.session.get(Chamado, t.id)) is True
 
 
@@ -156,8 +178,14 @@ def test_sla_report_resumo_e_areas_sem_fechamento(app, make_user, areas):
 
         report = ticket_service.sla_report(adm)
         assert report["resumo"]["correndo"] == 2
-        assert report["resumo"]["atrasados"] == 1
+        assert report["resumo"]["atrasados"] == 0
         assert report["resumo"]["sem_responsavel"] == 2
+
+        ticket_service.assign_ticket(adm, t1.id, rh.id)
+        report = ticket_service.sla_report(adm)
+        assert report["resumo"]["correndo"] == 2
+        assert report["resumo"]["atrasados"] == 1
+        assert report["resumo"]["sem_responsavel"] == 1
 
         rh_area = next(a for a in report["por_area"] if a["area"] == "RH")
         assert rh_area["fechados"] == 1

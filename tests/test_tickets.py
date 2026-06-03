@@ -18,11 +18,11 @@ def _user_id(app, email):
         return Usuario.query.filter_by(email=email).first().id
 
 
-def test_create_ticket_starts_em_atendimento(client, make_user, api_login, catalog):
+def test_create_ticket_starts_em_aberto(client, make_user, api_login, catalog):
     email, _ = make_user(role="Solicitante", email="sol@test.com")
     resp = _create_ticket(client, api_login(email), catalog)
     assert resp.status_code == 201
-    assert resp.get_json()["status"] == "Em atendimento"
+    assert resp.get_json()["status"] == "Em aberto"
 
 
 def test_solicitante_fora_da_area_nao_altera_status(client, make_user, api_login, areas):
@@ -116,9 +116,11 @@ def test_admin_change_status_records_history(app, client, make_user, api_login, 
     assert resp.get_json()["status"] == "Em espera"
 
     history = client.get(f"/api/v1/chamados/{tid}/historico", headers=adm_headers).get_json()
-    assert len(history) == 1
-    assert history[0]["previous_status"] == "Em atendimento"
-    assert history[0]["new_status"] == "Em espera"
+    assert len(history) == 2
+    assert history[0]["previous_status"] == "Em aberto"
+    assert history[0]["new_status"] == "Em atendimento"
+    assert history[1]["previous_status"] == "Em atendimento"
+    assert history[1]["new_status"] == "Em espera"
 
 
 def test_atendente_sees_only_own_area(client, make_user, api_login, areas):
@@ -164,7 +166,7 @@ def test_status_change_records_motivo(app, client, make_user, api_login, catalog
     )
     assert resp.status_code == 200
     hist = client.get(f"/api/v1/chamados/{tid}/historico", headers=adm_headers).get_json()
-    assert hist[0]["motivo"] == "Iniciando atendimento"
+    assert hist[1]["motivo"] == "Iniciando atendimento"
 
 
 def test_invalid_transition_rejected(app, client, make_user, api_login, catalog):

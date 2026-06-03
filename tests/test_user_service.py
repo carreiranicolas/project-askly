@@ -89,6 +89,35 @@ def test_update_user_cargo_inexistente_gera_validacao(app, make_user):
             user_service.update_user(uid, role_id=999999)
 
 
+def test_update_user_rejeita_cargo_solicitante(app, make_user, cargo_ids):
+    """No painel admin só Admin e Atendente são cargos válidos."""
+    import pytest
+
+    from app.models.user import Usuario
+    from app.services import user_service
+    from app.services.exceptions import ValidationError
+
+    make_user(role="Solicitante", email="sol-role@test.com")
+    with app.app_context():
+        uid = Usuario.query.filter_by(email="sol-role@test.com").first().id
+        with pytest.raises(ValidationError):
+            user_service.update_user(uid, role_id=cargo_ids["Solicitante"])
+
+
+def test_toggle_user_active_bloqueia_proprio_usuario(app, make_user):
+    import pytest
+
+    from app.models.user import Usuario
+    from app.services import user_service
+    from app.services.exceptions import ValidationError
+
+    adm_email, _ = make_user(role="Admin", email="adm-toggle-svc@test.com")
+    with app.app_context():
+        adm = Usuario.query.filter_by(email=adm_email).first()
+        with pytest.raises(ValidationError):
+            user_service.toggle_user_active(adm, adm.id)
+
+
 def test_update_user_area_inexistente_gera_validacao(app, make_user):
     """Passar um area_id que não existe deve falhar com ValidationError."""
     make_user(role="Atendente", email="tec@test.com", area="RH")

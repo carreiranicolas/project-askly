@@ -4,7 +4,7 @@
 {% block page_title %}{{ chamado.title }}{% endblock %}
 {% block page_actions %}
   <span class="askly-kbd" style="font-size: var(--ask-text-sm); padding: var(--ask-space-2) var(--ask-space-3);">Chamado #{{ chamado.id }}</span>
-  <span class="askly-badge askly-badge--{{ 'info' if chamado.status.name == 'EM_ATENDIMENTO' else ('warning' if chamado.status.name == 'EM_ESPERA' else ('success' if chamado.status.name == 'AGUARDANDO_APROVACAO' else 'neutral')) }}" style="font-size: var(--ask-text-sm); padding: var(--ask-space-2) var(--ask-space-4);">
+  <span class="askly-badge askly-badge--{{ 'neutral' if chamado.status.name == 'EM_ABERTO' else ('info' if chamado.status.name == 'EM_ATENDIMENTO' else ('warning' if chamado.status.name == 'EM_ESPERA' else ('success' if chamado.status.name == 'AGUARDANDO_APROVACAO' else 'neutral'))) }}" style="font-size: var(--ask-text-sm); padding: var(--ask-space-2) var(--ask-space-4);">
     {{ chamado.status.value }}
   </span>
   <a class="askly-btn askly-btn--secondary" href="{{ url_for('web_tickets.listar') }}">
