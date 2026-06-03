@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: cd-${{ github.ref }}
+  group: cd-deploy
   cancel-in-progress: true
 
 jobs:
@@ -51,29 +51,66 @@ jobs:
 
   deploy:
     needs: build-and-push
-    if: ${{ needs.build-and-push.result == 'success' && vars.ENABLE_CD_DEPLOY == 'true' }}
-    runs-on: ubuntu-latest
-    environment: production
+    if: ${{ needs.build-and-push.result == 'success' }}
+    runs-on: self-hosted
 
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Login no Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Pull e docker run
         env:
-          ASKLY_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/asklyapp:latest
-          DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: ASKLY_IMAGE,DOCKERHUB_USER,DOCKERHUB_TOKEN
-          script: |
-            set -e
-            cd "${{ secrets.DEPLOY_PATH }}"
-            if [ -n "$DOCKERHUB_TOKEN" ]; then
-              echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
+          IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/asklyapp:latest
+          CONTAINER_NAME: ${{ vars.ASKLY_CONTAINER_NAME || 'askly_app' }}
+          APP_PORT: ${{ vars.APP_PORT || '8000' }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ vars.POSTGRES_PORT || '5432' }}
+        run: |
+          set -euo pipefail
+
+          docker pull "$IMAGE"
+
+          docker stop "$CONTAINER_NAME" 2>/dev/null || true
+          docker rm "$CONTAINER_NAME" 2>/dev/null || true
+
+          docker run -d \
+            --name "$CONTAINER_NAME" \
+            --restart unless-stopped \
+            -p "${APP_PORT}:8000" \
+            --add-host=host.docker.internal:host-gateway \
+            -e SECRET_KEY="$SECRET_KEY" \
+            -e POSTGRES_USER="$POSTGRES_USER" \
+            -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
+            -e POSTGRES_DB="$POSTGRES_DB" \
+            -e POSTGRES_HOST="$POSTGRES_HOST" \
+            -e POSTGRES_PORT="$POSTGRES_PORT" \
+            -e FLASK_APP=app \
+            -e FLASK_DEBUG=0 \
+            -e FORCE_HTTPS="${{ vars.FORCE_HTTPS || '1' }}" \
+            -e SESSION_COOKIE_SECURE="${{ vars.SESSION_COOKIE_SECURE || '1' }}" \
+            -e APP_TIMEZONE="${{ vars.APP_TIMEZONE || 'America/Sao_Paulo' }}" \
+            -e RATELIMIT_STORAGE_URI="${{ vars.RATELIMIT_STORAGE_URI || 'memory://' }}" \
+            -e GUNICORN_WORKERS="${{ vars.GUNICORN_WORKERS || '3' }}" \
+            "$IMAGE"
+
+          docker image prune -f
+
+      - name: Health check
+        env:
+          APP_PORT: ${{ vars.APP_PORT || '8000' }}
+          CONTAINER_NAME: ${{ vars.ASKLY_CONTAINER_NAME || 'askly_app' }}
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS "http://127.0.0.1:${APP_PORT}/health" >/dev/null; then
+              echo "Askly respondeu em /health"
+              exit 0
             fi
-            export ASKLY_IMAGE
-            docker compose -f docker-compose.prod.yml pull app
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            docker image prune -f
+            sleep 2
+          done
+          echo "Container subiu, mas /health não respondeu a tempo"
+          docker logs "$CONTAINER_NAME" || true
+          exit 1
