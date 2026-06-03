@@ -121,6 +121,18 @@ def test_dashboard_ok_for_logged_user(client, make_user):
     assert "Dashboard" in resp.get_data(as_text=True)
 
 
+def test_sla_page_requires_admin(client, make_user):
+    """SLA & Métricas é restrito a administradores."""
+    adm_email, adm_pass = make_user(role="Admin", email="adm-sla-page@test.com")
+    sol_email, sol_pass = make_user(role="Solicitante", email="sol-sla-page@test.com")
+
+    client.post("/login", data={"email": sol_email, "password": sol_pass})
+    assert client.get("/dashboard/sla").status_code == 403
+
+    client.post("/login", data={"email": adm_email, "password": adm_pass})
+    assert client.get("/dashboard/sla").status_code == 200
+
+
 def test_web_search_filters(client, make_user, api_login, catalog):
     email, password = make_user(role="Solicitante", email="sol@test.com")
     headers = api_login(email)

@@ -1,23 +1,10 @@
-from functools import wraps
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
-from flask_login import current_user, login_required
-
-from app.services import ROLE_ADMIN, catalog_service, role_of, user_service
+from app.routes.decorators import admin_required
+from app.services import catalog_service, user_service
 from app.services.exceptions import ServiceError
 
 web_admin_bp = Blueprint("web_admin", __name__, url_prefix="/admin")
-
-
-def admin_required(fn):
-    @wraps(fn)
-    @login_required
-    def wrapper(*args, **kwargs):
-        if role_of(current_user) != ROLE_ADMIN:
-            abort(403)
-        return fn(*args, **kwargs)
-
-    return wrapper
 
 
 @web_admin_bp.route("/usuarios")

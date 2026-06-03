@@ -15,6 +15,7 @@
       </div>
 
       <nav class="askly-sidebar-nav">
+        {% set is_admin = current_user.is_authenticated and current_user.cargo.name == 'Admin' %}
         <a href="{{ url_for('web_dashboard.index') }}" class="askly-nav-item {{ 'is-active' if request.endpoint == 'web_dashboard.index' else '' }}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="7" height="9"></rect>
@@ -24,6 +25,7 @@
           </svg>
           Dashboard
         </a>
+        {% if is_admin %}
         <a href="{{ url_for('web_dashboard.sla') }}" class="askly-nav-item {{ 'is-active' if request.endpoint == 'web_dashboard.sla' else '' }}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="13" r="8"></circle>
@@ -33,6 +35,7 @@
           </svg>
           SLA &amp; Métricas
         </a>
+        {% endif %}
 
         <div class="askly-nav-divider">Meus Chamados</div>
         <a href="{{ url_for('web_tickets.listar', tipo='meus') }}" class="askly-nav-item {{ 'is-active' if request.endpoint == 'web_tickets.listar' and request.args.get('tipo') == 'meus' else '' }}">
@@ -61,7 +64,6 @@
         </a>
 
         {# Admin enxerga todas as áreas; demais usuários, apenas a própria. #}
-        {% set is_admin = current_user.is_authenticated and current_user.cargo.name == 'Admin' %}
         {% set sidebar_areas = get_categorias() if is_admin else ([current_user.area] if (current_user.is_authenticated and current_user.area) else []) %}
 
         {% if sidebar_areas %}

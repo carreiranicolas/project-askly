@@ -86,6 +86,20 @@ def test_authenticate_conta_desativada_e_bloqueada(app, make_user):
             auth_service.authenticate(email, password)
 
 
+def test_authenticate_area_desativada_e_bloqueada(app, make_user, areas):
+    """Usuário de área inativa não autentica (exceto Admin)."""
+    email, password = make_user(role="Atendente", email="area-off@test.com", area="RH")
+    with app.app_context():
+        from app.extensions import db
+        from app.models.category import Categoria
+
+        area = Categoria.query.filter_by(name="RH").first()
+        area.is_active = False
+        db.session.commit()
+        with pytest.raises(AuthError, match="área está desativada"):
+            auth_service.authenticate(email, password)
+
+
 def test_change_password_exige_senha_atual_correta(app, make_user):
     """Trocar a senha informando a senha atual ERRADA deve falhar."""
     email, _ = make_user(role="Solicitante", email="cp@test.com")

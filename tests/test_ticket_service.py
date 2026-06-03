@@ -67,11 +67,10 @@ def test_fechado_so_permite_reabrir(app):
         assert ticket_service.allowed_transitions(StatusEnum.FECHADO) == [StatusEnum.ABERTO]
 
 
-def test_aguardando_aprovacao_fecha_ou_reabre(app):
-    """De AGUARDANDO_APROVACAO: aprovar (-> Fechado) ou reabrir (-> Aberto)."""
+def test_aguardando_aprovacao_nao_permite_transicao_manual(app):
+    """De AGUARDANDO_APROVACAO só aprovar/recusar (quem abriu) alteram o status."""
     with app.app_context():
-        opcoes = ticket_service.allowed_transitions(StatusEnum.AGUARDANDO_APROVACAO)
-        assert set(opcoes) == {StatusEnum.FECHADO, StatusEnum.ABERTO}
+        assert ticket_service.allowed_transitions(StatusEnum.AGUARDANDO_APROVACAO) == []
 
 
 def test_estado_ativo_pode_cancelar_e_enviar_para_aprovacao(app):

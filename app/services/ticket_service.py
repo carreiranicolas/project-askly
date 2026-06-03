@@ -45,8 +45,8 @@ def allowed_transitions(current):
     if current == StatusEnum.FECHADO:
         return [StatusEnum.ABERTO]  # reabertura
     if current == StatusEnum.AGUARDANDO_APROVACAO:
-        # Quem abriu aprova (-> Fechado); o staff pode reabrir se necessário.
-        return [StatusEnum.FECHADO, StatusEnum.ABERTO]
+        # Transições só via aprovar/recusar (quem abriu o chamado).
+        return []
     # Estados ativos: podem ir para outro estado ativo, enviar para aprovação
     # ou cancelar.
     return [s for s in _ACTIVE if s != current] + [
@@ -207,9 +207,9 @@ def create_ticket(user, title, description, category_id, priority_id):
     return ticket
 
 
-def _record_transition(user, ticket, target, motivo=None):
+def _record_transition(user, ticket, target, motivo=None, *, skip_validation=False):
     """Aplica a transição validando a máquina de estados e gera auditoria."""
-    if target not in allowed_transitions(ticket.status):
+    if not skip_validation and target not in allowed_transitions(ticket.status):
         raise ValidationError(
             f"Transição inválida: de '{ticket.status.value}' para '{target.value}'."
         )
@@ -236,7 +236,18 @@ def change_status(user, ticket_id, new_status, motivo=None):
     if ticket.status == target:
         raise ValidationError("O chamado já está nesse status.")
 
-    if role_of(user) not in (ROLE_ATENDENTE, ROLE_ADMIN):
+    role = role_of(user)
+
+    if ticket.status == StatusEnum.AGUARDANDO_APROVACAO:
+        raise PermissionDenied(
+            "Este chamado aguarda aprovação de quem abriu. Use Aprovar ou Recusar."
+        )
+
+    if ticket.status == StatusEnum.FECHADO and target == StatusEnum.ABERTO:
+        if role != ROLE_ADMIN:
+            raise PermissionDenied("Apenas administradores podem reabrir chamados fechados.")
+
+    if role not in (ROLE_ATENDENTE, ROLE_ADMIN):
         # Solicitante só pode cancelar o próprio chamado.
         if not (ticket.requester_id == user.id and target == StatusEnum.CANCELADO):
             raise PermissionDenied("Você não pode alterar o status deste chamado.")
@@ -272,6 +283,7 @@ def approve_resolution(user, ticket_id, motivo=None):
         ticket,
         StatusEnum.FECHADO,
         motivo=motivo or "Solução aprovada por quem abriu o chamado.",
+        skip_validation=True,
     )
     return ticket
 
@@ -284,6 +296,7 @@ def reject_resolution(user, ticket_id, motivo=None):
         ticket,
         StatusEnum.ABERTO,
         motivo=motivo or "Solução recusada por quem abriu o chamado.",
+        skip_validation=True,
     )
     return ticket
 

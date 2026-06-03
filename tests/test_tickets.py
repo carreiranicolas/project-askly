@@ -216,6 +216,15 @@ def test_approval_closes_ticket(app, client, make_user, api_login, areas):
 
     # Quem não abriu o chamado não pode aprovar.
     assert client.post(f"/api/v1/chamados/{tid}/aprovar", headers=adm_headers).status_code == 403
+    # Staff não pode fechar manualmente enquanto aguarda aprovação.
+    assert (
+        client.post(
+            f"/api/v1/chamados/{tid}/status",
+            json={"status": "FECHADO"},
+            headers=adm_headers,
+        ).status_code
+        == 403
+    )
     # Quem abriu aprova: o chamado fecha automaticamente.
     resp = client.post(f"/api/v1/chamados/{tid}/aprovar", headers=sol_headers)
     assert resp.status_code == 200

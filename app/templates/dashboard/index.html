@@ -33,6 +33,7 @@
       </table>
     </div>
 
+    {% if show_por_area %}
     <div class="askly-card" style="padding: var(--ask-space-6);">
       <h3 style="font-size: var(--ask-text-sm); color: var(--ask-gray-500); text-transform: uppercase; letter-spacing: var(--ask-tracking-wide); margin-bottom: var(--ask-space-4); font-weight: 600;">Por área</h3>
       <table class="askly-table">
@@ -45,5 +46,6 @@
         </tbody>
       </table>
     </div>
+    {% endif %}
   </div>
 {% endblock %}

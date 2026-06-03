@@ -8,7 +8,7 @@ from app.models.category import Categoria
 from app.models.role import Cargo
 from app.models.user import Usuario
 
-from . import ROLE_SOLICITANTE
+from . import ROLE_ADMIN, ROLE_SOLICITANTE
 from .exceptions import AuthError, ConflictError, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -26,6 +26,17 @@ def _validate_password(password):
             "A senha deve conter pelo menos uma letra maiúscula, "
             "uma letra minúscula e um número."
         )
+
+
+def _ensure_user_area_active(user):
+    """Bloqueia login de não-admins vinculados a uma área desativada."""
+    if user.cargo is not None and user.cargo.name == ROLE_ADMIN:
+        return
+    if user.area_id is None:
+        return
+    area = db.session.get(Categoria, user.area_id)
+    if area is not None and not area.is_active:
+        raise AuthError("Sua área está desativada. Procure um administrador.")
 
 
 def _default_role_id():
@@ -60,6 +71,7 @@ def authenticate(email, password):
     if not user.is_active:
         logger.warning("Tentativa de login em conta desativada: %s (user_id=%s)", email, user.id)
         raise AuthError("Sua conta está desativada. Procure um administrador.")
+    _ensure_user_area_active(user)
     logger.info("Login bem-sucedido: %s (user_id=%s)", email, user.id)
     return user
 
